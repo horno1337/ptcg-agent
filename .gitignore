@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+submission.tar.gz
+replay*.html
+.claude/settings.local.json
