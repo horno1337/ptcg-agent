@@ -102,9 +102,77 @@ class ObsView:
     def turn(self) -> int:
         return self.current.get("turn", 0) if self.current else 0
 
+    @property
+    def my_deck_count(self) -> int | None:
+        me = self.me
+        return me.get("deckCount") if me else None
+
+    @property
+    def my_hand_count(self) -> int:
+        me = self.me
+        if not me:
+            return 0
+        hc = me.get("handCount")
+        return hc if isinstance(hc, int) else len(me.get("hand") or [])
+
+    @property
+    def select_deck(self) -> list | None:
+        """Revealed deck list during deck-search selects (select["deck"])."""
+        return self.select.get("deck") if self.select else None
+
+    @property
+    def effect_card_id(self) -> int | None:
+        """Card whose effect caused this select (the trainer/ability resolving)."""
+        eff = self.select.get("effect") if self.select else None
+        return eff.get("id") if isinstance(eff, dict) else None
+
+    def _player_area(self, player_index: int, key: str) -> list:
+        players = (self.current or {}).get("players") or []
+        if 0 <= player_index < len(players):
+            return players[player_index].get(key) or []
+        return []
+
+    def board_entry(self, area: int | None, index: int | None,
+                    player_index: int | None = None) -> dict | None:
+        """Live in-play Pokémon dict (hp, energies, ...) for an active/bench slot."""
+        key = {AREA_ACTIVE: "active", AREA_BENCH: "bench"}.get(area)
+        if key is None or index is None:
+            return None
+        p = self.my_index if player_index is None else player_index
+        lst = self._player_area(p, key)
+        e = lst[index] if 0 <= index < len(lst) else None
+        return e if isinstance(e, dict) else None
+
+    def option_board_entry(self, opt: dict) -> dict | None:
+        return self.board_entry(opt.get("area"), opt.get("index"),
+                                opt.get("playerIndex", self.my_index))
+
     def option_card_id(self, opt: dict) -> int | None:
-        """Best-effort card id referenced by an option (may be None)."""
-        return opt.get("cardId")
+        """Card id an option refers to, resolved via (area, index, playerIndex).
+
+        Deck-area options resolve through select["deck"], which the engine
+        reveals to the searching player. Unknown/hidden cards give None.
+        """
+        if "cardId" in opt:
+            return opt.get("cardId")
+        area, idx = opt.get("area"), opt.get("index")
+        if idx is None or not isinstance(idx, int):
+            return None
+        p = opt.get("playerIndex", self.my_index)
+        if area == AREA_DECK:
+            deck = self.select_deck or []
+            entry = deck[idx] if 0 <= idx < len(deck) else None
+        elif area in (AREA_ACTIVE, AREA_BENCH):
+            entry = self.board_entry(area, idx, p)
+        elif area == AREA_HAND:
+            lst = self._player_area(p, "hand")
+            entry = lst[idx] if 0 <= idx < len(lst) else None
+        elif area == AREA_DISCARD:
+            lst = self._player_area(p, "discard")
+            entry = lst[idx] if 0 <= idx < len(lst) else None
+        else:
+            entry = None
+        return entry.get("id") if isinstance(entry, dict) else None
 
     def hand_card_id(self, hand_index: int) -> int | None:
         me = self.me
