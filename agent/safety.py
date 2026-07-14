@@ -9,7 +9,9 @@ An invalid action or a crash is an instant game loss on the ladder, so this
 module is the one place where paranoia is the point.
 """
 
+import sys
 import time
+import traceback
 from . import policy
 
 _TOTAL_BUDGET_S = 600.0        # 10 min per player per game
@@ -68,6 +70,9 @@ def agent(obs: dict) -> list[int]:
             action = policy.decide(obs)
         action = _repair(action, obs)
     except Exception:
+        # stderr shows up in the kaggle episode Agent Logs: a run of these
+        # means the policy is systematically failing on ladder obs
+        traceback.print_exc(file=sys.stderr)
         try:
             action = _fallback(obs)
         except Exception:
