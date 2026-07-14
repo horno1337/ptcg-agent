@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>visualizer</title>
+</head>
+<body>
+    <div>Choose the JSON file you wish to play.</div>
+    <input type="file" id="fileInput">
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const obj = JSON.parse(e.target.result)
+
+                    const input = document.createElement("input")
+                    input.type = "hidden"
+                    input.name = "json"
+                    if ("steps" in obj) {
+                        input.value = JSON.stringify(obj["steps"][0][0]["visualize"])
+                    } else {
+                        input.value = e.target.result
+                    }
+
+                    const form = document.createElement("form")
+                    form.method = "POST"
+                    form.action = "https://ptcgvis.heroz.jp/Visualizer/Replay/0"
+                    form.target = "_blank"
+                    form.appendChild(input)
+
+                    document.body.appendChild(form)
+                    form.submit()
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>
