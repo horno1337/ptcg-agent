@@ -15,6 +15,16 @@ for layout, agent contract, and submission steps.
 - Local win rates (tools/eval.py) do not predict ladder rank; use them only to
   catch crashes/regressions.
 
+## Submission discipline
+
+The ladder is the only real eval, so every submission is an A/B measurement:
+
+- One change per submission, one commit per change.
+- Deck edits (`decks/deck.csv`) and policy edits (`agent/policy.py`) go in
+  **separate commits** — never mixed, or results are confounded.
+- Tag the hash every time you package:
+  `git tag ladder-vN && python tools/build_submission.py` (clean tree only).
+
 ## Commands
 
 ```bash
