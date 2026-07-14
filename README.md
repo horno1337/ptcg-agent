@@ -16,6 +16,7 @@ data/
   attacks.json           # 1,556 attacks
 decks/
   deck.csv               # the deck the agent registers (60 card IDs, one per line)
+  sample.csv             # known-valid deck, used by the baseline agents
 tools/
   build_engine.sh        # compile official engine source -> engine/libcg.so
   cabt.py                # ctypes bindings + local battle runner (kaggle-compatible)
@@ -54,23 +55,43 @@ instead — the ladder runs the same engine either way.
 - Time: 600 s per player per game (`remainingOverageTime`); safety.py keeps a
   30 s panic reserve.
 
+## Reviewing games
+
+```bash
+python tools/eval.py 50 self --save-losses   # losses land in replays/*_L.json
+python tools/run_local.py random             # one game -> replay.json
+```
+
+Open `tools/visualizer.html` in a browser and pick a replay file — it opens
+the official viewer (note: this uploads the replay to ptcgvis.heroz.jp to
+render, so it needs internet). Offline analysis should read the JSON directly.
+
 ## Where to iterate
 
 1. **Deck** — edit `decks/deck.csv`. This is the highest-leverage knob;
    competitors report simple decks piloted cleanly outperform complex ones.
 2. **MAIN priorities** — `MAIN_PRIORITY` + `_score_main_option` in policy.py.
 3. **Context handlers** — `choose_card` branches in policy.py (targeting,
-   discard value, search picks).
+   discard value, search picks). Watch loss replays to find the dumb moves.
 4. Only trust the real ladder: local win rates have poor rank correlation.
    Use tools/eval.py to catch regressions/crashes, not to pick decks.
 
-## Baseline results (v0, sample deck)
+Longer term: the engine also exports a `SearchBegin`/`SearchStep` API
+(determinized search over hidden information) — unbound so far, but at
+~0.01s/game locally it's the obvious road past hand-written rules.
 
-66 local games, 0 errors: 87% vs random, 65% vs first-option, 50% self-play.
+## Baseline results (v0, sample deck, local engine build)
+
+150 games, 0 errors, ~0.01s/game: 92% vs random, 60% vs first-option,
+42% self-play (seat variance; expect ~50%).
 
 ## Submit
 
+One change per submission, one commit per change; tag what you ship so ladder
+results map back to exact code (see CLAUDE.md):
+
 ```bash
+git tag ladder-vN                  # on a clean tree
 python tools/build_submission.py
-kaggle competitions submit pokemon-tcg-ai-battle -f submission.tar.gz -m "v0 rules"
+kaggle competitions submit pokemon-tcg-ai-battle -f submission.tar.gz -m "ladder-vN"
 ```
