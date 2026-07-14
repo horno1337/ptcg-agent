@@ -19,8 +19,9 @@ decks/
 tools/
   build_engine.sh        # compile official engine source -> engine/libcg.so
   cabt.py                # ctypes bindings + local battle runner (kaggle-compatible)
-  eval.py                # N-game win-rate eval vs random / first / self
+  eval.py                # N-game win-rate eval; --save-losses dumps replays/
   run_local.py           # single game + replay.json (viewer format)
+  visualizer.html        # open in a browser, pick a replay JSON -> official viewer
   dump_cards.py          # regenerate data/*.json from the engine build
   build_submission.py    # package submission.tar.gz
 tests/test_safety.py     # legality fuzz over all 11 SelectTypes
