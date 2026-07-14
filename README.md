@@ -17,24 +17,30 @@ data/
 decks/
   deck.csv               # the deck the agent registers (60 card IDs, one per line)
 tools/
+  build_engine.sh        # compile official engine source -> engine/libcg.so
+  cabt.py                # ctypes bindings + local battle runner (kaggle-compatible)
   eval.py                # N-game win-rate eval vs random / first / self
-  run_local.py           # single game + HTML replay
-  dump_cards.py          # regenerate data/*.json from installed engine
+  run_local.py           # single game + replay.json (viewer format)
+  dump_cards.py          # regenerate data/*.json from the engine build
   build_submission.py    # package submission.tar.gz
 tests/test_safety.py     # legality fuzz over all 11 SelectTypes
+engine/                  # libcg.so build output (gitignored, license)
 ```
 
 ## Setup
 
+Local play runs on the official engine source (competition-use-only, so it is
+NOT in this repo — keep it outside, e.g. `~/Desktop/ptcg_engine/`):
+
 ```bash
-pip install kaggle-environments==1.30.1   # ships the cabt engine (libcg.so)
+ENGINE_SRC="$HOME/Desktop/ptcg_engine/ptcgProgram 22" tools/build_engine.sh
 python tests/test_safety.py
 python tools/eval.py 30 random
 ```
 
-No external downloads needed for local play — the engine binary is inside the
-pip package. The Kaggle competition page has extra starter materials
-(notebooks, docs) but the game itself runs from here.
+Needs g++ with C++20; no Python dependencies. `kaggle-environments==1.30.1`
+(requirements.txt) is only needed if you want the official Kaggle wrapper
+instead — the ladder runs the same engine either way.
 
 ## Agent contract (cabt)
 
