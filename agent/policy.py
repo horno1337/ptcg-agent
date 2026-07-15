@@ -323,10 +323,33 @@ def choose_evolve(view: ObsView) -> list[int]:
 # Dispatcher
 # ---------------------------------------------------------------------------
 
+def _model_decide(view: ObsView) -> list[int] | None:
+    """RL policy path: active when agent/weights.npz is present and loadable.
+    Returns None (-> rule-based fallback) on any missing dep or error."""
+    try:
+        from . import features as _features
+        from . import model as _model
+        net = _model.load()
+        if net is None or not view.options:
+            return None
+        st = _features.encode_state(view)
+        cids, feats = _features.encode_options(view)
+        logits, _ = net.forward(st, cids, feats)
+        picks = _model.select_indices(logits, feats.shape[0] - 1,
+                                      view.min_count, view.max_count)
+        return picks if picks else None
+    except Exception:
+        return None
+
+
 def decide(obs: dict) -> list[int]:
     view = ObsView(obs)
     if view.is_deck_selection:
         return load_deck()
+
+    action = _model_decide(view)
+    if action is not None:
+        return action
 
     st = view.select_type
     if st == ST_MAIN:
