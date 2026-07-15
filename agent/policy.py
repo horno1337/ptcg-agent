@@ -325,13 +325,21 @@ def choose_evolve(view: ObsView) -> list[int]:
 
 def _model_decide(view: ObsView) -> list[int] | None:
     """RL policy path: active when agent/weights.npz is present and loadable.
-    Returns None (-> rule-based fallback) on any missing dep or error."""
+    Single-pick selects go through determinized value search when the engine
+    lib is available; everything falls back reflex -> rules on any error."""
     try:
         from . import features as _features
         from . import model as _model
         net = _model.load()
         if net is None or not view.options:
             return None
+        try:
+            from . import search_policy as _search
+            picks = _search.decide(view, net, load_deck())
+            if picks is not None:
+                return picks
+        except Exception:
+            pass
         st = _features.encode_state(view)
         cids, feats = _features.encode_options(view)
         logits, _ = net.forward(st, cids, feats)
