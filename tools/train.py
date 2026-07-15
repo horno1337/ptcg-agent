@@ -251,6 +251,81 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
 
 
 # ---------------------------------------------------------------------------
+# Behavior cloning from leaderboard episodes (tools/il_dataset.py)
+# ---------------------------------------------------------------------------
+
+def load_bc_samples(episode_dir: str) -> list["Decision"]:
+    import il_dataset
+    out = []
+    for obs, act, reward in il_dataset.iter_dir(episode_dir):
+        v = ObsView(obs)
+        st = FE.encode_state(v)
+        cids, feats = FE.encode_options(v)
+        d = Decision(st, cids, feats, act, 0.0, 0.0,
+                     feats.shape[0] - 1, v.min_count, v.max_count)
+        d.ret, d.adv = reward, 0.0
+        out.append(d)
+    return out
+
+
+def _stack_minibatch(mb):
+    B = len(mb)
+    M = max(d.opt_feats.shape[0] for d in mb)
+    ids = torch.from_numpy(np.stack([d.state["ids"] for d in mb])).long().to(DEV)
+    hand = torch.from_numpy(np.stack([d.state["hand_ids"] for d in mb])).long().to(DEV)
+    mdisc = torch.from_numpy(np.stack([d.state["my_disc"] for d in mb])).long().to(DEV)
+    odisc = torch.from_numpy(np.stack([d.state["opp_disc"] for d in mb])).long().to(DEV)
+    scal = torch.from_numpy(np.stack([d.state["scalars"] for d in mb])).to(DEV)
+    oi = torch.zeros(B, M, dtype=torch.long, device=DEV)
+    of = torch.zeros(B, M, FE.OPT_FEATS, device=DEV)
+    mask = torch.zeros(B, M, dtype=torch.bool, device=DEV)
+    for k, d in enumerate(mb):
+        m = d.opt_feats.shape[0]
+        oi[k, :m] = torch.from_numpy(d.opt_ids.astype(np.int64))
+        of[k, :m] = torch.from_numpy(d.opt_feats)
+        mask[k, :m] = True
+    return ids, hand, mdisc, odisc, scal, oi, of, mask
+
+
+def bc_train(net, samples, epochs, lr, out_path, eval_every=25, eval_games=40,
+             deck=None, mb_size=256, vcoef=0.5):
+    opt = torch.optim.Adam(net.parameters(), lr=lr)
+    idx = np.arange(len(samples))
+    best = -1.0
+    for ep in range(1, epochs + 1):
+        np.random.shuffle(idx)
+        tot, n = 0.0, 0
+        for s in range(0, len(idx), mb_size):
+            mb = [samples[i] for i in idx[s:s + mb_size]]
+            ids, hand, mdisc, odisc, scal, oi, of, mask = _stack_minibatch(mb)
+            sv = net.state_vec(ids, hand, mdisc, odisc, scal)
+            values = net.value(sv)
+            logits = net.logits(sv, oi, of, mask)
+            logps = [picks_logprob(logits[k, :d.n_opts + 1], d.picks,
+                                   d.n_opts, d.n_min, d.n_max)[0]
+                     for k, d in enumerate(mb)]
+            nll = -torch.stack(logps).mean()
+            rett = torch.tensor([d.ret for d in mb], device=DEV)
+            loss = nll + vcoef * F.mse_loss(values, rett)
+            opt.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(net.parameters(), 1.0)
+            opt.step()
+            tot += nll.item() * len(mb)
+            n += len(mb)
+        if ep % eval_every == 0 or ep == epochs:
+            export_npz(net, out_path)
+            wr = eval_vs_rules(out_path, eval_games, deck)
+            print(f"bc epoch {ep}: nll={tot / max(n, 1):.3f} "
+                  f"eval vs rules {wr:.1%}", flush=True)
+            if wr >= best:
+                best = wr
+                torch.save(net.state_dict(),
+                           os.path.join(os.path.dirname(out_path), "bc_best.pt"))
+    return best
+
+
+# ---------------------------------------------------------------------------
 # PPO update
 # ---------------------------------------------------------------------------
 
@@ -392,6 +467,10 @@ def main():
     ap.add_argument("--eval-games", type=int, default=40)
     ap.add_argument("--out", default=os.path.join(ROOT, "agent", "weights.npz"))
     ap.add_argument("--resume", default=None)
+    ap.add_argument("--bc", default=None, help="dir of episode JSONs: behavior-clone first")
+    ap.add_argument("--bc-epochs", type=int, default=150)
+    ap.add_argument("--bc-lr", type=float, default=1e-3)
+    ap.add_argument("--ckpt-dir", default=os.path.join(ROOT, "tools", "checkpoints"))
     args = ap.parse_args()
 
     deck = policy.load_deck()
@@ -404,8 +483,15 @@ def main():
     test_roundtrip(net, deck)
     print(f"roundtrip ok. device={DEV}, {sum(p.numel() for p in net.parameters())} params")
 
-    ckpt = os.path.join(ROOT, "tools", "checkpoints")
+    ckpt = args.ckpt_dir
     os.makedirs(ckpt, exist_ok=True)
+
+    if args.bc:
+        samples = load_bc_samples(args.bc)
+        print(f"bc: {len(samples)} expert decisions from {args.bc}", flush=True)
+        best = bc_train(net, samples, args.bc_epochs, args.bc_lr, args.out,
+                        deck=deck, eval_games=args.eval_games)
+        print(f"bc done, best eval {best:.1%}", flush=True)
     for it in range(1, args.iters + 1):
         t0 = time.time()
         decisions, results = collect(net, args.games, deck)
