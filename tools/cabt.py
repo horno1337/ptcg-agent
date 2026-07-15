@@ -56,9 +56,80 @@ def lib() -> ctypes.CDLL:
         L.BattleFinish.argtypes = [ctypes.c_void_p]
         L.AllCard.restype = ctypes.c_char_p
         L.AllAttack.restype = ctypes.c_char_p
-        L.GameInitialize()
+        # agent-side search API (SearchBegin/SearchStep over a serialized obs)
+        L.AgentStart.restype = ctypes.c_void_p
+        L.SearchBegin.argtypes = [
+            ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
+            ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
+            ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
+        ]
+        L.SearchBegin.restype = ctypes.c_char_p
+        L.SearchStep.argtypes = [ctypes.c_void_p, ctypes.c_longlong,
+                                 ctypes.POINTER(ctypes.c_int), ctypes.c_int]
+        L.SearchStep.restype = ctypes.c_char_p
+        L.SearchRelease.argtypes = [ctypes.c_void_p, ctypes.c_longlong]
+        L.SearchEnd.argtypes = [ctypes.c_void_p]
+        import hashlib
+        flag = "_PTCG_INIT_" + hashlib.md5(
+            os.path.realpath(_LIB_PATH).encode()).hexdigest()[:12]
+        if os.environ.get(flag) != str(os.getpid()):
+            L.GameInitialize()
+            os.environ[flag] = str(os.getpid())
         _lib = L
     return _lib
+
+
+class AgentSearch:
+    """Agent-side determinized search over a serialized observation.
+
+    Mirrors the official cg.api search wrappers: begin() builds a concrete
+    world from our predictions of every hidden zone; step() advances it and
+    returns the next (obs, search_id). Errors return None instead of raising
+    so callers can fall back to reflex play.
+    """
+
+    def __init__(self):
+        self._ptr = lib().AgentStart()
+
+    @staticmethod
+    def _arr(xs):
+        return (ctypes.c_int * max(len(xs), 1))(*xs)
+
+    def begin(self, obs: dict, my_deck, my_prize, opp_deck, opp_prize,
+              opp_hand, opp_active=(), manual_coin=False):
+        sbi = obs.get("search_begin_input")
+        if not sbi:
+            return None
+        raw = lib().SearchBegin(
+            self._ptr, sbi.encode("ascii"), len(sbi),
+            self._arr(list(my_deck)), self._arr(list(my_prize)),
+            self._arr(list(opp_deck)), self._arr(list(opp_prize)),
+            self._arr(list(opp_hand)), self._arr(list(opp_active)),
+            int(manual_coin))
+        return self._parse(raw)
+
+    def step(self, search_id: int, select: list[int]):
+        raw = lib().SearchStep(self._ptr, search_id,
+                               self._arr(list(select)), len(select))
+        return self._parse(raw)
+
+    def release(self, search_id: int):
+        lib().SearchRelease(self._ptr, search_id)
+
+    def end(self):
+        lib().SearchEnd(self._ptr)
+
+    @staticmethod
+    def _parse(raw):
+        try:
+            r = json.loads(raw.decode()) if isinstance(raw, bytes) else json.loads(raw)
+        except Exception:
+            return None
+        if r.get("error"):
+            return None
+        return r.get("state")  # {"observation": {...}, "searchId": int}
 
 
 class DeckError(ValueError):
@@ -83,7 +154,11 @@ class Battle:
     def obs(self) -> tuple[dict, int]:
         """Current observation (for the selecting player) and that player's index."""
         sd = lib().GetBattleData(self._ptr)
-        return json.loads(ctypes.string_at(sd.json).decode()), sd.selectPlayer
+        o = json.loads(ctypes.string_at(sd.json).decode())
+        if sd.data and sd.count > 0:
+            # same field the kaggle wrapper provides: input for SearchBegin
+            o["search_begin_input"] = ctypes.string_at(sd.data, sd.count).decode("ascii")
+        return o, sd.selectPlayer
 
     def select(self, indices: list[int]) -> int:
         """Apply a selection; returns 0 on success, engine error code otherwise."""
