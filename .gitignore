@@ -9,3 +9,5 @@ replays/
 # built official engine (competition-use-only source lives outside the repo)
 engine/
 .claude/settings.local.json
+tools/checkpoints/
+agent/weights.npz
