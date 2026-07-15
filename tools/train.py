@@ -31,22 +31,24 @@ from agent import model as NPM  # noqa: E402
 from agent.obsview import ObsView  # noqa: E402
 
 DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EMB = NPM.EMB
-STATE_IN = FE.STATE_ID_SLOTS * EMB + 3 * EMB + FE.STATE_SCALARS
-OPT_IN = FE.OPT_FEATS + EMB + 128
 
 
 class TorchNet(nn.Module):
-    def __init__(self):
+    """Sizes are free hyperparameters; the numpy side derives every shape
+    from the exported npz, so old and new weights coexist."""
+
+    def __init__(self, emb=16, s1=256, s2=128, o1=128, o2=64):
         super().__init__()
-        self.emb = nn.Embedding(FE.N_CARD_IDS, EMB)
-        self.s1 = nn.Linear(STATE_IN, 256)
-        self.s2 = nn.Linear(256, 128)
-        self.v1 = nn.Linear(128, 64)
-        self.v2 = nn.Linear(64, 1)
-        self.o1 = nn.Linear(OPT_IN, 128)
-        self.o2 = nn.Linear(128, 64)
-        self.o3 = nn.Linear(64, 1)
+        state_in = FE.STATE_ID_SLOTS * emb + 3 * emb + FE.STATE_SCALARS
+        opt_in = FE.OPT_FEATS + emb + s2
+        self.emb = nn.Embedding(FE.N_CARD_IDS, emb)
+        self.s1 = nn.Linear(state_in, s1)
+        self.s2 = nn.Linear(s1, s2)
+        self.v1 = nn.Linear(s2, s2 // 2)
+        self.v2 = nn.Linear(s2 // 2, 1)
+        self.o1 = nn.Linear(opt_in, o1)
+        self.o2 = nn.Linear(o1, o2)
+        self.o3 = nn.Linear(o2, 1)
         nn.init.normal_(self.emb.weight, std=0.05)
 
     def state_vec(self, ids, hand, mdisc, odisc, scalars):
@@ -524,10 +526,12 @@ def main():
     ap.add_argument("--bc-anchor", default=None,
                     help="episode dir: mix expert NLL into every PPO update")
     ap.add_argument("--bc-anchor-coef", type=float, default=0.3)
+    ap.add_argument("--arch", default="16,256,128,128,64",
+                    help="emb,s1,s2,o1,o2 layer sizes")
     args = ap.parse_args()
 
     deck = policy.load_deck()
-    net = TorchNet().to(DEV)
+    net = TorchNet(*[int(x) for x in args.arch.split(",")]).to(DEV)
     if args.resume and os.path.exists(args.resume):
         net.load_state_dict(torch.load(args.resume, map_location=DEV))
         print(f"resumed from {args.resume}")
