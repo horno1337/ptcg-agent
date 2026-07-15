@@ -350,6 +350,14 @@ def decide(obs: dict) -> list[int]:
     action = _model_decide(view)
     if action is not None:
         return action
+    return decide_rules(obs)
+
+
+def decide_rules(obs: dict) -> list[int]:
+    """The hand-written policy, bypassing any loaded model weights."""
+    view = ObsView(obs)
+    if view.is_deck_selection:
+        return load_deck()
 
     st = view.select_type
     if st == ST_MAIN:
