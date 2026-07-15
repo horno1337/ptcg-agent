@@ -19,7 +19,6 @@ import numpy as np
 
 from . import features
 
-EMB = 16
 _WEIGHTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "weights.npz")
 
 _KEYS = ["emb", "s1w", "s1b", "s2w", "s2b",
@@ -31,6 +30,7 @@ class Net:
     def __init__(self, w: dict):
         for k in _KEYS:
             setattr(self, k, np.asarray(w[k], dtype=np.float32))
+        self.emb_dim = self.emb.shape[1]  # all layer sizes derive from the file
 
     def _state_vec(self, st: dict) -> np.ndarray:
         emb = self.emb
@@ -38,7 +38,7 @@ class Net:
         def pool(ids):
             mask = ids > 0
             if not mask.any():
-                return np.zeros(EMB, dtype=np.float32)
+                return np.zeros(self.emb_dim, dtype=np.float32)
             return emb[ids[mask]].mean(axis=0)
 
         x = np.concatenate([
