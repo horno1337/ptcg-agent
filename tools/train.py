@@ -169,10 +169,15 @@ class Decision:
 
 @torch.no_grad()
 def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
-            temperature_greedy=False):
-    """Mirror self-play; returns (decisions, stats). Rewards via GAE per
-    player trajectory with gamma=1 (single terminal reward)."""
+            temperature_greedy=False, league_rules=0.0):
+    """Self-play; returns (decisions, stats). Rewards via GAE per player
+    trajectory with gamma=1 (single terminal reward). A `league_rules`
+    fraction of battles seats the rule-based policy as one opponent (its
+    decisions are not recorded), so the net can't overfit the mirror."""
     alive = [Battle(deck, deck) for _ in range(n_games)]
+    # scripted[gi] = player index piloted by the rule policy, or None
+    scripted = [(gi % 2) if gi < int(n_games * league_rules) else None
+                for gi in range(n_games)]
     trajs = [([], []) for _ in range(n_games)]  # per game: (p0 decisions, p1)
     results = []
     steps = [0] * n_games
@@ -196,10 +201,26 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
                 b.close()
                 done[gi] = True
                 continue
+            if scripted[gi] == sp:
+                try:
+                    act = policy.decide_rules(obs)
+                except Exception:
+                    act = [0]
+                err = b.select(list(act))
+                steps[gi] += 1
+                if err:
+                    results.append(1 - sp)
+                    for p in (0, 1):
+                        r = 1.0 if (1 - sp) == p else -1.0
+                        for d in trajs[gi][p]:
+                            d.ret, d.adv = r, r - d.value
+                    b.close()
+                    done[gi] = True
+                continue
             v = ObsView(obs)
             views.append((gi, sp, b, v))
         if not views:
-            break
+            continue
 
         # encode + batch
         st_list = [FE.encode_state(v) for _, _, _, v in views]
@@ -330,7 +351,10 @@ def bc_train(net, samples, epochs, lr, out_path, eval_every=25, eval_games=40,
 # ---------------------------------------------------------------------------
 
 def ppo_update(net, opt, decisions, epochs=2, mb_size=1024,
-               clip=0.2, vcoef=0.5, ecoef=0.01):
+               clip=0.2, vcoef=0.5, ecoef=0.01,
+               anchor=None, anchor_coef=0.0):
+    """anchor: list of BC Decision samples; each minibatch mixes in their
+    NLL so self-play can't erode the cloned expert behavior."""
     idx = np.arange(len(decisions))
     adv = np.array([d.adv for d in decisions], dtype=np.float32)
     adv = (adv - adv.mean()) / (adv.std() + 1e-6)
@@ -378,6 +402,16 @@ def ppo_update(net, opt, decisions, epochs=2, mb_size=1024,
                             ratio.clamp(1 - clip, 1 + clip) * advt).mean()
             vl = F.mse_loss(values, rett)
             loss = pl + vcoef * vl - ecoef * ent
+            if anchor and anchor_coef > 0:
+                amb = [anchor[i] for i in
+                       np.random.randint(0, len(anchor), min(256, len(anchor)))]
+                aids, ahand, amd, aod, asc, aoi, aof, amask = _stack_minibatch(amb)
+                asv = net.state_vec(aids, ahand, amd, aod, asc)
+                alogits = net.logits(asv, aoi, aof, amask)
+                albs = [picks_logprob(alogits[k, :d.n_opts + 1], d.picks,
+                                      d.n_opts, d.n_min, d.n_max)[0]
+                        for k, d in enumerate(amb)]
+                loss = loss - anchor_coef * torch.stack(albs).mean()
             opt.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -414,7 +448,7 @@ def eval_vs_rules(weights_path: str, n_games: int, deck: list[int]) -> float:
     def rule_agent(obs):
         if obs.get("select") is None:
             return list(deck)
-        return policy.decide(obs)
+        return policy.decide_rules(obs)
 
     from cabt import run_battle
     wins = 0
@@ -471,6 +505,11 @@ def main():
     ap.add_argument("--bc-epochs", type=int, default=150)
     ap.add_argument("--bc-lr", type=float, default=1e-3)
     ap.add_argument("--ckpt-dir", default=os.path.join(ROOT, "tools", "checkpoints"))
+    ap.add_argument("--league-rules", type=float, default=0.0,
+                    help="fraction of collect battles vs the rule policy")
+    ap.add_argument("--bc-anchor", default=None,
+                    help="episode dir: mix expert NLL into every PPO update")
+    ap.add_argument("--bc-anchor-coef", type=float, default=0.3)
     args = ap.parse_args()
 
     deck = policy.load_deck()
@@ -492,12 +531,18 @@ def main():
         best = bc_train(net, samples, args.bc_epochs, args.bc_lr, args.out,
                         deck=deck, eval_games=args.eval_games)
         print(f"bc done, best eval {best:.1%}", flush=True)
+    anchor = load_bc_samples(args.bc_anchor) if args.bc_anchor else None
+    if anchor:
+        print(f"bc anchor: {len(anchor)} samples, coef {args.bc_anchor_coef}", flush=True)
+
     for it in range(1, args.iters + 1):
         t0 = time.time()
-        decisions, results = collect(net, args.games, deck)
+        decisions, results = collect(net, args.games, deck,
+                                     league_rules=args.league_rules)
         t1 = time.time()
         wl = {r: results.count(r) for r in set(results)}
-        stats = ppo_update(net, opt, decisions)
+        stats = ppo_update(net, opt, decisions,
+                           anchor=anchor, anchor_coef=args.bc_anchor_coef)
         t2 = time.time()
         print(f"iter {it}: {len(decisions)} decisions from {len(results)} games "
               f"{wl} | pi={stats['pi']:.3f} v={stats['v']:.3f} ent={stats['ent']:.2f} "
