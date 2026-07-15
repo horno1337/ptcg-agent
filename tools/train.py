@@ -158,13 +158,14 @@ def picks_logprob(logits: torch.Tensor, picks: list[int], n_opts: int,
 
 class Decision:
     __slots__ = ("state", "opt_ids", "opt_feats", "picks", "logp", "value",
-                 "n_opts", "n_min", "n_max", "adv", "ret")
+                 "n_opts", "n_min", "n_max", "adv", "ret", "weight")
 
     def __init__(self, state, opt_ids, opt_feats, picks, logp, value,
-                 n_opts, n_min, n_max):
+                 n_opts, n_min, n_max, weight=1.0):
         self.state, self.opt_ids, self.opt_feats = state, opt_ids, opt_feats
         self.picks, self.logp, self.value = picks, logp, value
         self.n_opts, self.n_min, self.n_max = n_opts, n_min, n_max
+        self.weight = weight
 
 
 @torch.no_grad()
@@ -275,15 +276,22 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
 # Behavior cloning from leaderboard episodes (tools/il_dataset.py)
 # ---------------------------------------------------------------------------
 
-def load_bc_samples(episode_dir: str) -> list["Decision"]:
+def load_bc_samples(episode_dir: str, w_win=1.0, w_draw=0.3,
+                    w_loss=0.1) -> list["Decision"]:
+    """Outcome-weighted imitation: the winning seat of every episode is the
+    demonstration that matters (in our own losses, that's the opponent who
+    beat us). Zero-weight samples are dropped entirely."""
     import il_dataset
     out = []
     for obs, act, reward in il_dataset.iter_dir(episode_dir):
+        w = w_win if reward > 0 else (w_loss if reward < 0 else w_draw)
+        if w <= 0:
+            continue
         v = ObsView(obs)
         st = FE.encode_state(v)
         cids, feats = FE.encode_options(v)
         d = Decision(st, cids, feats, act, 0.0, 0.0,
-                     feats.shape[0] - 1, v.min_count, v.max_count)
+                     feats.shape[0] - 1, v.min_count, v.max_count, weight=w)
         d.ret, d.adv = reward, 0.0
         out.append(d)
     return out
@@ -325,7 +333,8 @@ def bc_train(net, samples, epochs, lr, out_path, eval_every=25, eval_games=40,
             logps = [picks_logprob(logits[k, :d.n_opts + 1], d.picks,
                                    d.n_opts, d.n_min, d.n_max)[0]
                      for k, d in enumerate(mb)]
-            nll = -torch.stack(logps).mean()
+            wts = torch.tensor([d.weight for d in mb], device=DEV)
+            nll = -(torch.stack(logps) * wts).sum() / wts.sum().clamp(min=1e-6)
             rett = torch.tensor([d.ret for d in mb], device=DEV)
             loss = nll + vcoef * F.mse_loss(values, rett)
             opt.zero_grad()
@@ -411,7 +420,9 @@ def ppo_update(net, opt, decisions, epochs=2, mb_size=1024,
                 albs = [picks_logprob(alogits[k, :d.n_opts + 1], d.picks,
                                       d.n_opts, d.n_min, d.n_max)[0]
                         for k, d in enumerate(amb)]
-                loss = loss - anchor_coef * torch.stack(albs).mean()
+                awts = torch.tensor([d.weight for d in amb], device=DEV)
+                anll = (torch.stack(albs) * awts).sum() / awts.sum().clamp(min=1e-6)
+                loss = loss - anchor_coef * anll
             opt.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -504,6 +515,9 @@ def main():
     ap.add_argument("--bc", default=None, help="dir of episode JSONs: behavior-clone first")
     ap.add_argument("--bc-epochs", type=int, default=150)
     ap.add_argument("--bc-lr", type=float, default=1e-3)
+    ap.add_argument("--w-win", type=float, default=1.0)
+    ap.add_argument("--w-draw", type=float, default=0.3)
+    ap.add_argument("--w-loss", type=float, default=0.1)
     ap.add_argument("--ckpt-dir", default=os.path.join(ROOT, "tools", "checkpoints"))
     ap.add_argument("--league-rules", type=float, default=0.0,
                     help="fraction of collect battles vs the rule policy")
@@ -526,12 +540,13 @@ def main():
     os.makedirs(ckpt, exist_ok=True)
 
     if args.bc:
-        samples = load_bc_samples(args.bc)
+        samples = load_bc_samples(args.bc, args.w_win, args.w_draw, args.w_loss)
         print(f"bc: {len(samples)} expert decisions from {args.bc}", flush=True)
         best = bc_train(net, samples, args.bc_epochs, args.bc_lr, args.out,
                         deck=deck, eval_games=args.eval_games)
         print(f"bc done, best eval {best:.1%}", flush=True)
-    anchor = load_bc_samples(args.bc_anchor) if args.bc_anchor else None
+    anchor = (load_bc_samples(args.bc_anchor, args.w_win, args.w_draw, args.w_loss)
+              if args.bc_anchor else None)
     if anchor:
         print(f"bc anchor: {len(anchor)} samples, coef {args.bc_anchor_coef}", flush=True)
 
