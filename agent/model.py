@@ -31,6 +31,7 @@ class Net:
         for k in _KEYS:
             setattr(self, k, np.asarray(w[k], dtype=np.float32))
         self.emb_dim = self.emb.shape[1]  # all layer sizes derive from the file
+        self.feat_version = int(w.get("feat_version", features.FEAT_VERSION))
 
     def _state_vec(self, st: dict) -> np.ndarray:
         emb = self.emb
@@ -41,10 +42,16 @@ class Net:
                 return np.zeros(self.emb_dim, dtype=np.float32)
             return emb[ids[mask]].mean(axis=0)
 
+        scalars = st["scalars"]
+        if self.feat_version < 2:
+            # v1 nets: prize scalars were dead (always 0) and 42-47 absent;
+            # scalar growth is append-only so truncation restores the layout
+            scalars = scalars[:42].copy()
+            scalars[5] = scalars[6] = 0.0
         x = np.concatenate([
             emb[st["ids"]].reshape(-1),
             pool(st["hand_ids"]), pool(st["my_disc"]), pool(st["opp_disc"]),
-            st["scalars"],
+            scalars,
         ])
         h = np.maximum(x @ self.s1w + self.s1b, 0.0)
         return np.maximum(h @ self.s2w + self.s2b, 0.0)
@@ -75,7 +82,7 @@ def load(path: str = _WEIGHTS_PATH) -> Net | None:
         return _cached
     try:
         w = np.load(path)
-        if int(w.get("feat_version", -1)) != features.FEAT_VERSION:
+        if not 1 <= int(w.get("feat_version", -1)) <= features.FEAT_VERSION:
             return None
         _cached = Net(w)
     except Exception:
