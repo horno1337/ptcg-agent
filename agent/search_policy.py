@@ -35,7 +35,7 @@ _META_PATH = os.path.join(_DIR, "meta_decks.json")
 
 BUDGET_S = float(os.environ.get("PTCG_SEARCH_BUDGET", "1.5"))
 _RESERVE_S = 150.0        # stop searching when overage drops below this
-MAX_DETS = 6              # determinized worlds per decision
+MAX_DETS = 16             # determinized worlds per decision (budget-bound)
 MAX_OPTS = 24             # only search single-pick selects up to this width
 ROLLOUT_CAP = 20          # max reflex steps rolled per line
 
@@ -216,9 +216,15 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
     counts = np.zeros(n)
 
     try:
+        det_cost = 0.0
         for _ in range(MAX_DETS):
-            if time.monotonic() - t0 > BUDGET_S * 0.9:
+            # only start a determinization we can finish for EVERY option:
+            # partial dets compare options across different worlds and the
+            # bias is worse than fewer, fully-paired samples
+            spent = time.monotonic() - t0
+            if spent + max(det_cost * 1.2, 0.02) > BUDGET_S:
                 break
+            d0 = time.monotonic()
             preds = _predict(view, my_deck_list, rng)
             sbi = obs["search_begin_input"]
             st = _parse(L.SearchBegin(
@@ -230,9 +236,9 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
             root_sel = (st["observation"].get("select") or {})
             if len(root_sel.get("option") or []) != n:
                 continue
+            det_scores = np.zeros(n)
+            complete = True
             for i in range(n):
-                if time.monotonic() - t0 > BUDGET_S:
-                    break
                 child = _parse(L.SearchStep(_agent_ptr, st["searchId"], _arr([i]), 1))
                 depth = 0
                 while child:
@@ -247,9 +253,14 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
                     child = _parse(L.SearchStep(_agent_ptr, child["searchId"],
                                                 _arr(act), len(act)))
                     depth += 1
-                if child:
-                    scores[i] += _value(net, child["observation"], root_player)
-                    counts[i] += 1
+                if not child:
+                    complete = False
+                    break
+                det_scores[i] = _value(net, child["observation"], root_player)
+            if complete:
+                scores += det_scores
+                counts += 1
+            det_cost = time.monotonic() - d0
     except Exception:
         return None
     finally:
