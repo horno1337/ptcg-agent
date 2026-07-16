@@ -1,13 +1,17 @@
-"""Determinized one-ply value search at inference.
+"""Determinized value search at inference (2-ply, degrading gracefully).
 
 For single-pick selects, instead of trusting the policy net's reflex, we:
   1. predict every hidden zone (our deck order/prizes from our known list;
      the opponent's hand/deck/prizes by matching their revealed cards
      against the mined meta-deck library in meta_decks.json),
   2. build K concrete worlds via the engine's SearchBegin,
-  3. for each legal option, step it, roll the rest of our turn forward with
-     the reflex net, and score the reached state with the value head,
-  4. pick the option with the best mean value across worlds.
+  3. for each legal option, step it, roll forward with the reflex net —
+     through the opponent's full reply (2-ply) when the clock affords it,
+     to the end of our own turn (1-ply) when a det proves too expensive,
+  4. pick the option with the best mean value across worlds — but only if
+     at least MIN_DETS complete worlds fit the budget. A decision backed by
+     one sampled world is an all-in bet on a single guess about hidden
+     cards; measured worse than reflex, so we defer (return None) instead.
 
 Self-contained: binds the engine lib directly (cg/ bundle on kaggle,
 engine/libcg.so locally) and fails soft — any missing piece or exhausted
@@ -36,12 +40,15 @@ _META_PATH = os.path.join(_DIR, "meta_decks.json")
 BUDGET_S = float(os.environ.get("PTCG_SEARCH_BUDGET", "1.5"))
 _RESERVE_S = 150.0        # stop searching when overage drops below this
 MAX_DETS = 16             # determinized worlds per decision (budget-bound)
+MIN_DETS = 3              # evidence floor: fewer complete worlds -> reflex
+_CAP_MULT = 2.0           # hard per-decision cap, in budgets (runaway det)
 MAX_OPTS = 24             # only search single-pick selects up to this width
 ROLLOUT_CAP = 48          # max reflex steps rolled per line (spans opp's reply)
 
 _lib = None
 _agent_ptr = None
 _meta = None
+last_dets = 0     # complete worlds behind the most recent decide() (diagnostics)
 
 
 def _load_lib():
@@ -228,7 +235,8 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
     root_player = view.my_index
     rng = random.Random(int(t0 * 1e6) & 0xFFFFFF)
     scores = np.zeros(n)
-    counts = np.zeros(n)
+    n_complete = 0
+    two_ply = True
 
     try:
         det_cost = 0.0
@@ -254,6 +262,9 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
             det_scores = np.zeros(n)
             complete = True
             for i in range(n):
+                if time.monotonic() - t0 > _CAP_MULT * BUDGET_S:
+                    complete = False   # runaway det must not eat the clock
+                    break
                 child = _parse(L.SearchStep(_agent_ptr, st["searchId"], _arr([i]), 1))
                 depth = 0
                 flipped = False
@@ -262,6 +273,8 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
                     cur = cobs.get("current") or {}
                     yi = cur.get("yourIndex")
                     if yi != root_player:
+                        if not two_ply:
+                            break        # 1-ply: score at the end of our turn
                         flipped = True   # the reflex net now plays their reply
                     if cur.get("result", -1) != -1 or depth >= ROLLOUT_CAP \
                             or (flipped and yi == root_player) \
@@ -279,8 +292,14 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
                 det_scores[i] = _value(net, child["observation"], root_player)
             if complete:
                 scores += det_scores
-                counts += 1
+                n_complete += 1
             det_cost = time.monotonic() - d0
+            if two_ply and det_cost > BUDGET_S / MIN_DETS:
+                # this hardware can't fit MIN_DETS 2-ply worlds in budget:
+                # drop the opponent-reply ply rather than starve the sample
+                # (1-ply ≈ half the rollout; re-estimate cost accordingly)
+                two_ply = False
+                det_cost *= 0.5
     except Exception:
         return None
     finally:
@@ -289,7 +308,8 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
         except Exception:
             pass
 
-    if counts.max() < 1:
-        return None
-    mean = np.where(counts > 0, scores / np.maximum(counts, 1), -1e9)
-    return [int(mean.argmax())]
+    global last_dets
+    last_dets = n_complete
+    if n_complete < MIN_DETS:
+        return None   # never act on evidence from fewer worlds than the floor
+    return [int((scores / n_complete).argmax())]
