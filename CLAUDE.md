@@ -27,6 +27,12 @@ workflows.
 - Local win rates do not predict ladder rank; use them for A/B between our
   own agents (150+ games, paired seats) and to catch crashes. 60-game evals
   swing ±13% — don't believe single milestones.
+- Ladder CPUs are far slower than the dev box (dev dets ~0.03s; ladder ~1
+  budget each). Any search-config change must pass
+  `tools/eval_search.py --budget 0.03` (single-det regime) before shipping:
+  acting on one sampled world = 31.6% vs reflex — this sank cvkpaper-v2
+  (493 vs v0's 651). The fix (evidence floor MIN_DETS=3, adaptive 2→1-ply,
+  hard cap) defers to reflex when starved: 50-52% parity, n=800.
 
 ## Training & the flywheel
 
@@ -50,8 +56,11 @@ The ladder is the only real eval; every submission is an A/B measurement:
   the ladder result maps to exact code+weights.
 - Tag every package on a clean tree; **the user names the tag and approves
   every upload** (training/eval/commit chains may run autonomously, the
-  `kaggle submit` never does). Tag lineage so far: alakazam-v1/v2,
-  cvkpaper-v0 (reflex), cvkpaper-v1 (search).
+  `kaggle submit` never does). Tag lineage so far: alakazam-v1/v2 (rules,
+  534), cvkpaper-v0 (reflex, 651), cvkpaper-v1 (1-ply search, 635),
+  cvkpaper-v2 (gated 2-ply, 493 — det starvation, fixed on main).
+- Pending at the upload gate: cvkpaper-v3 = v2 bundle + evidence-floor fix
+  (da9c590); flywheel cycle 2 (diverse-opponent selfplay) queued behind it.
 
 ## Commands
 
@@ -62,5 +71,6 @@ python tools/eval.py 30 random            # rules-agent smoke (engine build)
 python tools/train.py --bc DIR --iters 0  # behavior cloning (RL venv)
 python tools/selfplay_search.py OUT N ID  # flywheel generation worker
 python tools/mine_meta_decks.py           # refresh opponent-model library
+python tools/eval_search.py 20 --budget 0.03 --seed N   # pre-ship: search @ ladder-like compute
 python tools/build_submission.py          # package (injects cg/libcg.so; CG_LIB)
 ```
