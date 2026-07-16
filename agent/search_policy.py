@@ -37,7 +37,7 @@ BUDGET_S = float(os.environ.get("PTCG_SEARCH_BUDGET", "1.5"))
 _RESERVE_S = 150.0        # stop searching when overage drops below this
 MAX_DETS = 16             # determinized worlds per decision (budget-bound)
 MAX_OPTS = 24             # only search single-pick selects up to this width
-ROLLOUT_CAP = 20          # max reflex steps rolled per line
+ROLLOUT_CAP = 48          # max reflex steps rolled per line (spans opp's reply)
 
 _lib = None
 _agent_ptr = None
@@ -241,12 +241,17 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
             for i in range(n):
                 child = _parse(L.SearchStep(_agent_ptr, st["searchId"], _arr([i]), 1))
                 depth = 0
+                flipped = False
                 while child:
                     cobs = child["observation"]
                     cur = cobs.get("current") or {}
-                    if cur.get("result", -1) != -1 or cur.get("yourIndex") != root_player \
-                            or depth >= ROLLOUT_CAP or not (cobs.get("select") or {}).get("option"):
-                        break
+                    yi = cur.get("yourIndex")
+                    if yi != root_player:
+                        flipped = True   # the reflex net now plays their reply
+                    if cur.get("result", -1) != -1 or depth >= ROLLOUT_CAP \
+                            or (flipped and yi == root_player) \
+                            or not (cobs.get("select") or {}).get("option"):
+                        break            # terminal, cap, or our next turn began
                     act = _reflex(net, cobs)
                     if act is None:
                         break
