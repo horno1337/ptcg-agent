@@ -60,11 +60,21 @@ def _repair(action, obs: dict) -> list[int]:
     return cleaned[:max_c] if max_c > 0 else cleaned
 
 
+def _out_of_time(obs: dict) -> bool:
+    # the environment's per-game remainingOverageTime is authoritative when
+    # present; the process-lifetime accumulator is only a fallback (it spans
+    # multiple games in local evals and would panic spuriously there)
+    rot = obs.get("remainingOverageTime")
+    if isinstance(rot, (int, float)):
+        return rot < _PANIC_RESERVE_S
+    return _spent > _TOTAL_BUDGET_S - _PANIC_RESERVE_S
+
+
 def agent(obs: dict) -> list[int]:
     global _spent
     t0 = time.monotonic()
     try:
-        if _spent > _TOTAL_BUDGET_S - _PANIC_RESERVE_S:
+        if _out_of_time(obs):
             action = _fallback(obs)
         else:
             action = policy.decide(obs)
