@@ -126,9 +126,11 @@ def _remainder(full_list: list[int], seen: list[int]) -> list[int]:
     return pool
 
 
-def _match_meta(seen: list[int]) -> list[int]:
-    """Best-covering known decklist for an opponent's revealed cards."""
-    best, best_score = None, -1
+def _match_meta(seen: list[int]) -> tuple[list[int], float]:
+    """Best-covering known decklist for an opponent's revealed cards and the
+    coverage ratio (matched / seen). Low coverage means the opponent is NOT
+    playing anything we know — searching a phantom world then hurts badly."""
+    best, best_cover = None, 0
     for deck in _meta_decks():
         pool = list(deck)
         cover = 0
@@ -136,10 +138,21 @@ def _match_meta(seen: list[int]) -> list[int]:
             if cid in pool:
                 pool.remove(cid)
                 cover += 1
-        score = cover - 0.01 * (len(seen) - cover)
-        if score > best_score:
-            best, best_score = deck, score
-    return best or []
+        if cover > best_cover or best is None:
+            best, best_cover = deck, cover
+    ratio = best_cover / len(seen) if seen else 0.0
+    return best or [], ratio
+
+
+def _opponent_model_confident(view: ObsView) -> bool:
+    """Gate: search only when the opponent's revealed cards pin them to a
+    known list. Measured: search is +25pts vs known decks, -42pts vs unknown."""
+    opp = view.opp or {}
+    seen = _seen_ids(opp, with_hand=False)
+    if len(seen) < 4:
+        return False          # too early to identify anyone: stay reflex
+    _, ratio = _match_meta(seen)
+    return ratio >= 0.9
 
 
 def _sized(pool: list[int], sizes: list[int], rng) -> list[list[int]]:
@@ -159,7 +172,7 @@ def _predict(view: ObsView, my_deck_list: list[int], rng):
     my_prize, my_deck = _sized(my_pool, [len(me.get("prize") or []),
                                          me.get("deckCount") or 0], rng)
     opp_seen = _seen_ids(opp, with_hand=False)
-    opp_list = _match_meta(opp_seen) or my_deck_list
+    opp_list = _match_meta(opp_seen)[0] or my_deck_list
     opp_pool = _remainder(opp_list, opp_seen)
     opp_prize, opp_hand, opp_deck = _sized(
         opp_pool, [len(opp.get("prize") or []), opp.get("handCount") or 0,
@@ -204,6 +217,8 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
         return None
     rot = obs.get("remainingOverageTime")
     if isinstance(rot, (int, float)) and rot < _RESERVE_S:
+        return None
+    if not _opponent_model_confident(view):
         return None
     L = _load_lib()
     if L is None or net is None:
