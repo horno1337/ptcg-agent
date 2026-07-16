@@ -21,13 +21,13 @@ from .obsview import (
     OT_ATTACK, OT_NUMBER,
 )
 
-FEAT_VERSION = 1
+FEAT_VERSION = 2
 
 N_CARD_IDS = 1300          # embedding table size (pool has 1267 ids, 0 = none)
 STATE_ID_SLOTS = 13        # my active, my bench x5, opp active, opp bench x5, stadium
 HAND_SLOTS = 48
 DISCARD_SLOTS = 60
-STATE_SCALARS = 42
+STATE_SCALARS = 48         # v2: fixed prize counts (5/6), appended 42-47
 OPT_FEATS = 91
 
 _HP_NORM = 340.0
@@ -90,8 +90,9 @@ def encode_state(view: ObsView) -> dict:
         opp_disc[i] = _card_id(e)
 
     def prizes_left(p):
-        pr = p.get("prize") or []
-        return sum(1 for x in pr if x is not None)
+        # face-down prizes are null entries; the list SHRINKS as prizes are
+        # taken, so the count is its length (v1 counted non-null: always 0)
+        return len(p.get("prize") or [])
 
     s[0] = (cur.get("turn") or 0) / 40.0
     s[1] = (me.get("deckCount") or 0) / 60.0
@@ -118,6 +119,19 @@ def encode_state(view: ObsView) -> dict:
     s[39] = 1.0 if cur.get("firstPlayer") == view.my_index else 0.0
     s[40] = len(me.get("discard") or []) / 60.0
     s[41] = len(opp.get("discard") or []) / 60.0
+
+    def board_energy(active, bench):
+        return sum(len(e.get("energies") or []) for e in [active] + list(bench)
+                   if isinstance(e, dict))
+
+    s[42] = board_energy(my_active, my_bench) / 10.0
+    s[43] = board_energy(opp_active, opp_bench) / 10.0
+    my_deck_n = me.get("deckCount") or 0
+    opp_deck_n = opp.get("deckCount") or 0
+    s[44] = 1.0 if my_deck_n <= 6 else 0.0
+    s[45] = 1.0 if my_deck_n <= 3 else 0.0
+    s[46] = 1.0 if opp_deck_n <= 6 else 0.0
+    s[47] = 1.0 if opp_deck_n <= 3 else 0.0
 
     return {"ids": ids, "hand_ids": hand_ids,
             "my_disc": my_disc, "opp_disc": opp_disc, "scalars": s}
