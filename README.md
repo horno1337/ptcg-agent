@@ -29,7 +29,8 @@ think-time drains it directly), never crash.
 |---|---|---|
 | alakazam-v2 | rules + Alakazam deck | 534 |
 | cvkpaper-v0 | + reflex net (BC on 16 episodes + anchored PPO) | 666 |
-| cvkpaper-v1 | + determinized 1-ply search | ~800 |
+| cvkpaper-v1 | + determinized 1-ply search | 867 spike → 635 |
+| cvkpaper-v2 | + confidence gate, 2-ply, 51-deck library | 493 |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -46,7 +47,18 @@ Research log (each vs the then-champion, 100-200 game evals):
   2-ply = 64% vs reflex. We use ~135s of the 600s budget.
 - **Flywheel (expert iteration), in progress**: the search agent self-plays
   (`tools/selfplay_search.py`, episode-format output), and the net retrains
-  on its games — the data source now improves with the agent.
+  on its games — the data source now improves with the agent. Cycle 1
+  failed (mirror-only data: apprentice farms weak opponents, loses
+  head-to-heads); cycle 2 needs diverse generation opponents.
+- **Search inverts under determinization starvation** (the cvkpaper-v2
+  post-mortem): on ladder CPUs one 2-ply det fills the whole budget, and
+  acting on a single sampled world scored 31.6% vs reflex (n=320 repro via
+  `tools/eval_search.py --budget 0.03 --min-dets 1 --cap-mult 1e9`). Dev-box
+  dets are ~0.03s, so no local eval at any realistic budget ever starved —
+  always pre-ship with the throttled harness. Fix: evidence floor
+  (MIN_DETS=3 complete worlds or defer to reflex), 2→1-ply downgrade when a
+  det costs > budget/3, hard 2×budget per-decision cap. At starved compute
+  the fixed agent is reflex-parity (50-52%, n=800).
 
 ## Layout
 
