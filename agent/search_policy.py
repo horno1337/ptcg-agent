@@ -37,6 +37,12 @@ _LIB_CANDIDATES = [
 ]
 _META_PATH = os.path.join(_DIR, "meta_decks.json")
 
+# Runtime search never beat reflex on ladder CPUs (v1 633, v2 465, v3 524 vs
+# reflex v0 651; v3 replays: it overrode the net on 63% of contested picks).
+# Retired at inference; the machinery stays for training-time generation and
+# tools/eval_search.py, which force-enables it.
+ENABLED = False
+
 BUDGET_S = float(os.environ.get("PTCG_SEARCH_BUDGET", "1.5"))
 _RESERVE_S = 150.0        # stop searching when overage drops below this
 MAX_DETS = 16             # determinized worlds per decision (budget-bound)
@@ -213,6 +219,8 @@ def _value(net, obs: dict, root_player: int) -> float:
 
 def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
     """One-ply determinized value search. None -> caller falls back."""
+    if not ENABLED:
+        return None
     sel = view.select
     if sel is None or view.max_count != 1:
         return None
