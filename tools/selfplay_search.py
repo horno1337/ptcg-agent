@@ -19,7 +19,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from cabt import Battle  # noqa: E402
 from agent import policy  # noqa: E402
+from agent import search_policy as SP  # noqa: E402
 from agent.safety import agent as search_agent  # noqa: E402
+
+SP.ENABLED = True   # search is retired on the ladder but IS the teacher here
 
 
 def play_one(deck):
