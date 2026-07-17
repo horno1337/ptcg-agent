@@ -292,24 +292,33 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
 # Behavior cloning from leaderboard episodes (tools/il_dataset.py)
 # ---------------------------------------------------------------------------
 
-def load_bc_samples(episode_dir: str, w_win=1.0, w_draw=0.3,
+def load_bc_samples(spec: str, w_win=1.0, w_draw=0.3,
                     w_loss=0.1) -> list["Decision"]:
     """Outcome-weighted imitation: the winning seat of every episode is the
     demonstration that matters (in our own losses, that's the opponent who
-    beat us). Zero-weight samples are dropped entirely."""
+    beat us). Zero-weight samples are dropped entirely.
+
+    `spec` is "dir[:mult][,dir[:mult]...]" — the per-dir multiplier scales
+    every sample weight from that source, so band-representative data can
+    be the base and scouting data seasoning (pure top-play BC = cycle3d)."""
     import il_dataset
     out = []
-    for obs, act, reward in il_dataset.iter_dir(episode_dir):
-        w = w_win if reward > 0 else (w_loss if reward < 0 else w_draw)
-        if w <= 0:
-            continue
-        v = ObsView(obs)
-        st = FE.encode_state(v)
-        cids, feats = FE.encode_options(v)
-        d = Decision(st, cids, feats, act, 0.0, 0.0,
-                     feats.shape[0] - 1, v.min_count, v.max_count, weight=w)
-        d.ret, d.adv = reward, 0.0
-        out.append(d)
+    for part in spec.split(","):
+        d_dir, _, m = part.partition(":")
+        mult = float(m) if m else 1.0
+        n0 = len(out)
+        for obs, act, reward in il_dataset.iter_dir(os.path.expanduser(d_dir)):
+            w = (w_win if reward > 0 else (w_loss if reward < 0 else w_draw)) * mult
+            if w <= 0:
+                continue
+            v = ObsView(obs)
+            st = FE.encode_state(v)
+            cids, feats = FE.encode_options(v)
+            d = Decision(st, cids, feats, act, 0.0, 0.0,
+                         feats.shape[0] - 1, v.min_count, v.max_count, weight=w)
+            d.ret, d.adv = reward, 0.0
+            out.append(d)
+        print(f"  bc source {d_dir} x{mult}: {len(out) - n0} samples", flush=True)
     return out
 
 
@@ -528,7 +537,8 @@ def main():
     ap.add_argument("--eval-games", type=int, default=40)
     ap.add_argument("--out", default=os.path.join(ROOT, "agent", "weights.npz"))
     ap.add_argument("--resume", default=None)
-    ap.add_argument("--bc", default=None, help="dir of episode JSONs: behavior-clone first")
+    ap.add_argument("--bc", default=None,
+                    help="episode dirs 'dir[:mult],dir2[:mult]': behavior-clone first")
     ap.add_argument("--bc-epochs", type=int, default=150)
     ap.add_argument("--bc-lr", type=float, default=1e-3)
     ap.add_argument("--w-win", type=float, default=1.0)
