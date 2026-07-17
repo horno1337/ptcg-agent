@@ -57,8 +57,10 @@ def main():
     ap.add_argument("--seed", type=int, default=0,
                     help="seat-parity shard id for parallel workers")
     ap.add_argument("--opp", default="mirror",
-                    help="mirror (cand vs base) or meta:<i> (each net "
-                         "separately vs rules piloting meta deck i)")
+                    help="mirror (cand vs base), meta:<i> (each net "
+                         "separately vs rules piloting meta deck i), or "
+                         "pool:<n> (games split across the top n meta decks "
+                         "— the closest local proxy for the ladder band)")
     a = ap.parse_args()
 
     cand, base = load_net(a.candidate), load_net(a.base)
@@ -103,18 +105,39 @@ def main():
         return
 
     import json
-    idx = int(a.opp.split(":")[1])
     meta_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "..", "agent", "meta_decks.json")
     with open(meta_path) as f:
-        opp_deck = json.load(f)[idx]["deck"]
-    cw, cl = series("cand-vs-meta", lambda o: reflex_move(cand, o),
-                    policy.decide_rules, opp_deck)
-    bw, bl = series("base-vs-meta", lambda o: reflex_move(base, o),
-                    policy.decide_rules, opp_deck)
-    print(f"DELTA cand {100.0 * cw / max(cw + cl, 1):.1f}% vs "
-          f"base {100.0 * bw / max(bw + bl, 1):.1f}% "
-          f"(meta deck {idx}, n={a.games} each)")
+        lib = json.load(f)
+
+    if a.opp.startswith("meta:"):
+        idx = int(a.opp.split(":")[1])
+        cw, cl = series("cand-vs-meta", lambda o: reflex_move(cand, o),
+                        policy.decide_rules, lib[idx]["deck"])
+        bw, bl = series("base-vs-meta", lambda o: reflex_move(base, o),
+                        policy.decide_rules, lib[idx]["deck"])
+        print(f"DELTA cand {100.0 * cw / max(cw + cl, 1):.1f}% vs "
+              f"base {100.0 * bw / max(bw + bl, 1):.1f}% "
+              f"(meta deck {idx}, n={a.games} each)")
+        return
+
+    n_decks = int(a.opp.split(":")[1])
+    per = max(a.games // n_decks, 2)
+    tot = {"cand": [0, 0], "base": [0, 0]}
+    for i in range(min(n_decks, len(lib))):
+        for tag, net in (("cand", cand), ("base", base)):
+            saved = a.games
+            a.games = per
+            w, l = series(f"{tag}-pool{i}", lambda o: reflex_move(net, o),
+                          policy.decide_rules, lib[i]["deck"])
+            a.games = saved
+            tot[tag][0] += w
+            tot[tag][1] += l
+    cw, cl = tot["cand"]
+    bw, bl = tot["base"]
+    print(f"POOL cand {cw}W-{cl}L {100.0 * cw / max(cw + cl, 1):.1f}% vs "
+          f"base {bw}W-{bl}L {100.0 * bw / max(bw + bl, 1):.1f}% "
+          f"(top {n_decks} decks, {per} games/net/deck)")
 
 
 if __name__ == "__main__":
