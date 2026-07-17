@@ -33,6 +33,12 @@ workflows.
   acting on one sampled world = 31.6% vs reflex — this sank cvkpaper-v2
   (493 vs v0's 651). The fix (evidence floor MIN_DETS=3, adaptive 2→1-ply,
   hard cap) defers to reflex when starved: 50-52% parity, n=800.
+- That parity did NOT transfer: on the ladder v3 (516) overrode the net on
+  63% of contested picks (replay analysis, n=383) and went 1-8, with no time
+  pressure. Mirror A/B can't see off-distribution failure — the value head +
+  meta world model degrade vs unfamiliar opponents while the BC policy head
+  doesn't. Runtime search is retired (`search_policy.ENABLED = False`);
+  eval_search.py force-enables it for experiments.
 
 ## Training & the flywheel
 
@@ -58,9 +64,14 @@ The ladder is the only real eval; every submission is an A/B measurement:
   every upload** (training/eval/commit chains may run autonomously, the
   `kaggle submit` never does). Tag lineage so far: alakazam-v1/v2 (rules,
   534), cvkpaper-v0 (reflex, 651), cvkpaper-v1 (1-ply search, 635),
-  cvkpaper-v2 (gated 2-ply, 493 — det starvation, fixed on main).
-- Pending at the upload gate: cvkpaper-v3 = v2 bundle + evidence-floor fix
-  (da9c590); flywheel cycle 2 (diverse-opponent selfplay) queued behind it.
+  cvkpaper-v2 (gated 2-ply, 493 — det starvation), cvkpaper-v3 (evidence
+  floor, 516 — search itself was the harm), cvkpaper-v4 (reflex-only kill
+  switch, on the ladder — expect ~651 baseline).
+- In flight: flywheel cycle 2 on the scouting corpus (201 episodes / 28.2k
+  samples incl. top-team winner seats piloting our exact deck). BC-only
+  retrain = mirror parity vs champion (80W-80L, tools/eval_ab.py); anchored
+  league PPO from it is training -> v5 candidate, gated by eval_ab at 160+
+  games before any tag.
 
 ## Commands
 
