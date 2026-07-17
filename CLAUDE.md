@@ -43,9 +43,16 @@ workflows.
 ## Training & the flywheel
 
 - Venv: `~/.venvs/ptcg-rl` (torch+CUDA). Recipes that work: outcome-weighted
-  BC on episode logs; anchored league PPO (`--league-rules 0.33 --bc-anchor
-  <episodes> --lr 5e-5`). Known dead ends: vanilla PPO fine-tuning (erodes),
-  mirror-only self-play (entropy collapse), bigger nets on the same corpus.
+  BC on episode logs; anchored league PPO (`--league-rules 0.30
+  --league-random 0.25 --bc-anchor <episodes> --lr 5e-5`). Known dead ends:
+  vanilla PPO fine-tuning (erodes), mirror-only self-play (entropy
+  collapse), bigger nets on the same corpus.
+- Candidate gate is THREE axes, all required (mirror-only gates lied twice):
+  `eval_ab.py` mirror 160+ games; `eval_ab.py --opp meta:<i>` vs a threat
+  deck; `eval.py 200 random` vs the champion's number. A top-games-only
+  corpus self-deck-outs vs passive play — league_random seats plus
+  `gen_antipassive.py` demos in the anchor dir fix that (86%->94% vs
+  random, cycle 3).
 - Flywheel: `tools/selfplay_search.py` generates search self-play in episode
   format; retrain on it via the same `--bc` path. Episode downloads land in
   `~/Desktop/ptcg_episodes/` (user does this manually; API needs a browser
@@ -67,11 +74,12 @@ The ladder is the only real eval; every submission is an A/B measurement:
   cvkpaper-v2 (gated 2-ply, 493 — det starvation), cvkpaper-v3 (evidence
   floor, 516 — search itself was the harm), cvkpaper-v4 (reflex-only kill
   switch, on the ladder — expect ~651 baseline).
-- In flight: flywheel cycle 2 on the scouting corpus (201 episodes / 28.2k
-  samples incl. top-team winner seats piloting our exact deck). BC-only
-  retrain = mirror parity vs champion (80W-80L, tools/eval_ab.py); anchored
-  league PPO from it is training -> v5 candidate, gated by eval_ab at 160+
-  games before any tag.
+- At the upload gate: cvkpaper-v5 = cycle3d weights (6b8659b), same code as
+  v4. Battery vs ft3 champion: mirror 59.4% (n=160), Grimmsnarl-rules 71.2
+  vs 67.1, random 94.0 vs 95.5 (n=200). Corpus: 262 ladder episodes /
+  38.7k samples (top-team scouting incl. 100+ winner seats on our exact 60)
+  + 150 synthetic anti-passive demos. Meta watch: Luca took #1 by swapping
+  to Grimmsnarl/Munkidori, which beats our archetype 37-14 in corpus games.
 
 ## Commands
 
