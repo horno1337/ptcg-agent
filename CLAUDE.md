@@ -57,10 +57,16 @@ workflows.
   (mirror 59.4%!) and shipped as v5 at 497 vs v4's 655. The ladder band
   (500-700) is archetype VARIANTS piloted by mid agents — no local axis
   covered it, and a mirror edge can coexist with broad regression (style
-  overfit to self-similar opponents). Before any future weights ship: a
-  POOL gate across many meta decks, and band-representative data (our own
-  ladder games, both seats) in the corpus. Local gates propose; the ladder
+  overfit to self-similar opponents). Local gates propose; the ladder
   disposes.
+- The pool gate retrodicts that failure where mirror inverted it: cycle3d
+  61.2% vs ft3 65.0% on `eval_ab --opp pool:8` (160 games/net). PRIMARY
+  gate for any weights ship: candidate >= champion on pool:8; mirror is
+  secondary and never sufficient alone. Direction is trustworthy, ladder
+  magnitude is not (rating spirals amplify). Corpus rule: keep
+  band-representative games (our own ladder episodes, both seats) as the
+  base; top-team scouting is seasoning, not foundation — pure top-play BC
+  is how cycle3d went wrong.
 - Flywheel: `tools/selfplay_search.py` generates search self-play in episode
   format; retrain on it via the same `--bc` path. Episode downloads land in
   `~/Desktop/ptcg_episodes/` (user does this manually; API needs a browser
