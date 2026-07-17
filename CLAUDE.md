@@ -53,6 +53,14 @@ workflows.
   corpus self-deck-outs vs passive play — league_random seats plus
   `gen_antipassive.py` demos in the anchor dir fix that (86%->94% vs
   random, cycle 3).
+- Even all three axes were not enough: cycle3d passed the full battery
+  (mirror 59.4%!) and shipped as v5 at 497 vs v4's 655. The ladder band
+  (500-700) is archetype VARIANTS piloted by mid agents — no local axis
+  covered it, and a mirror edge can coexist with broad regression (style
+  overfit to self-similar opponents). Before any future weights ship: a
+  POOL gate across many meta decks, and band-representative data (our own
+  ladder games, both seats) in the corpus. Local gates propose; the ladder
+  disposes.
 - Flywheel: `tools/selfplay_search.py` generates search self-play in episode
   format; retrain on it via the same `--bc` path. Episode downloads land in
   `~/Desktop/ptcg_episodes/` (user does this manually; API needs a browser
@@ -74,12 +82,12 @@ The ladder is the only real eval; every submission is an A/B measurement:
   cvkpaper-v2 (gated 2-ply, 493 — det starvation), cvkpaper-v3 (evidence
   floor, 516 — search itself was the harm), cvkpaper-v4 (reflex-only kill
   switch, on the ladder — expect ~651 baseline).
-- At the upload gate: cvkpaper-v5 = cycle3d weights (6b8659b), same code as
-  v4. Battery vs ft3 champion: mirror 59.4% (n=160), Grimmsnarl-rules 71.2
-  vs 67.1, random 94.0 vs 95.5 (n=200). Corpus: 262 ladder episodes /
-  38.7k samples (top-team scouting incl. 100+ winner seats on our exact 60)
-  + 150 synthetic anti-passive demos. Meta watch: Luca took #1 by swapping
-  to Grimmsnarl/Munkidori, which beats our archetype 37-14 in corpus games.
+- Shipped and failed: cvkpaper-v5 = cycle3d weights, 497 vs v4's 655 (same
+  code, one weights commit — cleanest A/B yet, clean negative). Weights
+  reverted to ft3 (fa0fc1c). v4 carries the team score. Corpus: ~285
+  ladder episodes / 40k+ samples. Meta watch: Luca took #1 swapping to
+  Grimmsnarl/Munkidori, which beats our archetype 37-14 in corpus games;
+  mid-band pool is archetype variants, not top-meta lists.
 
 ## Commands
 
