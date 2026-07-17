@@ -63,6 +63,7 @@ def main():
                     help="seat-parity shard id for parallel workers")
     a = ap.parse_args()
 
+    SP.ENABLED = True   # the harness measures search; the ladder default is off
     SP.BUDGET_S = a.budget
     if a.min_dets is not None:
         SP.MIN_DETS = a.min_dets
