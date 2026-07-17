@@ -253,7 +253,14 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
             picks, logp, _ = sample_picks(logits[k, :n_opts + 1], n_opts,
                                           v.min_count, v.max_count,
                                           greedy=temperature_greedy)
-            action = picks if picks else list(range(min(max(v.min_count, 1), n_opts)))
+            if not picks:
+                # STOP-at-zero gets substituted, never executed: re-label the
+                # decision as the substitute so the update credits the action
+                # that actually ran (recorded [] + executed [0] poisons PPO)
+                picks = list(range(min(max(v.min_count, 1), n_opts)))
+                logp, _ = picks_logprob(logits[k, :n_opts + 1], picks,
+                                        n_opts, v.min_count, v.max_count)
+            action = picks
             err = b.select(action)
             steps[gi] += 1
             if err:
