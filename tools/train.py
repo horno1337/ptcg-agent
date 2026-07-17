@@ -172,15 +172,21 @@ class Decision:
 
 @torch.no_grad()
 def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
-            temperature_greedy=False, league_rules=0.0):
+            temperature_greedy=False, league_rules=0.0, league_random=0.0):
     """Self-play; returns (decisions, stats). Rewards via GAE per player
     trajectory with gamma=1 (single terminal reward). A `league_rules`
     fraction of battles seats the rule-based policy as one opponent (its
     decisions are not recorded), so the net can't overfit the mirror."""
     alive = [Battle(deck, deck) for _ in range(n_games)]
-    # scripted[gi] = player index piloted by the rule policy, or None
-    scripted = [(gi % 2) if gi < int(n_games * league_rules) else None
+    # scripted[gi] = player index piloted by a league opponent, or None.
+    # First league_rules fraction gets the rule policy, next league_random
+    # fraction gets random legal play (keeps the net punishing bad boards —
+    # a corpus of only strong games regressed 97%->86% vs random, cycle 3).
+    n_rules = int(n_games * league_rules)
+    n_rand = int(n_games * league_random)
+    scripted = [(gi % 2) if gi < n_rules + n_rand else None
                 for gi in range(n_games)]
+    from cabt import random_agent as _rand_move
     trajs = [([], []) for _ in range(n_games)]  # per game: (p0 decisions, p1)
     results = []
     steps = [0] * n_games
@@ -206,7 +212,8 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
                 continue
             if scripted[gi] == sp:
                 try:
-                    act = policy.decide_rules(obs)
+                    act = (policy.decide_rules(obs) if gi < n_rules
+                           else _rand_move(obs))
                 except Exception:
                     act = [0]
                 err = b.select(list(act))
@@ -530,6 +537,8 @@ def main():
     ap.add_argument("--ckpt-dir", default=os.path.join(ROOT, "tools", "checkpoints"))
     ap.add_argument("--league-rules", type=float, default=0.0,
                     help="fraction of collect battles vs the rule policy")
+    ap.add_argument("--league-random", type=float, default=0.0,
+                    help="fraction of collect battles vs random legal play")
     ap.add_argument("--bc-anchor", default=None,
                     help="episode dir: mix expert NLL into every PPO update")
     ap.add_argument("--bc-anchor-coef", type=float, default=0.3)
@@ -564,7 +573,8 @@ def main():
     for it in range(1, args.iters + 1):
         t0 = time.time()
         decisions, results = collect(net, args.games, deck,
-                                     league_rules=args.league_rules)
+                                     league_rules=args.league_rules,
+                                     league_random=args.league_random)
         t1 = time.time()
         wl = {r: results.count(r) for r in set(results)}
         stats = ppo_update(net, opt, decisions,
