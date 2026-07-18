@@ -40,7 +40,19 @@ from .obsview import (
 # ---------------------------------------------------------------------------
 
 ABRA, KADABRA, ALAKAZAM = 741, 742, 743
+DUNSPARCE, DUDUNSPARCE = 305, 66
+FEZANDIPITI_EX, SHAYMIN = 140, 343
 POWERFUL_HAND = 1072            # Alakazam: 2 damage counters per card in our hand
+
+# Opening lead (guide): Dunsparce is the expendable draw body you want active;
+# never open a multi-prize ex (Fezandipiti worst) and avoid the Shaymin
+# liability, keeping Abra safe on the bench to evolve.
+OPEN_ACTIVE_LIABILITY = {SHAYMIN, FEZANDIPITI_EX}
+
+# Forced discard (guide's Xerosic keep-order): hold recovery / big-draw pieces
+# over spare energy and redundant items. Added on top of _option_value so these
+# rank last to be pitched. Lana's Aid > Night Stretcher > Sacred Ash > Enriching.
+DISCARD_KEEP = {1184: 300, 1097: 260, 1129: 240, 13: 200}
 
 DECK_LOW = 6                    # deckCount <= this: no more optional draws
 DECK_CRITICAL = 3               # deckCount <= this: no more deck searches either
@@ -216,6 +228,22 @@ def _option_value(view: ObsView, opt: dict) -> float:
     return base + PICK_BONUS.get(cid, 0)
 
 
+def _open_active_score(view: ObsView, opt: dict) -> float:
+    """Rank an opening active choice. Dunsparce leads; a multi-prize ex never
+    does (Fezandipiti worst), and the Shaymin liability is avoided. Body value
+    is a faint tie-break so we lead with the sturdier legal option otherwise."""
+    cid = view.option_card_id(opt)
+    c = cards.card(cid)
+    score = 0.0
+    if cid == DUNSPARCE:
+        score += 1000
+    if c is not None and (c.get("ex") or c.get("megaEx")):
+        score -= 2000
+    if cid in OPEN_ACTIVE_LIABILITY:
+        score -= 1000
+    return score + _option_value(view, opt) * 0.001
+
+
 def choose_card(view: ObsView) -> list[int]:
     ctx = view.context
     opts = view.options
@@ -238,7 +266,11 @@ def choose_card(view: ObsView) -> list[int]:
         if len(picks) < n_min:
             picks += [i for i in ranked if i not in picks][:n_min - len(picks)]
         return picks
-    if ctx in (CTX_SETUP_ACTIVE, CTX_SWITCH, CTX_TO_ACTIVE, CTX_TO_FIELD):
+    if ctx == CTX_SETUP_ACTIVE:
+        # opening lead: expendable Dunsparce, never an ex/liability (guide rule)
+        return _pick_k(view, lambda o: _open_active_score(view, o),
+                       reverse=True, k=max(n_min, 1))
+    if ctx in (CTX_SWITCH, CTX_TO_ACTIVE, CTX_TO_FIELD):
         k = max(n_min, 1)
         enemy = [i for i, o in enumerate(opts) if is_enemy(o)]
         if enemy:
@@ -255,8 +287,13 @@ def choose_card(view: ObsView) -> list[int]:
     if ctx == CTX_HEAL:
         return _pick_k(view, value, reverse=True, k=max(n_min, 1))
     if ctx == CTX_DISCARD:
-        # give up the least valuable, and only as many as forced
-        return _pick_k(view, value, reverse=False, k=max(n_min, 1))
+        # give up the least valuable, and only as many as forced — but keep
+        # recovery/draw pieces over spare energy and redundant items, so a
+        # Xerosic/hand-size discard never strips our comeback tools
+        def discard_value(opt):
+            return _option_value(view, opt) + DISCARD_KEEP.get(
+                view.option_card_id(opt), 0)
+        return _pick_k(view, discard_value, reverse=False, k=max(n_min, 1))
     if ctx == CTX_TO_HAND and opts and opts[0].get("area") in (AREA_ACTIVE, AREA_BENCH):
         # bouncing in-play Pokémon back to hand: give up as little as forced
         return _pick_k(view, value, reverse=False, k=max(n_min, 1))
@@ -280,6 +317,8 @@ def choose_yes_no(view: ObsView) -> list[int]:
     want_yes = True
     if ctx == CTX_MULLIGAN:
         want_yes = False  # keep hand by default; engine forces mulligan when illegal
+    elif ctx == CTX_IS_FIRST:
+        want_yes = True  # guide rule #1: go first in every matchup (yes -> first)
     elif ctx == CTX_ACTIVATE:
         # optional triggers (evolve-draws, Enriching, Telepath...): all of
         # them draw/search in this deck and the prompt often carries no
