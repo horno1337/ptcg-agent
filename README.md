@@ -31,6 +31,9 @@ think-time drains it directly), never crash.
 | cvkpaper-v0 | + reflex net (BC on 16 episodes + anchored PPO) | 666 |
 | cvkpaper-v1 | + determinized 1-ply search | 867 spike → 635 |
 | cvkpaper-v2 | + confidence gate, 2-ply, 51-deck library | 493 |
+| cvkpaper-v3 | + evidence floor (MIN_DETS=3, adaptive ply) | 516 |
+| cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — current champion |
+| cvkpaper-v5 | cycle3d weights on v4 code | 497 — reverted to ft3 (fa0fc1c) |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -59,6 +62,31 @@ Research log (each vs the then-champion, 100-200 game evals):
   (MIN_DETS=3 complete worlds or defer to reflex), 2→1-ply downgrade when a
   det costs > budget/3, hard 2×budget per-decision cap. At starved compute
   the fixed agent is reflex-parity (50-52%, n=800).
+- **Search itself was the harm, not just starvation** (the cvkpaper-v3
+  post-mortem): with the evidence floor in place and no time pressure, v3
+  (516) still overrode the net on 63% of contested picks (replay analysis,
+  n=383) and went 1-8. Mirror A/B can't see off-distribution failure — the
+  value head + meta world model degrade vs unfamiliar opponents while the BC
+  policy head doesn't. Runtime search is retired
+  (`search_policy.ENABLED = False`); `eval_search.py` force-enables it for
+  experiments. cvkpaper-v4 is the reflex-only kill switch (~655 baseline).
+- **A full local gate battery can still lie** (the cvkpaper-v5 post-mortem):
+  cycle3d passed all three gate axes (mirror 59.4%!, threat deck, random)
+  and shipped as v5 at 497 vs v4's 655 — same code, one weights commit, the
+  cleanest A/B yet, a clean negative. The ladder band (500-700) is
+  archetype *variants* piloted by mid agents; no local axis covered it, and
+  a mirror edge can coexist with broad regression (style overfit to
+  self-similar opponents). Root cause: pure top-play BC — top-team scouting
+  is seasoning, not foundation. Weights reverted to ft3 (fa0fc1c). Local
+  gates propose; the ladder disposes.
+- **The pool gate retrodicts v5 where mirror inverted it**: cycle3d 61.2%
+  vs ft3 65.0% on `eval_ab --opp pool:8` (160 games/net). pool:8 is now the
+  primary ship gate for weights. Direction is trustworthy, ladder magnitude
+  is not (rating spirals amplify).
+- **Meta watch (2026-07)**: Luca took #1 swapping to Grimmsnarl/Munkidori,
+  which beats our archetype 37-14 in corpus games; the mid-band pool is
+  archetype variants, not top-meta lists. Corpus at this point: ~285 ladder
+  episodes / 40k+ samples.
 
 ## Layout
 
