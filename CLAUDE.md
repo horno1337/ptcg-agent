@@ -24,11 +24,23 @@ the ladder.
   the repo (`~/Desktop/ptcg_engine/`, `~/Desktop/sample_submission/`);
   `engine/` is gitignored; `cg/libcg.so` is injected into the tarball at
   build time only — never committed or pushed.
-- Runtime search is retired (`search_policy.ENABLED = False`) — it lost on
-  the ladder even after local parity (v2/v3 post-mortems). `eval_search.py`
-  force-enables it for experiments; any search-config change must pass
-  `tools/eval_search.py --budget 0.03` (ladder CPUs run ~1 det per budget
-  vs ~0.03s on the dev box).
+- Time bank is LARGE — do not treat compute as scarce. The ladder gives
+  ~600s overage per game (`actTimeout=0`; thinking drains `remainingOverageTime`)
+  across ~65 of our decisions, i.e. **~5–9s available per decision**, and the
+  shipped reflex agent spends ~1s per *game* (<0.2% of budget). We are NOT
+  time-starved: we can afford many search iterations / seconds of compute per
+  decision. The v2/v3 "det starvation" was self-imposed per-decision throttling
+  plus the value-net / strategy-fusion failures — NOT a total-time limit. When
+  testing search, SPEND the budget (raise the per-decision budget and the
+  world/iteration counts), keeping a safety reserve so the clock never reaches
+  zero (instant loss). Unknown to measure empirically on the ladder: the real
+  per-iteration wall-cost on the competition CPU (don't assume a fixed slowdown).
+- Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
+  the ladder even after local parity (v2/v3 post-mortems), the root cause being
+  strategy fusion, not lack of time. SO-ISMCTS (`agent/ismcts.py`) is the
+  corrected-search prototype. `eval_search.py` force-enables search for
+  experiments; validate any search change with it, and now spend a realistic
+  per-decision budget (seconds), not the old throttled `--budget 0.03`.
 
 ## Evaluation & gates
 
