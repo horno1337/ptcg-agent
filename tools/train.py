@@ -11,6 +11,7 @@ test_roundtrip() asserts that on every export.
 """
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -172,12 +173,23 @@ class Decision:
 
 @torch.no_grad()
 def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
-            temperature_greedy=False, league_rules=0.0, league_random=0.0):
+            temperature_greedy=False, league_rules=0.0, league_random=0.0,
+            deck_pool=None):
     """Self-play; returns (decisions, stats). Rewards via GAE per player
     trajectory with gamma=1 (single terminal reward). A `league_rules`
     fraction of battles seats the rule-based policy as one opponent (its
-    decisions are not recorded), so the net can't overfit the mirror."""
-    alive = [Battle(deck, deck) for _ in range(n_games)]
+    decisions are not recorded), so the net can't overfit the mirror.
+
+    `deck_pool` (list of decklists) turns on MULTI-DECK self-play: each game
+    draws both seats from the pool, so the net learns to pilot every deck AND
+    (crucially) faces a net-piloted — i.e. competent — version of the decks
+    that beat us, which the rules bot never provides. None = mirror on `deck`."""
+    import random as _random
+    if deck_pool:
+        alive = [Battle(_random.choice(deck_pool), _random.choice(deck_pool))
+                 for _ in range(n_games)]
+    else:
+        alive = [Battle(deck, deck) for _ in range(n_games)]
     # scripted[gi] = player index piloted by a league opponent, or None.
     # First league_rules fraction gets the rule policy, next league_random
     # fraction gets random legal play (keeps the net punishing bad boards —
@@ -549,6 +561,11 @@ def main():
                     help="fraction of collect battles vs the rule policy")
     ap.add_argument("--league-random", type=float, default=0.0,
                     help="fraction of collect battles vs random legal play")
+    ap.add_argument("--deck-pool", default=None,
+                    help="multi-deck self-play: comma-sep of 'self' (shipped "
+                         "deck) or 'meta:<i>'; repeat a token to weight it. "
+                         "e.g. self,self,meta:2,meta:4 = our deck + Lucario + "
+                         "Grimmsnarl. Default: mirror self-play on the deck.")
     ap.add_argument("--bc-anchor", default=None,
                     help="episode dir: mix expert NLL into every PPO update")
     ap.add_argument("--bc-anchor-coef", type=float, default=0.3)
@@ -557,6 +574,21 @@ def main():
     args = ap.parse_args()
 
     deck = policy.load_deck()
+    deck_pool = None
+    if args.deck_pool:
+        _meta = None
+        deck_pool = []
+        for tok in args.deck_pool.split(","):
+            tok = tok.strip()
+            if tok == "self":
+                deck_pool.append(deck)
+            elif tok.startswith("meta:"):
+                if _meta is None:
+                    with open(os.path.join(ROOT, "agent", "meta_decks.json")) as _f:
+                        _meta = json.load(_f)
+                deck_pool.append(_meta[int(tok.split(":")[1])]["deck"])
+        deck_pool = deck_pool or None
+        print(f"deck pool: {len(deck_pool or [])} decks from '{args.deck_pool}'", flush=True)
     net = TorchNet(*[int(x) for x in args.arch.split(",")]).to(DEV)
     if args.resume and os.path.exists(args.resume):
         net.load_state_dict(torch.load(args.resume, map_location=DEV))
@@ -584,7 +616,8 @@ def main():
         t0 = time.time()
         decisions, results = collect(net, args.games, deck,
                                      league_rules=args.league_rules,
-                                     league_random=args.league_random)
+                                     league_random=args.league_random,
+                                     deck_pool=deck_pool)
         t1 = time.time()
         wl = {r: results.count(r) for r in set(results)}
         stats = ppo_update(net, opt, decisions,
