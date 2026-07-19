@@ -173,9 +173,31 @@ class Decision:
 
 
 @torch.no_grad()
+def _ckpt_move(ckpt_net, v) -> list[int]:
+    """One move from a frozen league checkpoint (a past self). Single-obs
+    forward through the given net; not recorded, just a competent opponent."""
+    st = FE.encode_state(v)
+    cids, feats = FE.encode_options(v)
+    M = feats.shape[0]
+    ids = torch.from_numpy(st["ids"]).long().unsqueeze(0).to(DEV)
+    hand = torch.from_numpy(st["hand_ids"]).long().unsqueeze(0).to(DEV)
+    mdisc = torch.from_numpy(st["my_disc"]).long().unsqueeze(0).to(DEV)
+    odisc = torch.from_numpy(st["opp_disc"]).long().unsqueeze(0).to(DEV)
+    scal = torch.from_numpy(st["scalars"]).unsqueeze(0).to(DEV)
+    oi = torch.from_numpy(cids.astype(np.int64)).unsqueeze(0).to(DEV)
+    of = torch.from_numpy(feats).unsqueeze(0).to(DEV)
+    mask = torch.ones(1, M, dtype=torch.bool, device=DEV)
+    sv = ckpt_net.state_vec(ids, hand, mdisc, odisc, scal)
+    logits = ckpt_net.logits(sv, oi, of, mask)
+    picks, _, _ = sample_picks(logits[0, :M], M - 1,
+                               v.min_count, v.max_count, greedy=False)
+    return picks or [0]
+
+
+@torch.no_grad()
 def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
             temperature_greedy=False, league_rules=0.0, league_random=0.0,
-            deck_pool=None):
+            deck_pool=None, ckpt_nets=None, league_ckpt=0.0):
     """Self-play; returns (decisions, stats). Rewards via GAE per player
     trajectory with gamma=1 (single terminal reward). A `league_rules`
     fraction of battles seats the rule-based policy as one opponent (its
@@ -197,8 +219,16 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
     # a corpus of only strong games regressed 97%->86% vs random, cycle 3).
     n_rules = int(n_games * league_rules)
     n_rand = int(n_games * league_random)
-    scripted = [(gi % 2) if gi < n_rules + n_rand else None
+    # next league_ckpt fraction gets a FROZEN PAST SELF as the opponent -- the
+    # "beat your predecessors" gradient that plain self-play (always ~50% vs the
+    # current self) lacks. Its moves are not recorded.
+    n_ckpt = int(n_games * league_ckpt) if ckpt_nets else 0
+    scripted = [(gi % 2) if gi < n_rules + n_rand + n_ckpt else None
                 for gi in range(n_games)]
+    ckpt_assign = [None] * n_games
+    if ckpt_nets:
+        for gi in range(n_rules + n_rand, n_rules + n_rand + n_ckpt):
+            ckpt_assign[gi] = _random.choice(ckpt_nets)
     from cabt import random_agent as _rand_move
     trajs = [([], []) for _ in range(n_games)]  # per game: (p0 decisions, p1)
     results = []
@@ -225,8 +255,12 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
                 continue
             if scripted[gi] == sp:
                 try:
-                    act = (policy.decide_rules(obs) if gi < n_rules
-                           else _rand_move(obs))
+                    if gi < n_rules:
+                        act = policy.decide_rules(obs)
+                    elif gi < n_rules + n_rand:
+                        act = _rand_move(obs)
+                    else:
+                        act = _ckpt_move(ckpt_assign[gi], ObsView(obs))
                 except Exception:
                     act = [0]
                 err = b.select(list(act))
@@ -567,6 +601,13 @@ def main():
                          "deck) or 'meta:<i>'; repeat a token to weight it. "
                          "e.g. self,self,meta:2,meta:4 = our deck + Lucario + "
                          "Grimmsnarl. Default: mirror self-play on the deck.")
+    ap.add_argument("--league-ckpt", type=float, default=0.0,
+                    help="fraction of games vs a FROZEN PAST SELF -- the 'beat "
+                         "your predecessors' gradient plain self-play lacks "
+                         "(self-play is ~50%% vs the current self, so it plateaus)")
+    ap.add_argument("--league-snap-every", type=int, default=10,
+                    help="snapshot the current net into the league pool every N "
+                         "iters (pool capped at 20, oldest dropped)")
     ap.add_argument("--bc-anchor", default=None,
                     help="episode dir: mix expert NLL into every PPO update")
     ap.add_argument("--bc-anchor-coef", type=float, default=0.3)
@@ -627,12 +668,26 @@ def main():
         print(f"progress gate: net vs frozen start on pool:8, "
               f"{args.gate_games} games every {args.eval_every} iters", flush=True)
 
+    # League of past selves: opponents drawn from frozen snapshots so the net
+    # must beat its predecessors, not just tie the current mirror.
+    league_pool = []
+    if args.league_ckpt > 0:
+        seed = TorchNet(*[int(x) for x in args.arch.split(",")]).to(DEV)
+        seed.load_state_dict(net.state_dict())   # independent copy of start net
+        seed.eval()
+        league_pool.append(seed)
+        print(f"league: {args.league_ckpt:.0%} of games vs frozen past selves, "
+              f"pool seeded with the start net, snapshot every "
+              f"{args.league_snap_every} iters", flush=True)
+
     for it in range(1, args.iters + 1):
         t0 = time.time()
         decisions, results = collect(net, args.games, deck,
                                      league_rules=args.league_rules,
                                      league_random=args.league_random,
-                                     deck_pool=deck_pool)
+                                     deck_pool=deck_pool,
+                                     ckpt_nets=league_pool or None,
+                                     league_ckpt=args.league_ckpt)
         t1 = time.time()
         wl = {r: results.count(r) for r in set(results)}
         stats = ppo_update(net, opt, decisions,
@@ -642,6 +697,14 @@ def main():
               f"{wl} | pi={stats['pi']:.3f} v={stats['v']:.3f} ent={stats['ent']:.2f} "
               f"| collect {t1-t0:.0f}s update {t2-t1:.0f}s", flush=True)
         torch.save(net.state_dict(), os.path.join(ckpt, "latest.pt"))
+        if args.league_ckpt > 0 and it % args.league_snap_every == 0:
+            snap = TorchNet(*[int(x) for x in args.arch.split(",")]).to(DEV)
+            snap.load_state_dict(net.state_dict())
+            snap.eval()
+            league_pool.append(snap)
+            if len(league_pool) > 20:
+                league_pool.pop(0)
+            print(f"  league: snapshot -> pool size {len(league_pool)}", flush=True)
         if it % args.eval_every == 0 or it == args.iters:
             export_npz(net, args.out)
             wr = eval_vs_rules(args.out, args.eval_games, deck)
