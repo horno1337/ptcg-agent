@@ -21,6 +21,8 @@ Deck-specific knowledge lives only in the ID tables below; with another
 deck the tables miss and everything degrades to the generic heuristics.
 """
 
+import os
+
 from . import cards
 from .obsview import (
     ObsView,
@@ -56,6 +58,10 @@ DISCARD_KEEP = {1184: 300, 1097: 260, 1129: 240, 13: 200}
 
 DECK_LOW = 6                    # deckCount <= this: no more optional draws
 DECK_CRITICAL = 3               # deckCount <= this: no more deck searches either
+
+# Deterministic count-to-lethal override (agent/lethal.py). Default OFF so the
+# shipped agent is byte-for-byte v6 until A/B'd; PTCG_LETHAL=1 turns it on.
+LETHAL_ENABLED = os.environ.get("PTCG_LETHAL") == "1"
 
 DRAW_ON_ATTACH = {13: 4, 19: 2}  # deck cards its attach trigger consumes:
                                  # Enriching (draw 4), Telepath (bench 2 from deck)
@@ -393,6 +399,17 @@ def decide(obs: dict) -> list[int]:
     view = ObsView(obs)
     if view.is_deck_selection:
         return load_deck()
+
+    # Deterministic KO: override the net ONLY on a provable Powerful Hand lethal.
+    # Fail soft into the net on any error (paranoid, like the rest of the stack).
+    if LETHAL_ENABLED:
+        try:
+            from . import lethal
+            forced = lethal.attack_override(view)
+            if forced is not None:
+                return forced
+        except Exception:
+            pass
 
     action = _model_decide(view)
     if action is not None:
