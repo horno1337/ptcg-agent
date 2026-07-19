@@ -1,7 +1,21 @@
 # Design note: `count_to_lethal` — a deterministic KO/counting helper
 
-Status: **proposed** (2026-07-19). Not yet implemented. Gated behind a flag for a
-clean A/B against cvkpaper-v6 (ft10) when built.
+Status: **built + first hypothesis falsified** (2026-07-19). `agent/lethal.py`
+exists (13 tests green), flag-gated (`PTCG_LETHAL`, default off).
+
+**A/B result (full agent vs rules-Lucario meta:2, N=120):** the *attack-timing*
+override does not help. ST_MAIN "force the KO" **regressed −5.8** (takes the KO
+before board development / Boss choice); ST_ATTACK-only "pick lethal Powerful Hand"
+was **exactly neutral (+0.0)** — because features.py already feeds the net Powerful
+Hand's true `20×hand` damage, so the net is *not* lethal-blind and already attacks
+correctly. Attack-override disabled; flag stays off.
+
+**Lesson:** "the reflex net can't count" was too broad. It *can* use a counting
+feature we hand it (lethal recognition). What it can't do is the multi-step
+*planning* — and the real Lucario bleed is prize-trade discipline (Fez ex dying for
+2), which the attack-override never addressed. Any future use of `count_to_lethal`
+should target **draw-discipline (don't over-draw)** or **prize-trade / Fez-exposure
+rules**, not attack timing.
 
 ## Why
 

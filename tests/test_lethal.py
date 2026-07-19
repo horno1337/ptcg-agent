@@ -80,8 +80,8 @@ def run():
     # --- override wiring ---
     check(lethal.attack_override(ObsView(mk(9, active(170), ATTACK_SEL))) == [1],
           "ST_ATTACK lethal -> picks Powerful Hand option (index 1)")
-    check(lethal.attack_override(ObsView(mk(9, active(170), MAIN_SEL))) == [1],
-          "ST_MAIN lethal -> routes into attack (index 1)")
+    check(lethal.attack_override(ObsView(mk(9, active(170), MAIN_SEL))) is None,
+          "ST_MAIN override disabled (regressed in A/B) -> None")
     check(lethal.attack_override(ObsView(mk(8, active(170), ATTACK_SEL))) is None,
           "not lethal -> no override")
     check(lethal.attack_override(ObsView(mk(20, active(170, energies=[11]), ATTACK_SEL))) is None,

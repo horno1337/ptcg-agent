@@ -105,7 +105,8 @@ def attack_override(view: ObsView) -> list[int] | None:
     if st == ST_ATTACK:
         i = _powerful_hand_index(view)
         return [i] if i is not None else None
-    if st == ST_MAIN:
-        i = _main_attack_index(view)
-        return [i] if i is not None else None
+    # ST_MAIN override (force the attack) was tested and REGRESSED (-5.8 vs
+    # rules-Lucario): it takes the KO before developing the board / choosing a
+    # Boss target. Disabled. The net already sees Powerful Hand's true 20xhand
+    # damage (features.py), so even the ST_ATTACK pick is near-redundant.
     return None
