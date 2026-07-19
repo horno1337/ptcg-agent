@@ -13,6 +13,7 @@ test_roundtrip() asserts that on every export.
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 
@@ -569,6 +570,10 @@ def main():
     ap.add_argument("--bc-anchor", default=None,
                     help="episode dir: mix expert NLL into every PPO update")
     ap.add_argument("--bc-anchor-coef", type=float, default=0.3)
+    ap.add_argument("--gate-games", type=int, default=0,
+                    help="if >0: every --eval-every iters, gate the net vs the "
+                         "FROZEN start-net on eval_ab pool:8 -- the real progress "
+                         "signal (self-play winrate is meaningless). 0 = off.")
     ap.add_argument("--arch", default="16,256,128,128,64",
                     help="emb,s1,s2,o1,o2 layer sizes")
     args = ap.parse_args()
@@ -612,6 +617,16 @@ def main():
     if anchor:
         print(f"bc anchor: {len(anchor)} samples, coef {args.bc_anchor_coef}", flush=True)
 
+    # Freeze the PPO start-net as the progress reference. The self-play win
+    # split is always ~50% (you play yourself), so it says nothing about
+    # improvement; gating vs this frozen snapshot on pool:8 is the real signal.
+    gate_ref = None
+    if args.gate_games > 0:
+        gate_ref = os.path.join(ckpt, "ref_start.npz")
+        export_npz(net, gate_ref)
+        print(f"progress gate: net vs frozen start on pool:8, "
+              f"{args.gate_games} games every {args.eval_every} iters", flush=True)
+
     for it in range(1, args.iters + 1):
         t0 = time.time()
         decisions, results = collect(net, args.games, deck,
@@ -632,6 +647,20 @@ def main():
             wr = eval_vs_rules(args.out, args.eval_games, deck)
             print(f"  eval vs rules: {wr:.1%} ({args.eval_games} games)", flush=True)
             torch.save(net.state_dict(), os.path.join(ckpt, f"iter{it:04d}.pt"))
+            if gate_ref:
+                try:
+                    r = subprocess.run(
+                        [sys.executable, os.path.join(ROOT, "tools", "eval_ab.py"),
+                         str(args.gate_games), args.out, "--opp", "pool:8",
+                         "--base", gate_ref],
+                        capture_output=True, text=True, timeout=3600)
+                    line = next((l for l in r.stdout.splitlines()
+                                 if l.startswith("POOL")), None)
+                    print(f"  [progress vs start] "
+                          f"{line or ('gate failed: ' + (r.stderr or '')[-200:])}",
+                          flush=True)
+                except Exception as e:
+                    print(f"  [progress gate error] {e}", flush=True)
 
 
 if __name__ == "__main__":
