@@ -57,6 +57,9 @@ def main():
     ap.add_argument("--cap-mult", type=float, default=None,
                     help="override the per-decision hard cap (v2 had none: "
                          "use a huge value so the first det always completes)")
+    ap.add_argument("--det-eval", action="store_true",
+                    help="prototype: deterministic leaf eval (prize+damage) "
+                         "instead of the value net")
     ap.add_argument("--opp", default="mirror",
                     help="mirror (reflex opponent) or meta:<i> (rules pilot)")
     ap.add_argument("--seed", type=int, default=0,
@@ -64,6 +67,7 @@ def main():
     a = ap.parse_args()
 
     SP.ENABLED = True   # the harness measures search; the ladder default is off
+    SP.DET_LEAF = a.det_eval
     SP.BUDGET_S = a.budget
     if a.min_dets is not None:
         SP.MIN_DETS = a.min_dets
