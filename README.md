@@ -87,6 +87,32 @@ Research log (each vs the then-champion, 100-200 game evals):
   which beats our archetype 37-14 in corpus games; the mid-band pool is
   archetype variants, not top-meta lists. Corpus at this point: ~285 ladder
   episodes / 40k+ samples.
+- **The reflex-net ceiling is real, and it's the pilot not the deck (2026-07-19)**:
+  cvkpaper-v6 (ft10) landed ~641 — median, ~#2800 of 5330. Its one concentrated
+  bleed is Lucario (31% WR, 31% of games), but Alakazam beats Lucario 61% in the
+  corpus, so it's a piloting gap, not a deck or matchup problem (do NOT switch
+  decks — Dusknoir/Dragapult are worse vs our killers). We then tested every
+  tractable lever and all TIED v6, validated free/locally: heavy Lucario-demo BC
+  (bc11), the count_to_lethal deterministic-KO helper (net already sees Powerful
+  Hand's true damage; forcing attacks regressed), plain multi-deck self-play
+  (parity), and self-play + a past-checkpoint league (parity, tight gate). RL
+  does not push a reactive net past v6 here — Alakazam's within-turn planning
+  depth exceeds what a policy net captures (unlike Mahjong, where Mortal's
+  policy-net RL tops out much higher). Diagnosis: the barrier is PLANNING.
+- **Compute is not scarce — the old "search starvation" was self-inflicted**:
+  ~600s/game across ~65 decisions = ~5-9s/decision available; the shipped agent
+  uses ~1s per *game*. Top ladder agents spend ~0.2-0.3s/decision (measured from
+  `remainingOverageTime` in replays) — they *plan*; we don't. See CLAUDE.md.
+- **Option C — planning via PUCT search (in progress, 2026-07-19)**: PIMC search
+  beat reflex ~60% locally but lost on the ladder (strategy fusion, per the
+  ISMCTS literature). `agent/ismcts.py` is the fix: AlphaGo-style **PUCT** over
+  information sets — our net's softmax as the policy prior (focuses the search),
+  deterministic leaf eval (not the off-distribution value head), determinization
+  for hidden cards, no rollout. RL-engineer-endorsed ("AlphaGo style is
+  reasonable if you can't search like crazy"). Prototype works: ~211
+  iters/decision @1.5s dev, 0 illegal actions. NEXT: A/B it vs reflex + the
+  multi-deck field at a realistic budget; if it wins, ship a ladder A/B (the
+  only real transfer test — local search wins have never transferred before).
 
 ## Layout
 

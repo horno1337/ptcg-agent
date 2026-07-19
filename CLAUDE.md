@@ -37,10 +37,22 @@ the ladder.
   per-iteration wall-cost on the competition CPU (don't assume a fixed slowdown).
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
-  strategy fusion, not lack of time. SO-ISMCTS (`agent/ismcts.py`) is the
-  corrected-search prototype. `eval_search.py` force-enables search for
-  experiments; validate any search change with it, and now spend a realistic
-  per-decision budget (seconds), not the old throttled `--budget 0.03`.
+  strategy fusion, not lack of time.
+- ACTIVE DIRECTION (Option C, the path to break the reflex-net ceiling): planning
+  via **PUCT-ISMCTS** (`agent/ismcts.py`). AlphaGo-style: net softmax as the
+  policy PRIOR (focuses the few-hundred affordable sims), DETERMINISTIC leaf eval
+  (`search_policy._value_det`, not the off-distribution value head), info-set
+  determinization for hidden cards, no rollout. Prototype works (~211
+  iters/decision @1.5s dev, 0 illegal; `PTCG_ISMCTS_DEBUG=1` un-swallows errors),
+  NOT wired into the dispatcher yet. NEXT: extend the single-game driver in the
+  scratchpad into an A/B (ISMCTS vs reflex, and vs the multi-deck-self-play net)
+  at a realistic budget; if it beats reflex, ship a LADDER A/B — the only real
+  transfer test, since local search wins have never transferred. If shallow PUCT
+  still can't beat reflex, planning is likely not viable at this ladder's compute
+  and v6 is near the reflex ceiling. Multi-deck self-play + past-checkpoint league
+  + in-loop pool:8 progress gate now exist in `tools/train.py`
+  (`--deck-pool`, `--league-ckpt`, `--gate-games`), all validated as PARITY with
+  v6 — do not expect RL alone to beat v6.
 
 ## Evaluation & gates
 
