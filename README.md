@@ -146,6 +146,26 @@ Research log (each vs the then-champion, 100-200 game evals):
   64.4%), and went 81-79 in mirror; all confidence intervals overlap. This
   validates the new rollout/evaluation plumbing, not a strength gain, so the
   production weights remain unchanged.
+- **First turn-search distillation cycle failed the ship gate (2026-07-20,
+  not promoted)**: four source-locked shards on clean `182bc4f` produced
+  2,958 soft roots from 383/384 games across pool:8, both learner seats, and
+  rules/ft10/ft3 opponent pilots (0.5s, 8 particles). Strict learner/planner/
+  config/engine/data provenance passed; generation and all gates had zero
+  engine or infrastructure failures. Only 554 roots were robust overrides;
+  1,754 agreed with reflex and 650 were low-margin. Starting from ft10,
+  `train_teacher.py` updated only `o1/o2/o3` for 30 epochs (`lr=3e-4`, 0.3 BC
+  anchor over 486,829 examples, trunk/value frozen). Best epoch 29 reduced
+  held-out game-grouped KL 1.0167→0.2226 and exported `ba9cfe2c…`, but copying
+  the teacher was not the same as gaining strength. The candidate regressed
+  vs ft10 on pool:8 (70.6% vs 76.2%), teacher-held-out pool:8:16 (65.6% vs
+  73.8%), and mirror (67-93). It also failed the primary gate vs the ft3
+  ladder champion (63.1% vs 74.4%) and trailed on threat meta2 (78.8% vs
+  83.1%), despite inconclusive edges on pool:8:16 (61.3% vs 60.6%) and mirror
+  (88-72). The regression was broad across matchups, so weights remain
+  unchanged. NEXT: first prove the planner beats its parent; then ablate
+  trusted target subsets (robust-only vs robust+agreement, no low-margin), add
+  a parent-policy KL/trust region, and use matchup-pair-stratified validation.
+  Do not scale the same teacher corpus unless those controls restore pool:8.
 
 ## Layout
 
