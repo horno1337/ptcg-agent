@@ -67,7 +67,7 @@ def _priors(net, obs) -> dict:
     """Softmax of the net's option logits -> P(a) over legal single-pick actions."""
     v = ObsView(obs)
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
+    cids, feats = FE.encode_options_for_net(v, net)
     logits, _ = net.forward(st, cids, feats)
     n_opts = feats.shape[0] - 1
     x = np.asarray(logits[:n_opts], dtype=np.float64)

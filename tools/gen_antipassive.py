@@ -17,7 +17,7 @@ def reflex_move(obs):
     if not v.options:
         return policy.decide_rules(obs)
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
+    cids, feats = FE.encode_options_for_net(v, net)
     logits, _ = net.forward(st, cids, feats)
     picks = model.select_indices(logits, feats.shape[0] - 1,
                                  v.min_count, v.max_count)

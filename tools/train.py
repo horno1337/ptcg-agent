@@ -532,7 +532,7 @@ def eval_vs_rules(weights_path: str, n_games: int, deck: list[int]) -> float:
             return list(deck)
         v = ObsView(obs)
         st = FE.encode_state(v)
-        cids, feats = FE.encode_options(v)
+        cids, feats = FE.encode_options_for_net(v, net)
         logits, _ = net.forward(st, cids, feats)
         picks = npm.select_indices(logits, feats.shape[0] - 1, v.min_count, v.max_count)
         return picks
@@ -564,7 +564,7 @@ def test_roundtrip(net: TorchNet, deck: list[int]):
     obs, _ = b.obs()
     v = ObsView(obs)
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
+    cids, feats = FE.encode_options_for_net(v, nnp)
     np_logits, np_val = nnp.forward(st, cids, feats)
     with torch.no_grad():
         ids = torch.from_numpy(st["ids"][None]).long().to(DEV)

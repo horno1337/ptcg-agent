@@ -204,7 +204,7 @@ def _reflex(net, obs: dict) -> list[int] | None:
     if not v.options:
         return None
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
+    cids, feats = FE.encode_options_for_net(v, net)
     logits, _ = net.forward(st, cids, feats)
     picks = NPM.select_indices(logits, feats.shape[0] - 1, v.min_count, v.max_count)
     # [] is a legal, meaningful STOP when minCount == 0.
@@ -218,7 +218,7 @@ def _value(net, obs: dict, root_player: int) -> float:
         return 0.0 if res == 2 else (1.0 if res == root_player else -1.0)
     v = ObsView(obs)
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v) if v.options else (
+    cids, feats = FE.encode_options_for_net(v, net) if v.options else (
         np.zeros(1, dtype=np.int32), np.zeros((1, FE.OPT_FEATS), dtype=np.float32))
     _, val = net.forward(st, cids, feats)
     return val if v.my_index == root_player else -val

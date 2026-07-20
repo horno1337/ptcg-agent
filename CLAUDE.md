@@ -19,7 +19,9 @@ the ladder.
   must fail soft into the next (turn search -> legacy search -> reflex ->
   rules -> safety repair).
 - Feature changes: bump `FEAT_VERSION` in features.py, append-only scalars;
-  old weights load through the compat shim in model.py.
+  old weights load through the compat shim in model.py. Any frozen NumPy-net
+  adapter must call `features.encode_options_for_net`, never the latest encoder
+  directly, so v1/v2 action identities remain byte-compatible.
 - `data/*.json` and `agent/meta_decks.json` are generated
   (`tools/dump_cards.py`, `tools/mine_meta_decks.py`) — never hand-edit.
 - Engine source and sample bundle are competition-use-only and stay OUTSIDE

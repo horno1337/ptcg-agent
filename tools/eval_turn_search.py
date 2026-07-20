@@ -302,7 +302,7 @@ def reflex_then_rules(net: model.Net, obs: dict) -> Decision:
     reflex_error: str | None = None
     try:
         state = FE.encode_state(view)
-        card_ids, option_features = FE.encode_options(view)
+        card_ids, option_features = FE.encode_options_for_net(view, net)
         logits, _ = net.forward(state, card_ids, option_features)
         action = model.select_indices(
             logits, option_features.shape[0] - 1,

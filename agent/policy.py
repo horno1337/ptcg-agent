@@ -395,7 +395,7 @@ def _model_decide(view: ObsView) -> list[int] | None:
         except Exception:
             pass
         st = _features.encode_state(view)
-        cids, feats = _features.encode_options(view)
+        cids, feats = _features.encode_options_for_net(view, net)
         logits, _ = net.forward(st, cids, feats)
         picks = _model.select_indices(logits, feats.shape[0] - 1,
                                       view.min_count, view.max_count)
