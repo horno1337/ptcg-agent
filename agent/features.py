@@ -21,7 +21,7 @@ from .obsview import (
     OT_ATTACK, OT_NUMBER,
 )
 
-FEAT_VERSION = 2
+FEAT_VERSION = 3
 
 N_CARD_IDS = 1300          # embedding table size (pool has 1267 ids, 0 = none)
 STATE_ID_SLOTS = 13        # my active, my bench x5, opp active, opp bench x5, stadium
@@ -149,7 +149,22 @@ def _attack_damage(view: ObsView, attack_id) -> float:
     return float(dmg)
 
 
-def encode_options(view: ObsView) -> tuple[np.ndarray, np.ndarray]:
+def encode_options(
+        view: ObsView, feat_version: int | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Encode legal options using the requested checkpoint feature contract.
+
+    Version 3 binds indirect engine option schemas to their semantic card
+    identity.  Versions 1 and 2 deliberately retain the original direct
+    ``(area, index)`` lookup so shipped checkpoints receive byte-for-byte
+    compatible inputs.  New training defaults to the latest version.
+    """
+    version = FEAT_VERSION if feat_version is None else feat_version
+    if isinstance(version, bool) or not isinstance(version, int) or \
+            not 1 <= version <= FEAT_VERSION:
+        raise ValueError(
+            f"unsupported feature version {version!r}; expected 1..{FEAT_VERSION}"
+        )
     opts = view.options
     n = len(opts)
     card_ids = np.zeros(n + 1, dtype=np.int32)
@@ -172,7 +187,8 @@ def encode_options(view: ObsView) -> tuple[np.ndarray, np.ndarray]:
         if isinstance(area, int) and 1 <= area <= 12:
             row[54 + area - 1] = 1.0
 
-        cid = view.option_card_id(opt)
+        cid = (view.semantic_option_card_id(opt)
+               if version >= 3 else view.option_card_id(opt))
         if cid is None and t == OT_ATTACK:
             cid = 0
         c = cards.card(cid)
@@ -218,3 +234,16 @@ def encode_options(view: ObsView) -> tuple[np.ndarray, np.ndarray]:
     stop[88] = 1.0
 
     return card_ids, f
+
+
+def encode_options_for_net(
+        view: ObsView, net,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Encode options with the feature contract declared by ``net``.
+
+    Frozen v1/v2 NumPy checkpoints must retain their legacy option identities,
+    while lightweight test doubles and new trainers default to the current
+    contract.  Keeping that routing here prevents evaluation adapters from
+    silently changing a baseline's inputs.
+    """
+    return encode_options(view, getattr(net, "feat_version", None))

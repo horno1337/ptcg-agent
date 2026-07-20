@@ -40,11 +40,11 @@ def reflex_move(obs):
     if net is None or not v.options:
         return policy.decide_rules(obs)
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
+    cids, feats = FE.encode_options_for_net(v, net)
     logits, _ = net.forward(st, cids, feats)
     picks = model.select_indices(logits, feats.shape[0] - 1,
                                  v.min_count, v.max_count)
-    return picks or policy.decide_rules(obs)
+    return picks
 
 
 def main():
@@ -57,6 +57,12 @@ def main():
     ap.add_argument("--cap-mult", type=float, default=None,
                     help="override the per-decision hard cap (v2 had none: "
                          "use a huge value so the first det always completes)")
+    ap.add_argument("--det-eval", action="store_true",
+                    help="prototype: deterministic leaf eval (prize+damage) "
+                         "instead of the value net")
+    ap.add_argument("--max-dets", type=int, default=None,
+                    help="override MAX_DETS (worlds/decision) to spend more "
+                         "compute; reduces sampling noise, not strategy-fusion bias")
     ap.add_argument("--opp", default="mirror",
                     help="mirror (reflex opponent) or meta:<i> (rules pilot)")
     ap.add_argument("--seed", type=int, default=0,
@@ -64,9 +70,12 @@ def main():
     a = ap.parse_args()
 
     SP.ENABLED = True   # the harness measures search; the ladder default is off
+    SP.DET_LEAF = a.det_eval
     SP.BUDGET_S = a.budget
     if a.min_dets is not None:
         SP.MIN_DETS = a.min_dets
+    if a.max_dets is not None:
+        SP.MAX_DETS = a.max_dets
     if a.cap_mult is not None:
         SP._CAP_MULT = a.cap_mult
     my_deck = policy.load_deck()

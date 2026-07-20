@@ -1,143 +1,568 @@
-"""Reflex-vs-reflex A/B between two weight files — the candidate gate.
+"""Competition-environment A/B gate for reflex weight candidates.
 
-Both seats run the deployable reflex config (policy net + rules on any gap)
-piloting the frozen deck; only the weights differ, so the delta is the
-training change and nothing else. Seats alternate each game; shard with
---seed across parallel workers and sum the RESULT lines.
+The candidate and frozen base run the deployable reflex -> rules -> legality
+repair stack over an identical paired deck/pilot/seat schedule.  Every series
+uses the same terminal taxonomy, cumulative clocks, score definition and
+provenance as RL training:
 
-  python tools/eval_ab.py 150 tools/checkpoints/bc-scout-v1.npz
-  python tools/eval_ab.py 75 CAND.npz --seed 1   # second shard, other parity
-  python tools/eval_ab.py 60 CAND.npz --opp meta:2   # generalization: each
-      # net separately vs rules piloting meta deck 2; mirror games can't see
-      # gains vs other archetypes, this can
+    score = (wins + 0.5 * official_draws) / scheduled_games
+
+Truncations and infrastructure failures are never draws.  They invalidate the
+gate and remain outside the score numerator while still appearing in the
+scheduled-game denominator diagnostics.
+
+Examples::
+
+    python tools/eval_ab.py 160 CANDIDATE.npz --opp pool:8
+    python tools/eval_ab.py 160 CANDIDATE.npz --opp pool:8:16  # holdout slice
+    python tools/eval_ab.py 160 CANDIDATE.npz --opp mirror
+    python tools/eval_ab.py 320 CANDIDATE.npz --opp pool:8 \
+        --num-shards 4 --shard-index 0
+
+``games`` is the global count per arm and must be even.  Sharded workers must
+share games/seed/num-shards; pair IDs never cross workers.
 """
 
+from __future__ import annotations
+
 import argparse
+import hashlib
+import json
+import math
 import os
+import subprocess
 import sys
+import time
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass, field
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS_DIR)
+sys.path.insert(0, ROOT)
+sys.path.insert(0, TOOLS_DIR)
 
-from cabt import Battle                     # noqa: E402
-from agent import features as FE            # noqa: E402
-from agent import model                     # noqa: E402
-from agent import policy                    # noqa: E402
-from agent.obsview import ObsView           # noqa: E402
+from agent import features as FE  # noqa: E402
+from agent import model  # noqa: E402
+from agent import policy  # noqa: E402
+from agent import safety  # noqa: E402
+from agent.obsview import ObsView  # noqa: E402
+from rl_env import (  # noqa: E402
+    OpponentSpec,
+    PTCGRLEnv,
+    build_paired_schedule,
+    environment_manifest,
+    schedule_manifest,
+)
+
+
+DEFAULT_BASE = os.path.join(ROOT, "agent", "weights.npz")
+DEFAULT_META = os.path.join(ROOT, "agent", "meta_decks.json")
+
+
+def file_sha256(path: str | None) -> str | None:
+    if not path:
+        return None
+    try:
+        digest = hashlib.sha256()
+        with open(path, "rb") as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()
+    except OSError:
+        return None
+
+
+def git_state() -> dict[str, Any]:
+    def run(*args: str) -> str | None:
+        try:
+            result = subprocess.run(
+                ["git", *args], cwd=ROOT, check=False, text=True,
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=5,
+            )
+        except Exception:
+            return None
+        return result.stdout.strip() if result.returncode == 0 else None
+
+    commit = run("rev-parse", "HEAD")
+    status = run("status", "--porcelain", "--untracked-files=normal")
+    return {"git_commit": commit,
+            "git_dirty": bool(status) if status is not None else None}
 
 
 def load_net(path: str) -> model.Net:
-    w = np.load(path)
-    ver = int(w.get("feat_version", -1))
-    if not 1 <= ver <= FE.FEAT_VERSION:
-        raise SystemExit(f"{path}: incompatible feat_version {ver}")
-    return model.Net(w)
+    try:
+        with np.load(path) as weights:
+            version = int(weights.get("feat_version", -1))
+            if not 1 <= version <= FE.FEAT_VERSION:
+                raise ValueError(f"incompatible feat_version {version}")
+            return model.Net(weights)
+    except Exception as exc:
+        raise ValueError(f"cannot load weights {path!r}: {exc}") from exc
 
 
-def reflex_move(net: model.Net, obs: dict) -> list[int]:
-    v = ObsView(obs)
-    if not v.options:
-        return policy.decide_rules(obs)
-    st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
-    logits, _ = net.forward(st, cids, feats)
-    picks = model.select_indices(logits, feats.shape[0] - 1,
-                                 v.min_count, v.max_count)
-    return picks or policy.decide_rules(obs)
+class DeployableReflex:
+    """Frozen reflex with the same rules/safety fail-soft behavior as shipping."""
 
+    def __init__(self, net: model.Net, name: str):
+        self.net = net
+        self.name = name
+        self.calls = 0
+        self.fallbacks = 0
+        self.exceptions = Counter()
+        self.latency_ms: list[float] = []
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("games", type=int)
-    ap.add_argument("candidate", help="weights.npz for the candidate seat")
-    ap.add_argument("--base", default=os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "agent", "weights.npz"))
-    ap.add_argument("--seed", type=int, default=0,
-                    help="seat-parity shard id for parallel workers")
-    ap.add_argument("--opp", default="mirror",
-                    help="mirror (cand vs base), meta:<i> (each net "
-                         "separately vs rules piloting meta deck i), or "
-                         "pool:<n> (games split across the top n meta decks "
-                         "— the closest local proxy for the ladder band)")
-    a = ap.parse_args()
-
-    cand, base = load_net(a.candidate), load_net(a.base)
-    deck = policy.load_deck()
-
-    def series(tag, my_move, opp_move, opp_deck):
-        w = l = d = 0
-        for g in range(a.games):
-            seat = (g + a.seed) % 2
-            decks = [opp_deck, opp_deck]
-            decks[seat] = deck
-            b = Battle(decks[0], decks[1])
-            result = 2
-            try:
-                for _ in range(2000):
-                    obs, sp = b.obs()
-                    if obs["current"]["result"] != -1:
-                        result = obs["current"]["result"]
-                        break
-                    act = my_move(obs) if sp == seat else opp_move(obs)
-                    if b.select(list(act)):
-                        result = 1 - sp
-                        break
-            finally:
-                b.close()
-            out = "D" if result == 2 else ("W" if result == seat else "L")
-            if out == "W":
-                w += 1
-            elif out == "L":
-                l += 1
+    def act(self, obs: dict) -> list[int]:
+        started = time.monotonic()
+        self.calls += 1
+        try:
+            if safety._out_of_time(obs):
+                self.fallbacks += 1
+                action = safety._fallback(obs)
             else:
-                d += 1
-            print(f"{tag} g{g} seat{seat} {out}", flush=True)
-        n = max(w + l, 1)
-        print(f"RESULT {tag} W{w} L{l} D{d} winrate={100.0 * w / n:.1f}%")
-        return w, l
+                view = ObsView(obs)
+                if not view.options:
+                    self.fallbacks += 1
+                    action = policy.decide_rules(obs)
+                else:
+                    state = FE.encode_state(view)
+                    option_ids, option_features = FE.encode_options_for_net(
+                        view, self.net)
+                    logits, _ = self.net.forward(state, option_ids, option_features)
+                    action = model.select_indices(
+                        logits, len(view.options), view.min_count, view.max_count,
+                    )
+        except Exception as exc:
+            self.fallbacks += 1
+            self.exceptions[type(exc).__name__] += 1
+            try:
+                action = policy.decide_rules(obs)
+            except Exception as rules_exc:
+                self.exceptions[f"rules:{type(rules_exc).__name__}"] += 1
+                action = safety._fallback(obs)
+        try:
+            action = safety._repair(action, obs)
+        except Exception as exc:
+            self.fallbacks += 1
+            self.exceptions[f"repair:{type(exc).__name__}"] += 1
+            action = safety._fallback(obs)
+        self.latency_ms.append((time.monotonic() - started) * 1000.0)
+        return action
 
-    if a.opp == "mirror":
-        series(f"cand={a.candidate}",
-               lambda o: reflex_move(cand, o),
-               lambda o: reflex_move(base, o), deck)
-        return
+    def opponent_move(self, obs: dict, rng) -> list[int]:
+        del rng
+        return self.act(obs)
 
-    import json
-    meta_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                             "..", "agent", "meta_decks.json")
-    with open(meta_path) as f:
-        lib = json.load(f)
+    def diagnostics(self) -> dict[str, Any]:
+        latency = np.asarray(self.latency_ms, dtype=np.float64)
+        return {
+            "name": self.name,
+            "calls": self.calls,
+            "fallbacks": self.fallbacks,
+            "exceptions": dict(self.exceptions),
+            "latency_ms": {
+                "mean": float(latency.mean()) if latency.size else 0.0,
+                "p50": float(np.percentile(latency, 50)) if latency.size else 0.0,
+                "p95": float(np.percentile(latency, 95)) if latency.size else 0.0,
+                "max": float(latency.max()) if latency.size else 0.0,
+            },
+        }
 
-    if a.opp.startswith("meta:"):
-        idx = int(a.opp.split(":")[1])
-        cw, cl = series("cand-vs-meta", lambda o: reflex_move(cand, o),
-                        policy.decide_rules, lib[idx]["deck"])
-        bw, bl = series("base-vs-meta", lambda o: reflex_move(base, o),
-                        policy.decide_rules, lib[idx]["deck"])
-        print(f"DELTA cand {100.0 * cw / max(cw + cl, 1):.1f}% vs "
-              f"base {100.0 * bw / max(bw + bl, 1):.1f}% "
-              f"(meta deck {idx}, n={a.games} each)")
-        return
 
-    n_decks = int(a.opp.split(":")[1])
-    per = max(a.games // n_decks, 2)
-    tot = {"cand": [0, 0], "base": [0, 0]}
-    for i in range(min(n_decks, len(lib))):
-        for tag, net in (("cand", cand), ("base", base)):
-            saved = a.games
-            a.games = per
-            w, l = series(f"{tag}-pool{i}", lambda o: reflex_move(net, o),
-                          policy.decide_rules, lib[i]["deck"])
-            a.games = saved
-            tot[tag][0] += w
-            tot[tag][1] += l
-    cw, cl = tot["cand"]
-    bw, bl = tot["base"]
-    print(f"POOL cand {cw}W-{cl}L {100.0 * cw / max(cw + cl, 1):.1f}% vs "
-          f"base {bw}W-{bl}L {100.0 * bw / max(bw + bl, 1):.1f}% "
-          f"(top {n_decks} decks, {per} games/net/deck)")
+def safe_rules_move(obs: dict, rng) -> list[int]:
+    del rng
+    try:
+        action = policy.decide_rules(obs)
+        return safety._repair(action, obs)
+    except Exception:
+        return safety._fallback(obs)
+
+
+def load_meta(path: str) -> list[list[int]]:
+    with open(path, encoding="utf-8") as handle:
+        raw = json.load(handle)
+    decks = []
+    for index, item in enumerate(raw if isinstance(raw, list) else []):
+        deck = item.get("deck") if isinstance(item, dict) else item
+        if (not isinstance(deck, list) or len(deck) != 60
+                or any(not isinstance(card, int) or isinstance(card, bool)
+                       for card in deck)):
+            raise ValueError(f"invalid meta deck {index}")
+        decks.append(list(deck))
+    if not decks:
+        raise ValueError("meta library contains no valid decks")
+    return decks
+
+
+def resolve_decks(spec: str, learner_deck: Sequence[int],
+                  meta_path: str) -> list[tuple[str, list[int]]]:
+    if spec == "mirror":
+        return [("mirror", list(learner_deck))]
+    meta = load_meta(meta_path)
+    if spec.startswith("meta:"):
+        index = int(spec.split(":", 1)[1])
+        if not 0 <= index < len(meta):
+            raise ValueError(f"meta index {index} is out of range")
+        return [(f"meta{index}", meta[index])]
+    if spec.startswith("pool:"):
+        pieces = spec.split(":")
+        if len(pieces) == 2:
+            start, stop = 0, int(pieces[1])
+        elif len(pieces) == 3:
+            start, stop = int(pieces[1]), int(pieces[2])
+        else:
+            raise ValueError("pool syntax is pool:<stop> or pool:<start>:<stop>")
+        if not 0 <= start < stop <= len(meta):
+            raise ValueError(f"invalid meta pool slice [{start}:{stop}]")
+        return [(f"meta{index}", meta[index]) for index in range(start, stop)]
+    raise ValueError("--opp must be mirror, meta:<index>, pool:<n>, or pool:<start>:<stop>")
+
+
+def wilson_score_ci(wins: int, draws: int, games: int) -> tuple[float, float]:
+    """Conservative Wilson interval using half a success for official draws."""
+    if games <= 0:
+        return 0.0, 1.0
+    z = 1.959963984540054
+    proportion = (wins + 0.5 * draws) / games
+    denominator = 1.0 + z * z / games
+    center = (proportion + z * z / (2.0 * games)) / denominator
+    half = z * math.sqrt(
+        proportion * (1.0 - proportion) / games + z * z / (4.0 * games * games)
+    ) / denominator
+    return max(0.0, center - half), min(1.0, center + half)
+
+
+@dataclass
+class GameRecord:
+    episode_id: int
+    pair_id: int
+    learner_seat: int
+    opponent_key: str
+    result: str
+    reward: float | None
+    terminated: bool
+    truncated: bool
+    reason: str
+    selects: int
+    seat_selects: tuple[int, int] | None = None
+    remaining_time_s: tuple[float, float] | None = None
+    agent_error: str | None = None
+    engine_error: Any = None
+    infrastructure_error: str | None = None
+
+
+@dataclass
+class SeriesResult:
+    tag: str
+    records: list[GameRecord] = field(default_factory=list)
+    controller: dict[str, Any] = field(default_factory=dict)
+
+    def count(self, result: str) -> int:
+        return sum(record.result == result for record in self.records)
+
+    @property
+    def wins(self) -> int:
+        return self.count("win")
+
+    @property
+    def losses(self) -> int:
+        return self.count("loss")
+
+    @property
+    def draws(self) -> int:
+        return self.count("draw")
+
+    @property
+    def invalid(self) -> int:
+        return sum(record.truncated or record.infrastructure_error is not None
+                   for record in self.records)
+
+    @property
+    def score(self) -> float:
+        return ((self.wins + 0.5 * self.draws) / len(self.records)
+                if self.records else 0.0)
+
+    @property
+    def ci95(self) -> tuple[float, float]:
+        return wilson_score_ci(self.wins, self.draws, len(self.records))
+
+    @property
+    def gate_valid(self) -> bool:
+        return bool(self.records) and self.invalid == 0
+
+    def summary(self) -> dict[str, Any]:
+        by_seat = Counter((record.learner_seat, record.result)
+                          for record in self.records)
+        by_matchup: dict[str, Counter] = defaultdict(Counter)
+        for record in self.records:
+            by_matchup[record.opponent_key][record.result] += 1
+        return {
+            "tag": self.tag,
+            "scheduled_games": len(self.records),
+            "wins": self.wins,
+            "losses": self.losses,
+            "draws": self.draws,
+            "invalid": self.invalid,
+            "score": self.score,
+            "score_ci95": self.ci95,
+            "gate_valid": self.gate_valid,
+            "by_seat": {f"seat{seat}/{outcome}": count
+                        for (seat, outcome), count in by_seat.items()},
+            "by_matchup": {key: dict(value) for key, value in by_matchup.items()},
+            "controller": self.controller,
+        }
+
+
+def make_field(deck_specs: Sequence[tuple[str, Sequence[int]]], policy_mode: str,
+               field_net: model.Net, field_name: str):
+    reflex = DeployableReflex(field_net, field_name)
+    opponents = []
+    for deck_key, deck in deck_specs:
+        if policy_mode in ("rules", "mixed"):
+            opponents.append(OpponentSpec(
+                f"{deck_key}/rules", tuple(deck), safe_rules_move,
+                weight=1.0, policy_id="rules-v1", schedule_group="rules",
+            ))
+        if policy_mode in ("reflex", "mixed"):
+            opponents.append(OpponentSpec(
+                f"{deck_key}/reflex", tuple(deck), reflex.opponent_move,
+                weight=1.0, policy_id=field_name, schedule_group="reflex",
+            ))
+    return opponents, reflex
+
+
+def run_series(tag: str, controller: DeployableReflex,
+               learner_deck: Sequence[int], opponents: Sequence[OpponentSpec],
+               schedule, max_selects: int, time_bank_s: float) -> SeriesResult:
+    series = SeriesResult(tag)
+    env = PTCGRLEnv(
+        learner_deck, opponents, max_selects=max_selects,
+        time_bank_s=time_bank_s, fault_mode="ladder",
+    )
+    try:
+        for local_index, episode in enumerate(schedule):
+            try:
+                obs, info = env.reset(options={
+                    "episode_id": episode.episode_id,
+                    "opponent_index": episode.opponent_index,
+                    "learner_seat": episode.learner_seat,
+                    "policy_seed": episode.policy_seed,
+                })
+                reward = float(info.get("reward", 0.0)) if obs is None else None
+                terminated = bool(info.get("terminated", False))
+                truncated = bool(info.get("truncated", False))
+                while obs is not None:
+                    raw = env.raw_observation
+                    if raw is None:
+                        raise RuntimeError("environment lost the learner observation")
+                    started = time.monotonic()
+                    action = controller.act(raw)
+                    elapsed = time.monotonic() - started
+                    obs, reward, terminated, truncated, info = env.step(
+                        action, elapsed_s=elapsed,
+                    )
+                record = GameRecord(
+                    episode_id=episode.episode_id,
+                    pair_id=episode.pair_id,
+                    learner_seat=episode.learner_seat,
+                    opponent_key=info["opponent_key"],
+                    result=str(info["result"]),
+                    reward=float(reward),
+                    terminated=terminated,
+                    truncated=truncated,
+                    reason=str(info["reason"]),
+                    selects=int(info["selects"]),
+                    seat_selects=tuple(info["seat_selects"]),
+                    remaining_time_s=tuple(info["remaining_time_s"]),
+                    agent_error=info.get("agent_error"),
+                    engine_error=info.get("engine_error"),
+                )
+            except Exception as exc:
+                close_error = None
+                try:
+                    env.close()
+                except Exception as cleanup_exc:
+                    close_error = repr(cleanup_exc)
+                opponent_key = opponents[episode.opponent_index].key
+                infrastructure_error = repr(exc)
+                if close_error is not None:
+                    infrastructure_error += f"; cleanup_error={close_error}"
+                record = GameRecord(
+                    episode_id=episode.episode_id,
+                    pair_id=episode.pair_id,
+                    learner_seat=episode.learner_seat,
+                    opponent_key=opponent_key,
+                    result="infrastructure",
+                    reward=None,
+                    terminated=False,
+                    truncated=True,
+                    reason="infrastructure_error",
+                    selects=0,
+                    infrastructure_error=infrastructure_error,
+                )
+            series.records.append(record)
+            print(
+                f"{tag} g{episode.episode_id:04d} local={local_index:04d} "
+                f"seat{episode.learner_seat} {record.result.upper()} "
+                f"opp={record.opponent_key} selects={record.selects}",
+                flush=True,
+            )
+    finally:
+        env.close()
+    series.controller = controller.diagnostics()
+    return series
+
+
+def print_result(series: SeriesResult) -> None:
+    low, high = series.ci95
+    print(
+        f"RESULT {series.tag} W{series.wins} L{series.losses} D{series.draws} "
+        f"invalid={series.invalid} score={100*series.score:.1f}% "
+        f"ci95=[{100*low:.1f},{100*high:.1f}]% "
+        f"gate_valid={series.gate_valid}",
+        flush=True,
+    )
+
+
+def main(argv: Sequence[str] | None = None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("games", type=int,
+                        help="global scheduled games per arm; positive and even")
+    parser.add_argument("candidate")
+    parser.add_argument("--base", default=DEFAULT_BASE)
+    parser.add_argument("--opp", default="mirror",
+                        help="mirror, meta:<i>, pool:<n>, or pool:<start>:<stop>")
+    parser.add_argument("--opp-policy", choices=("rules", "reflex", "mixed"),
+                        default="rules")
+    parser.add_argument("--meta", default=DEFAULT_META)
+    parser.add_argument("--seed", type=int, default=0,
+                        help="schedule seed (not native-engine trajectory seed)")
+    parser.add_argument("--num-shards", type=int, default=1)
+    parser.add_argument("--shard-index", type=int, default=0)
+    parser.add_argument("--max-selects", type=int, default=5000)
+    parser.add_argument("--time-bank", type=float, default=600.0)
+    parser.add_argument("--json-out", default=None)
+    args = parser.parse_args(argv)
+
+    if args.games <= 0 or args.games % 2:
+        parser.error("games must be a positive even number")
+    if args.num_shards <= 0 or not 0 <= args.shard_index < args.num_shards:
+        parser.error("invalid --shard-index/--num-shards")
+    if args.max_selects < 1 or not math.isfinite(args.time_bank) or args.time_bank <= 0:
+        parser.error("--max-selects and --time-bank must be positive")
+    try:
+        candidate_net = load_net(args.candidate)
+        base_net = load_net(args.base)
+        learner_deck = policy.load_deck()
+        deck_specs = resolve_decks(args.opp, learner_deck, args.meta)
+    except (OSError, ValueError) as exc:
+        parser.error(str(exc))
+
+    results = []
+    schedules = []
+    opponent_sets = []
+    opponent_diagnostics = []
+    environments = []
+    if args.opp == "mirror":
+        base_controller = DeployableReflex(base_net, f"base:{file_sha256(args.base)}")
+        opponents = [OpponentSpec(
+            "mirror/base", tuple(learner_deck), base_controller.opponent_move,
+            policy_id=base_controller.name, schedule_group="base",
+        )]
+        schedule = build_paired_schedule(
+            opponents, args.games, args.seed,
+            args.shard_index, args.num_shards,
+        )
+        candidate_controller = DeployableReflex(
+            candidate_net, f"candidate:{file_sha256(args.candidate)}",
+        )
+        result = run_series(
+            "candidate-vs-base", candidate_controller, learner_deck,
+            opponents, schedule, args.max_selects, args.time_bank,
+        )
+        results.append(result)
+        schedules.append(schedule)
+        opponent_sets.append(opponents)
+        opponent_diagnostics.append(base_controller.diagnostics())
+        environments.append(environment_manifest(learner_deck, opponents, args.meta))
+        print_result(result)
+    else:
+        for arm, net, path in (("candidate", candidate_net, args.candidate),
+                               ("base", base_net, args.base)):
+            opponents, field_controller = make_field(
+                deck_specs, args.opp_policy, base_net,
+                f"field-base:{file_sha256(args.base)}",
+            )
+            schedule = build_paired_schedule(
+                opponents, args.games, args.seed,
+                args.shard_index, args.num_shards,
+            )
+            controller = DeployableReflex(net, f"{arm}:{file_sha256(path)}")
+            result = run_series(
+                f"{arm}-field", controller, learner_deck, opponents,
+                schedule, args.max_selects, args.time_bank,
+            )
+            results.append(result)
+            schedules.append(schedule)
+            opponent_sets.append(opponents)
+            opponent_diagnostics.append(field_controller.diagnostics())
+            environments.append(environment_manifest(learner_deck, opponents, args.meta))
+            print_result(result)
+        candidate, base = results
+        c_low, c_high = candidate.ci95
+        b_low, b_high = base.ci95
+        delta = candidate.score - base.score
+        delta_ci = (c_low - b_high, c_high - b_low)
+        valid = candidate.gate_valid and base.gate_valid
+        print(
+            f"DELTA candidate={100*candidate.score:.1f}% base={100*base.score:.1f}% "
+            f"delta={100*delta:+.1f}pp "
+            f"conservative_ci95=[{100*delta_ci[0]:+.1f},{100*delta_ci[1]:+.1f}]pp "
+            f"gate_valid={valid}",
+            flush=True,
+        )
+        # Backward-compatible progress line consumed only as text by train.py.
+        print(
+            f"POOL cand {candidate.wins}W-{candidate.losses}L-{candidate.draws}D "
+            f"{100*candidate.score:.1f}% vs base "
+            f"{base.wins}W-{base.losses}L-{base.draws}D {100*base.score:.1f}% "
+            f"({args.opp}, {len(candidate.records)} games/net, valid={valid})",
+            flush=True,
+        )
+
+    payload = {
+        "schema": "ptcg-eval-ab-v2",
+        "args": vars(args),
+        "metric": "(wins + 0.5 * official_draws) / scheduled_games",
+        "invalid_policy": "truncations/infrastructure failures invalidate gate; never draws",
+        "candidate_sha256": file_sha256(args.candidate),
+        "base_sha256": file_sha256(args.base),
+        "eval_ab_sha256": file_sha256(__file__),
+        "safety_sha256": file_sha256(getattr(safety, "__file__", None)),
+        "git": git_state(),
+        "results": [
+            {"summary": result.summary(),
+             "records": [asdict(record) for record in result.records]}
+            for result in results
+        ],
+        "schedules": [
+            schedule_manifest(schedule, opponents)
+            for schedule, opponents in zip(schedules, opponent_sets)
+        ],
+        "environments": environments,
+        "opponent_controllers": opponent_diagnostics,
+    }
+    if args.json_out:
+        output = os.path.abspath(os.path.expanduser(args.json_out))
+        os.makedirs(os.path.dirname(output), exist_ok=True)
+        temporary = output + ".partial"
+        with open(temporary, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+        os.replace(temporary, output)
+    print("SUMMARY " + json.dumps(payload, sort_keys=True), flush=True)
 
 
 if __name__ == "__main__":
