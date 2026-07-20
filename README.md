@@ -161,7 +161,10 @@ Research log (each vs the then-champion, 100-200 game evals):
   (133-27 vs 102-58), withheld pool:8:16 76.3% vs 65.0% (122-38 vs 104-56),
   and direct mirror 113-47 (70.6%, CI 63.2-77.1). Every gate was valid with
   zero truncations, engine/infrastructure faults, controller exceptions, or
-  fallbacks. The full 332,045-decision mid corpus was not used because the
+  fallbacks. A dedicated 160-game threat-meta2 check was also non-regressing
+  at 87.5% vs ft3's 83.1% (140-20 vs 133-27), and the deployable candidate
+  completed the 200-game random smoke at 194-6 with zero agent errors. The
+  full 332,045-decision mid corpus was not used because the
   eager loader exhausted 15 GiB RAM and drove swap pressure before training;
   streaming/sharded BC loading is required before scaling this mix. These are
   strong local results, but the shipped weights remain unchanged pending an
