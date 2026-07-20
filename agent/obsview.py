@@ -174,12 +174,100 @@ class ObsView:
             entry = None
         return entry.get("id") if isinstance(entry, dict) else None
 
+    @staticmethod
+    def _entry_card_id(entry) -> int | None:
+        """Return a public card id from either engine entry representation."""
+        if isinstance(entry, dict):
+            cid = entry.get("id")
+            return cid if isinstance(cid, int) else None
+        return entry if isinstance(entry, int) else None
+
+    def semantic_option_card_id(self, opt: dict) -> int | None:
+        """Resolve the card identity represented by a legal option.
+
+        ``option_card_id`` intentionally implements the engine's direct
+        ``(area, index)`` addressing contract.  Some option schemas are more
+        indirect: MAIN-phase hand actions omit ``area``; attached-card
+        prompts use a board slot plus a secondary index; and LOOKING options
+        address the public temporary reveal zone.  This helper normalizes
+        those schemas to the card the action actually manipulates.
+
+        It is read-only and returns ``None`` whenever identity is hidden or
+        ambiguous.  In particular, unrelated MAIN actions with an ``index``
+        are never guessed to be hand cards.
+        """
+        explicit = opt.get("cardId")
+        if isinstance(explicit, int):
+            return explicit
+
+        attachment_fields = (
+            ("energyIndex", "energyCards"),
+            ("toolIndex", "tools"),
+            ("preEvolutionIndex", "preEvolution"),
+        )
+        if any(index_key in opt for index_key, _ in attachment_fields):
+            board = self.board_entry(
+                opt.get("area"), opt.get("index"),
+                opt.get("playerIndex", self.my_index),
+            )
+            if isinstance(board, dict):
+                for index_key, list_key in attachment_fields:
+                    if index_key not in opt:
+                        continue
+                    attached_index = opt.get(index_key)
+                    attached = board.get(list_key) or ()
+                    if isinstance(attached, (list, tuple)) and \
+                            isinstance(attached_index, int) and \
+                            0 <= attached_index < len(attached):
+                        cid = self._entry_card_id(attached[attached_index])
+                        if cid is not None:
+                            return cid
+            # Once the engine declares an attached-object schema, the board
+            # slot is only its host.  Never silently relabel an unresolved
+            # attachment as that host Pokémon.
+            return None
+
+        cid = self.option_card_id(opt)
+        if cid is not None:
+            return cid
+
+        # The engine emits PLAY/ATTACH/EVOLVE choices in ST_MAIN as bare hand
+        # indices.  Binding every bare MAIN index would mislabel attacks,
+        # skills, and other schemas whose index has a different meaning.
+        if self.select_type == ST_MAIN and opt.get("type") in (
+                OT_PLAY, OT_ATTACH, OT_EVOLVE):
+            idx = opt.get("index")
+            if isinstance(idx, int):
+                cid = self.hand_card_id(idx)
+                if cid is not None:
+                    return cid
+
+        if opt.get("area") == AREA_STADIUM:
+            idx = opt.get("index")
+            stadium = (self.current or {}).get("stadium")
+            if isinstance(stadium, (list, tuple)):
+                entry = stadium[idx] if isinstance(idx, int) and \
+                    0 <= idx < len(stadium) else None
+            else:
+                entry = stadium if idx in (None, 0) else None
+            cid = self._entry_card_id(entry)
+            if cid is not None:
+                return cid
+
+        if opt.get("area") == AREA_LOOKING:
+            idx = opt.get("index")
+            looking = (self.current or {}).get("looking") or ()
+            if isinstance(looking, (list, tuple)) and \
+                    isinstance(idx, int) and 0 <= idx < len(looking):
+                return self._entry_card_id(looking[idx])
+        return None
+
     def hand_card_id(self, hand_index: int) -> int | None:
         me = self.me
         if not me:
             return None
         hand = me.get("hand") or []
-        if 0 <= hand_index < len(hand):
+        if isinstance(hand, (list, tuple)) and 0 <= hand_index < len(hand):
             c = hand[hand_index]
             return c.get("id") if isinstance(c, dict) else None
         return None

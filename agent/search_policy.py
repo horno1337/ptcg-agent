@@ -43,6 +43,12 @@ _META_PATH = os.path.join(_DIR, "meta_decks.json")
 # tools/eval_search.py, which force-enables it.
 ENABLED = False
 
+# Prototype: evaluate non-terminal leaves with a DETERMINISTIC board heuristic
+# (prize differential + damage) instead of the value net, which degraded
+# off-distribution and lost v2/v3. Engine truth still decides terminal leaves.
+# Off by default; eval_search.py --det-eval flips it for the A/B.
+DET_LEAF = False
+
 BUDGET_S = float(os.environ.get("PTCG_SEARCH_BUDGET", "1.5"))
 _RESERVE_S = 150.0        # stop searching when overage drops below this
 MAX_DETS = 16             # determinized worlds per decision (budget-bound)
@@ -198,10 +204,11 @@ def _reflex(net, obs: dict) -> list[int] | None:
     if not v.options:
         return None
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v)
+    cids, feats = FE.encode_options_for_net(v, net)
     logits, _ = net.forward(st, cids, feats)
     picks = NPM.select_indices(logits, feats.shape[0] - 1, v.min_count, v.max_count)
-    return picks or [0]
+    # [] is a legal, meaningful STOP when minCount == 0.
+    return picks
 
 
 def _value(net, obs: dict, root_player: int) -> float:
@@ -211,10 +218,44 @@ def _value(net, obs: dict, root_player: int) -> float:
         return 0.0 if res == 2 else (1.0 if res == root_player else -1.0)
     v = ObsView(obs)
     st = FE.encode_state(v)
-    cids, feats = FE.encode_options(v) if v.options else (
+    cids, feats = FE.encode_options_for_net(v, net) if v.options else (
         np.zeros(1, dtype=np.int32), np.zeros((1, FE.OPT_FEATS), dtype=np.float32))
     _, val = net.forward(st, cids, feats)
     return val if v.my_index == root_player else -val
+
+
+def _board_damage_frac(pl: dict) -> float:
+    """Fraction of this player's in-play HP already removed (0..1)."""
+    tot = hurt = 0
+    for slot in ("active", "bench"):
+        for e in pl.get(slot) or []:
+            if isinstance(e, dict):
+                mx = e.get("maxHp") or 0
+                hp = e.get("hp")
+                if mx > 0 and isinstance(hp, int):
+                    tot += mx
+                    hurt += max(mx - hp, 0)
+    return hurt / tot if tot else 0.0
+
+
+def _value_det(obs: dict, root_player: int) -> float:
+    """Deterministic leaf value from root_player's view: prize differential
+    (dominant) + board-damage pressure. Engine truth at terminals. Reads
+    absolute player state, so no perspective flip is needed. No value net ->
+    cannot be off-distribution wrong."""
+    cur = obs.get("current") or {}
+    res = cur.get("result", -1)
+    if res != -1:
+        return 0.0 if res == 2 else (1.0 if res == root_player else -1.0)
+    players = cur.get("players") or []
+    if len(players) < 2:
+        return 0.0
+    me, opp = players[root_player], players[1 - root_player]
+    my_pz = len(me.get("prize") or [])
+    op_pz = len(opp.get("prize") or [])
+    prize_term = (op_pz - my_pz) / 6.0            # +ve = I have taken more prizes
+    dmg_term = _board_damage_frac(opp) - _board_damage_frac(me)
+    return prize_term + 0.3 * dmg_term            # prize race dominates
 
 
 def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
@@ -223,6 +264,11 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
         return None
     sel = view.select
     if sel is None or view.max_count != 1:
+        return None
+    # This retired single-index search has no root branch for the virtual
+    # STOP action.  Optional prompts must defer to reflex instead of silently
+    # forcing one of the real options.
+    if view.min_count == 0:
         return None
     n = len(view.options)
     if not 2 <= n <= MAX_OPTS:
@@ -297,7 +343,9 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
                 if not child:
                     complete = False
                     break
-                det_scores[i] = _value(net, child["observation"], root_player)
+                det_scores[i] = (_value_det(child["observation"], root_player)
+                                 if DET_LEAF
+                                 else _value(net, child["observation"], root_player))
             if complete:
                 scores += det_scores
                 n_complete += 1
