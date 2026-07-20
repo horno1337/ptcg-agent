@@ -7,15 +7,17 @@ the ladder.
 
 ## Rules of the codebase
 
-- Behavior lives in four files: `agent/policy.py` (dispatcher + rules),
-  `agent/search_policy.py` (search), `agent/model.py` (inference),
+- Behavior lives in five files: `agent/policy.py` (dispatcher + rules),
+  `agent/turn_search.py` (guarded belief/turn planner),
+  `agent/search_policy.py` (retired PIMC + shared engine helpers), `agent/model.py` (inference),
   `agent/features.py` (encoding, shared with the torch trainer — never let
   train/inference features drift). `safety.py` stays paranoid and dumb; it
   must never depend on policy internals. `obsview.py`/`cards.py` are
   read-only helpers; no game logic.
 - A crash, invalid action, or timeout is an instant ladder loss. Any change
   to `agent/` must keep `python tests/test_safety.py` green, and every layer
-  must fail soft into the next (search -> reflex -> rules -> safety repair).
+  must fail soft into the next (turn search -> legacy search -> reflex ->
+  rules -> safety repair).
 - Feature changes: bump `FEAT_VERSION` in features.py, append-only scalars;
   old weights load through the compat shim in model.py.
 - `data/*.json` and `agent/meta_decks.json` are generated
@@ -38,21 +40,18 @@ the ladder.
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
   strategy fusion, not lack of time.
-- ACTIVE DIRECTION (Option C, the path to break the reflex-net ceiling): planning
-  via **PUCT-ISMCTS** (`agent/ismcts.py`). AlphaGo-style: net softmax as the
-  policy PRIOR (focuses the few-hundred affordable sims), DETERMINISTIC leaf eval
-  (`search_policy._value_det`, not the off-distribution value head), info-set
-  determinization for hidden cards, no rollout. Prototype works (~211
-  iters/decision @1.5s dev, 0 illegal; `PTCG_ISMCTS_DEBUG=1` un-swallows errors),
-  NOT wired into the dispatcher yet. NEXT: extend the single-game driver in the
-  scratchpad into an A/B (ISMCTS vs reflex, and vs the multi-deck-self-play net)
-  at a realistic budget; if it beats reflex, ship a LADDER A/B — the only real
-  transfer test, since local search wins have never transferred. If shallow PUCT
-  still can't beat reflex, planning is likely not viable at this ladder's compute
-  and v6 is near the reflex ceiling. Multi-deck self-play + past-checkpoint league
-  + in-loop pool:8 progress gate now exist in `tools/train.py`
-  (`--deck-pool`, `--league-ckpt`, `--gate-games`), all validated as PARITY with
-  v6 — do not expect RL alone to beat v6.
+- ACTIVE DIRECTION: **belief-aware turn search + search-policy iteration**.
+  The implementation audit falsified the old `ismcts.py` prototype: it was an
+  open-loop action-index tree, merged distinct information states, could issue
+  illegal descendant multi-picks, and used a flat intermediate leaf score.
+  `agent/turn_search.py` supersedes it with semantic complete actions,
+  frequency-weighted posterior particles plus unknown mass, exact zone
+  reconciliation, synchronized information-set beams, turn-boundary evaluation,
+  and paired evidence/robust-margin gates. It is wired behind `PTCG_TURN_SEARCH=1` and
+  remains OFF by default until `tools/eval_turn_search.py` and a one-change
+  ladder A/B justify it. New learning uses `tools/selfplay_teacher.py` soft root
+  targets and `tools/train_teacher.py`; the old PIMC `selfplay_search.py` is
+  research history, not the next flywheel.
 
 ## Evaluation & gates
 
@@ -66,6 +65,11 @@ the ladder.
   the ladder disposes.
 - Corpus rule: band-representative games (our own ladder episodes, both
   seats) are the base; top-team scouting is seasoning, not foundation.
+- Planner gates must additionally report root coverage, reflex disagreement,
+  valid particles, fallback reasons, p50/p95/max latency, cumulative clock,
+  errors, hashes and confidence intervals. Evaluate exact-known, withheld
+  variants and unseen archetypes; a gain only when the exact deck is in
+  `meta_decks.json` is a rejection.
 
 ## Training
 
@@ -75,10 +79,21 @@ the ladder.
   fine-tuning, mirror-only self-play, bigger nets on the same corpus, pure
   top-play BC. Anti-passive: league_random seats + `gen_antipassive.py`
   demos in the anchor dir.
-- Flywheel: `tools/selfplay_search.py` generates search self-play in episode
-  format; retrain via the same `--bc` path. Episode downloads land in
-  `~/Desktop/ptcg_episodes/` (user does this manually); refresh
-  `meta_decks.json` after new downloads.
+- New online rollouts use `tools/rl_env.py` + `tools/train_vec.py`: complete
+  multi-pick actions, legal empty STOP, fixed learner deck, paired
+  deck/pilot/seat schedules, explicit truncations/errors, terminal-only
+  returns, and full trainer checkpoints. It refuses to write shipped weights.
+  `tools/eval_ab.py` uses the same environment and scores
+  `(W + 0.5D) / scheduled`; any truncation/infrastructure failure invalidates
+  the gate rather than becoming a draw.
+- Policy iteration: `tools/selfplay_teacher.py` keeps paired search scores and
+  soft root distributions on learner-reached states against a deck/policy pool;
+  `tools/train_teacher.py` uses a game-grouped holdout and the band BC anchor.
+  Keep valid low-margin targets and states from lost games. Do not reduce them
+  to the winning hard action. Distillation trains only the option head so the
+  shared value trunk stays intact, and strict source/config hashes reject mixed
+  shards. Episode downloads land in `~/Desktop/ptcg_episodes/` (user does this
+  manually); refresh `meta_decks.json` after new downloads.
 
 ## Submission discipline
 
@@ -92,8 +107,9 @@ The ladder is the only real eval; every submission is an A/B measurement.
   clean tree.
 - **The user names the tag and approves every upload** — training/eval/
   commit chains may run autonomously; `kaggle submit` never does.
-- Current state: cvkpaper-v4 (reflex-only, ft3 weights fa0fc1c) carries the
-  team score at ~655. Full lineage and post-mortems: README.
+- Ladder champion: cvkpaper-v4 (reflex-only, ft3 weights fa0fc1c) carries the
+  team score at ~655. Working-tree development weights are cvkpaper-v6/ft10
+  (~641), not the champion. Always name the baseline explicitly.
 
 ## Commands
 
@@ -102,8 +118,14 @@ tools/build_engine.sh                     # compile engine (ENGINE_SRC overrides
 python tests/test_safety.py               # legality fuzz, no engine needed
 python tools/eval.py 30 random            # rules-agent smoke (engine build)
 python tools/train.py --bc DIR --iters 0  # behavior cloning (RL venv)
-python tools/selfplay_search.py OUT N ID  # flywheel generation worker
+python tools/eval_turn_search.py 40 --opp mirror --budget .5 --particles 8
+python tools/selfplay_teacher.py OUT.jsonl N --opp pool:8 --worker ID
+~/.venvs/ptcg-rl/bin/python tools/train_teacher.py OUT.jsonl --resume CKPT
 python tools/mine_meta_decks.py           # refresh opponent-model library
 python tools/eval_search.py 20 --budget 0.03 --seed N   # pre-ship: search @ ladder-like compute
 python tools/build_submission.py          # package (injects cg/libcg.so; CG_LIB)
 ```
+
+`[]` is a valid STOP action when `minCount == 0`; only `None` means policy
+failure. Dataset, training, inference, eval and search code must preserve that
+distinction.

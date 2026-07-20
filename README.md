@@ -1,16 +1,18 @@
 # PTCG ABC — Search + RL Agent
 
 Kaggle Simulation agent for the Pokémon TCG AI Battle Challenge. The agent
-plays a three-layer decision stack, each layer falling back to the next on
-any failure:
+plays a guarded three-layer decision stack, each layer falling back to the
+next on any failure:
 
-1. **Determinized search** (`agent/search_policy.py`) — for single-pick
-   decisions: predict every hidden zone, build K concrete worlds via the
-   engine's `SearchBegin` API, rehearse each option through our turn *and*
-   the opponent's full reply (2-ply), score with the value net, pick the
-   best mean. Opponent hidden cards are reconstructed by matching their
-   revealed cards against decklists mined from ladder episodes
-   (`agent/meta_decks.json`).
+1. **Belief-aware turn search** (`agent/turn_search.py`) — opt-in only
+   (`PTCG_TURN_SEARCH=1`) until it passes the full local and ladder gates.
+   At contested main-menu decisions it samples a frequency-weighted posterior
+   over compatible deck variants plus an unknown component, maps complete
+   selections by semantic identity, and searches synchronized information-set
+   plans to the end of the turn. Every root action uses the same particles;
+   an evidence and paired robust-margin gate defers uncertain decisions to reflex.
+   The repaired unknown surrogate can veto an override but can never establish
+   the known-particle evidence floor by itself.
 2. **Reflex policy net** (`agent/model.py` + `agent/weights.npz`) — a
    pointer-style option scorer (card embeddings + state encoder + per-option
    logits + value head), numpy-only at inference. Trained by behavior
@@ -34,6 +36,7 @@ think-time drains it directly), never crash.
 | cvkpaper-v3 | + evidence floor (MIN_DETS=3, adaptive ply) | 516 |
 | cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — current champion |
 | cvkpaper-v5 | cycle3d weights on v4 code | 497 — reverted to ft3 (fa0fc1c) |
+| cvkpaper-v6 | ft10 band-foundation BC + anchored league PPO | ~641 — dev weights, not champion |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -113,6 +116,36 @@ Research log (each vs the then-champion, 100-200 game evals):
   iters/decision @1.5s dev, 0 illegal actions. NEXT: A/B it vs reflex + the
   multi-deck field at a realistic budget; if it wins, ship a ladder A/B (the
   only real transfer test — local search wins have never transferred before).
+- **Option C implementation audit (2026-07-20)**: `ismcts.py` was actually an
+  open-loop tree keyed only by our numeric action-index history. It merged
+  different observations/actions, could send illegal one-index selections at
+  descendant multi-pick prompts, used one point-estimate opponent list, and
+  scored most newly expanded setup leaves with a nearly flat prize/damage
+  heuristic. It was never wired into the dispatcher. It is superseded by the
+  guarded `turn_search.py`: complete semantic actions, exact hidden-zone
+  reconciliation, posterior particles, synchronized belief beams, turn-boundary
+  evaluation, paired evidence, and reflex fallback. This is an implementation
+  milestone only, **not** a ladder claim.
+- **Search policy iteration replaces the failed flywheel (2026-07-20)**:
+  `selfplay_search.py` remains the historical retired-PIMC generator. New work
+  uses `selfplay_teacher.py` to retain soft root distributions and paired
+  scores—including valid low-margin analyses from lost games—then
+  `train_teacher.py` distills them into the option head with a band-episode BC
+  anchor while freezing the shared value trunk. Shards fail closed on mixed
+  planner/config/code/data provenance. Runtime terminal-reward PPO is no longer
+  the primary improvement lever.
+- **STOP correctness audit (2026-07-20)**: a legal empty selection was being
+  discarded by the episode loader, replaced with option 0 during PPO, and
+  treated as policy failure at inference/eval. Empty actions now survive the
+  entire pipeline and have focused regression coverage.
+- **Competition-environment RL baseline (2026-07-20, not promoted)**:
+  20×96 anchored PPO games from ft10 completed without a truncation or engine
+  fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
+  field). Candidate `b3f746e2…` then tied the shipped net on the primary
+  pool:8 gate (75.6% vs 76.2%), led on the withheld pool:8:16 slice (69.4% vs
+  64.4%), and went 81-79 in mirror; all confidence intervals overlap. This
+  validates the new rollout/evaluation plumbing, not a strength gain, so the
+  production weights remain unchanged.
 
 ## Layout
 
@@ -120,8 +153,10 @@ Research log (each vs the then-champion, 100-200 game evals):
 main.py                    # entrypoint; survives kaggle's exec loader (no __file__)
 agent/
   safety.py                # never-crash wrapper + per-game clock
-  policy.py                # dispatcher: search -> reflex -> rules
-  search_policy.py         # determinized 2-ply value search (self-contained lib binding)
+  policy.py                # dispatcher: guarded turn search -> reflex -> rules
+  turn_search.py           # belief-aware synchronized turn beam (opt-in)
+  ismcts.py                # superseded open-loop prototype, retained for research history
+  search_policy.py         # retired PIMC + shared engine/belief helpers
   model.py                 # numpy inference net; shapes derive from weights.npz
   features.py              # obs -> features, shared by torch trainer and numpy inference
   obsview.py / cards.py    # read-only obs helpers / card DB lookups
@@ -131,13 +166,24 @@ data/                      # card/attack dumps (tools/dump_cards.py — generate
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
 tools/
   cabt.py                  # engine bindings + battle runner (+ search API, search_begin_input)
+  rl_env.py                # competition-faithful RL lifecycle, actions, schedules, provenance
   train.py                 # torch twin: BC (--bc), anchored league PPO, --arch, npz export
+  train_vec.py             # paired multi-opponent vector rollouts over rl_env.py
+  train_teacher.py         # soft search-target distillation + held-out group split
   il_dataset.py            # episode JSONs -> (obs, action, reward); winner-seat weighting
-  selfplay_search.py       # flywheel generation: search self-play in episode format
+  selfplay_search.py       # historical retired-PIMC flywheel (do not use for new cycles)
+  selfplay_teacher.py      # diverse turn-search teacher records (JSONL)
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
+  eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
+  eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
   eval.py / run_local.py   # rule-agent eval / single game + replay
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
 tests/test_safety.py       # legality fuzz — must stay green for any agent/ change
+tests/test_turn_search.py  # semantic actions, STOP ranking, belief/evaluator helpers
+tests/test_teacher_training.py # strict generator -> trainer schema/provenance
+tests/test_rl_env.py       # action/reward/lifecycle/schedule + native-engine smoke
+tests/test_train_vec.py    # vector collection, STOP, returns, PPO plumbing
+tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slices
 ```
 
 ## Environments & data locations (this machine)
@@ -161,8 +207,35 @@ python tools/train.py --bc ~/Desktop/ptcg_episodes --iters 0 \
 python tools/train.py --resume .../bc_best.pt --iters 40 --lr 5e-5 \
     --league-rules 0.33 --bc-anchor ~/Desktop/ptcg_episodes ...
 
-# flywheel generation (N parallel workers)
-PTCG_SEARCH_BUDGET=0.25 python tools/selfplay_search.py ~/Desktop/ptcg_selfplay 150 w1
+# competition-faithful vector RL (fixed learner deck, paired diverse field)
+~/.venvs/ptcg-rl/bin/python tools/train_vec.py \
+    --resume tools/checkpoints/ft10/latest.pt \
+    --bc-anchor ~/Desktop/ptcg_episodes \
+    --updates 20 --games-per-update 96 --num-envs 16 \
+    --opp-decks pool:8 \
+    --opponent-mix rules=0.30,random=0.25,reflex=0.45 \
+    --out tools/checkpoints/rl-env/weights.npz \
+    --ckpt-dir tools/checkpoints/rl-env
+
+# weight gates on the same environment (training field, holdout, then mirror)
+python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
+    --base agent/weights.npz --opp pool:8
+python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
+    --base agent/weights.npz --opp pool:8:16
+python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
+    --base agent/weights.npz --opp mirror
+
+# guarded planner A/B (planner is enabled by the harness only)
+python tools/eval_turn_search.py 160 --opp pool:8 --opp-policy mixed \
+    --budget 0.5 --particles 8
+
+# search-policy iteration: generate soft targets, then distill in the RL venv
+python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
+    --opp pool:16 --opp-policy rules,reflex --budget 0.5 --particles 8
+~/.venvs/ptcg-rl/bin/python tools/train_teacher.py /tmp/teacher-w1.jsonl \
+    --resume tools/checkpoints/ft10/latest.pt \
+    --bc-anchor ~/Desktop/ptcg_episodes --out /tmp/teacher-weights.npz \
+    --ckpt-dir /tmp/teacher-run
 
 # refresh opponent-model library after new episode downloads
 python tools/mine_meta_decks.py
@@ -188,3 +261,13 @@ git tag <name> && python tools/build_submission.py
   and 150+ games; 60-game evals swing ±13%.
 - Feature changes: bump `FEAT_VERSION`, append-only scalars; the numpy Net
   truncates for older weight files so shipped baselines stay evaluable.
+- Empty `[]` is a real action when `minCount == 0`; never use truthiness to
+  distinguish STOP from policy failure (`None`).
+- New RL work uses `tools/rl_env.py`; see
+  `docs/competition_rl_contract.md`. Select-cap and opponent-fault truncations
+  are never relabeled as draws or positive reward, and the native engine RNG
+  is explicitly unseedable even when the Python schedule has a seed.
+- `turn_search.py` stays disabled by default. Local gates may enable it; a
+  submission enables it only as a one-change, user-approved ladder A/B.
+- Teacher shards are source-locked: finish generation before editing planner,
+  mapping, feature, engine, or card-data dependencies; mixed hashes are rejected.

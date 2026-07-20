@@ -37,10 +37,16 @@ class _SerialData(ctypes.Structure):
 
 
 _lib = None
+_lib_pid = None
 
 
 def lib() -> ctypes.CDLL:
-    global _lib
+    global _lib, _lib_pid
+    if _lib is not None and _lib_pid != os.getpid():
+        raise RuntimeError(
+            "cabt native engine was inherited across fork; create workers with "
+            "multiprocessing 'spawn' before loading the engine"
+        )
     if _lib is None:
         if not os.path.exists(_LIB_PATH):
             raise FileNotFoundError(f"{_LIB_PATH} missing - run tools/build_engine.sh")
@@ -78,6 +84,7 @@ def lib() -> ctypes.CDLL:
             L.GameInitialize()
             os.environ[flag] = str(os.getpid())
         _lib = L
+        _lib_pid = os.getpid()
     return _lib
 
 
@@ -143,6 +150,11 @@ class Battle:
     """One engine battle. Use as a context manager or call close()."""
 
     def __init__(self, deck0: list[int], deck1: list[int]):
+        # Establish the destructor invariant before doing anything that can
+        # raise.  Invalid decks used to leave a partially constructed object
+        # whose __del__ then raised AttributeError while unwinding the real
+        # DeckError.
+        self._ptr = None
         if len(deck0) != DECK_SIZE or len(deck1) != DECK_SIZE:
             raise DeckError(0 if len(deck0) != DECK_SIZE else 1, 1)
         arr = (ctypes.c_int * (2 * DECK_SIZE))(*deck0, *deck1)
@@ -151,9 +163,14 @@ class Battle:
             raise DeckError(sd.errorPlayer, sd.errorType)
         self._ptr = sd.battlePtr
 
+    def _require_open(self):
+        if not self._ptr:
+            raise RuntimeError("battle is closed")
+        return self._ptr
+
     def obs(self) -> tuple[dict, int]:
         """Current observation (for the selecting player) and that player's index."""
-        sd = lib().GetBattleData(self._ptr)
+        sd = lib().GetBattleData(self._require_open())
         o = json.loads(ctypes.string_at(sd.json).decode())
         if sd.data and sd.count > 0:
             # same field the kaggle wrapper provides: input for SearchBegin
@@ -163,14 +180,14 @@ class Battle:
     def select(self, indices: list[int]) -> int:
         """Apply a selection; returns 0 on success, engine error code otherwise."""
         arr = (ctypes.c_int * max(len(indices), 1))(*indices)
-        return lib().Select(self._ptr, arr, len(indices))
+        return lib().Select(self._require_open(), arr, len(indices))
 
     def visualize(self) -> str:
         """Replay JSON (array of per-select vis states) for the whole battle so far."""
-        return ctypes.string_at(lib().VisualizeData(self._ptr)).decode()
+        return ctypes.string_at(lib().VisualizeData(self._require_open())).decode()
 
     def close(self):
-        if self._ptr:
+        if getattr(self, "_ptr", None):
             lib().BattleFinish(self._ptr)
             self._ptr = None
 
@@ -181,7 +198,12 @@ class Battle:
         self.close()
 
     def __del__(self):
-        self.close()
+        try:
+            self.close()
+        except Exception:
+            # Never let interpreter shutdown, partial construction, or a
+            # rejected post-fork handle mask the exception being unwound.
+            pass
 
 
 # ---------------------------------------------------------------------------

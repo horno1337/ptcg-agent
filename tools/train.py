@@ -11,8 +11,10 @@ test_roundtrip() asserts that on every export.
 """
 
 import argparse
+import hashlib
 import json
 import os
+import random
 import subprocess
 import sys
 import time
@@ -109,15 +111,14 @@ def sample_picks(logits: torch.Tensor, n_opts: int, n_min: int, n_max: int,
     eff_max = min(n_max, n_opts) if n_max > 0 else n_opts
     picks, logp = [], torch.zeros((), device=logits.device)
     avail = torch.ones(n_opts + 1, dtype=torch.bool, device=logits.device)
-    ent = None
+    entropies = []
     while len(picks) < max(eff_max, 1):
         can_stop = len(picks) >= n_min
         m = avail.clone()
         m[n_opts] = can_stop
         lg = logits.masked_fill(~m, -1e9)
         dist = torch.distributions.Categorical(logits=lg)
-        if ent is None:
-            ent = dist.entropy()
+        entropies.append(dist.entropy())
         a = int(lg.argmax()) if greedy else int(dist.sample())
         logp = logp + dist.log_prob(torch.tensor(a, device=logits.device))
         if a == n_opts:
@@ -128,7 +129,12 @@ def sample_picks(logits: torch.Tensor, n_opts: int, n_min: int, n_max: int,
             break
         if n_opts - (~avail[:n_opts]).sum().item() == 0:
             break
-    return picks, logp, (ent if ent is not None else torch.zeros((), device=logits.device))
+    # Monte-Carlo chain-rule entropy for the complete sequential selection.
+    # Log-probabilities are summed over the same path, so averaging here would
+    # systematically under-regularize longer multi-pick actions.
+    ent = (torch.stack(entropies).sum() if entropies
+           else torch.zeros((), device=logits.device))
+    return picks, logp, ent
 
 
 def picks_logprob(logits: torch.Tensor, picks: list[int], n_opts: int,
@@ -137,7 +143,7 @@ def picks_logprob(logits: torch.Tensor, picks: list[int], n_opts: int,
     eff_max = min(n_max, n_opts) if n_max > 0 else n_opts
     logp = torch.zeros((), device=logits.device)
     avail = torch.ones(n_opts + 1, dtype=torch.bool, device=logits.device)
-    ent = None
+    entropies = []
     seq = list(picks)
     if len(seq) < eff_max:
         seq = seq + [n_opts]  # explicit STOP was taken
@@ -147,13 +153,14 @@ def picks_logprob(logits: torch.Tensor, picks: list[int], n_opts: int,
         m[n_opts] = can_stop
         lg = logits.masked_fill(~m, -1e9)
         dist = torch.distributions.Categorical(logits=lg)
-        if ent is None:
-            ent = dist.entropy()
+        entropies.append(dist.entropy())
         logp = logp + dist.log_prob(torch.tensor(a, device=logits.device))
         if a == n_opts:
             break
         avail[a] = False
-    return logp, (ent if ent is not None else torch.zeros((), device=logits.device))
+    ent = (torch.stack(entropies).sum() if entropies
+           else torch.zeros((), device=logits.device))
+    return logp, ent
 
 
 # ---------------------------------------------------------------------------
@@ -191,15 +198,15 @@ def _ckpt_move(ckpt_net, v) -> list[int]:
     logits = ckpt_net.logits(sv, oi, of, mask)
     picks, _, _ = sample_picks(logits[0, :M], M - 1,
                                v.min_count, v.max_count, greedy=False)
-    return picks or [0]
+    return picks
 
 
 @torch.no_grad()
 def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
             temperature_greedy=False, league_rules=0.0, league_random=0.0,
             deck_pool=None, ckpt_nets=None, league_ckpt=0.0):
-    """Self-play; returns (decisions, stats). Rewards via GAE per player
-    trajectory with gamma=1 (single terminal reward). A `league_rules`
+    """Self-play; returns (decisions, stats). Rewards use a gamma=1 Monte
+    Carlo terminal return per player (there is no temporal GAE recursion). A `league_rules`
     fraction of battles seats the rule-based policy as one opponent (its
     decisions are not recorded), so the net can't overfit the mirror.
 
@@ -307,13 +314,6 @@ def collect(net: TorchNet, n_games: int, deck: list[int], max_selects=1200,
             picks, logp, _ = sample_picks(logits[k, :n_opts + 1], n_opts,
                                           v.min_count, v.max_count,
                                           greedy=temperature_greedy)
-            if not picks:
-                # STOP-at-zero gets substituted, never executed: re-label the
-                # decision as the substitute so the update credits the action
-                # that actually ran (recorded [] + executed [0] poisons PPO)
-                picks = list(range(min(max(v.min_count, 1), n_opts)))
-                logp, _ = picks_logprob(logits[k, :n_opts + 1], picks,
-                                        n_opts, v.min_count, v.max_count)
             action = picks
             err = b.select(action)
             steps[gi] += 1
@@ -408,7 +408,10 @@ def bc_train(net, samples, epochs, lr, out_path, eval_every=25, eval_games=40,
             wts = torch.tensor([d.weight for d in mb], device=DEV)
             nll = -(torch.stack(logps) * wts).sum() / wts.sum().clamp(min=1e-6)
             rett = torch.tensor([d.ret for d in mb], device=DEV)
-            loss = nll + vcoef * F.mse_loss(values, rett)
+            # Source/outcome weights describe the trust placed in the entire
+            # demonstration, so apply them to the value target as well as NLL.
+            value_mse = (((values - rett) ** 2) * wts).sum() / wts.sum().clamp(min=1e-6)
+            loss = nll + vcoef * value_mse
             opt.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -424,6 +427,12 @@ def bc_train(net, samples, epochs, lr, out_path, eval_every=25, eval_games=40,
                 best = wr
                 torch.save(net.state_dict(),
                            os.path.join(os.path.dirname(out_path), "bc_best.pt"))
+    # Continue/export from the checkpoint the selector actually called best,
+    # rather than silently using the final epoch.
+    best_path = os.path.join(os.path.dirname(out_path), "bc_best.pt")
+    if os.path.exists(best_path):
+        net.load_state_dict(torch.load(best_path, map_location=DEV))
+        export_npz(net, out_path)
     return best
 
 
@@ -526,7 +535,7 @@ def eval_vs_rules(weights_path: str, n_games: int, deck: list[int]) -> float:
         cids, feats = FE.encode_options(v)
         logits, _ = net.forward(st, cids, feats)
         picks = npm.select_indices(logits, feats.shape[0] - 1, v.min_count, v.max_count)
-        return picks if picks else [0]
+        return picks
 
     def rule_agent(obs):
         if obs.get("select") is None:
@@ -581,7 +590,11 @@ def main():
     ap.add_argument("--games", type=int, default=96)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--eval-every", type=int, default=5)
-    ap.add_argument("--eval-games", type=int, default=40)
+    ap.add_argument("--eval-games", type=int, default=160,
+                    help="paired games for checkpoint screens (README minimum: 150)")
+    ap.add_argument("--seed", type=int, default=0,
+                    help="seed Python, NumPy and Torch choices (the external "
+                         "battle-engine RNG is not seedable here)")
     ap.add_argument("--out", default=os.path.join(ROOT, "agent", "weights.npz"))
     ap.add_argument("--resume", default=None)
     ap.add_argument("--bc", default=None,
@@ -619,6 +632,24 @@ def main():
                     help="emb,s1,s2,o1,o2 layer sizes")
     args = ap.parse_args()
 
+    league_values = (args.league_rules, args.league_random, args.league_ckpt)
+    if any(not 0.0 <= value <= 1.0 for value in league_values):
+        ap.error("each league fraction must be individually in [0, 1]")
+    league_total = args.league_rules + args.league_random + args.league_ckpt
+    if not 0.0 <= league_total <= 1.0:
+        ap.error("--league-rules + --league-random + --league-ckpt must be in [0, 1]")
+    if args.bc and args.bc_epochs < 1:
+        ap.error("--bc-epochs must be >= 1 when --bc is used")
+    if args.eval_every < 1 or args.eval_games < 1:
+        ap.error("--eval-every and --eval-games must be >= 1")
+    if args.gate_games < 0 or args.gate_games % 2:
+        ap.error("--gate-games must be zero or a positive even number")
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+
     deck = policy.load_deck()
     deck_pool = None
     if args.deck_pool:
@@ -646,6 +677,27 @@ def main():
 
     ckpt = args.ckpt_dir
     os.makedirs(ckpt, exist_ok=True)
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
+            text=True, check=True).stdout.strip()
+        dirty = bool(subprocess.run(
+            ["git", "status", "--porcelain"], cwd=ROOT, capture_output=True,
+            text=True, check=True).stdout.strip())
+    except Exception:
+        commit, dirty = None, None
+    manifest = {
+        "args": vars(args),
+        "git_commit": commit,
+        "git_dirty": dirty,
+        "deck_sha256": hashlib.sha256(
+            ",".join(map(str, deck)).encode()).hexdigest(),
+        "feature_version": FE.FEAT_VERSION,
+        "device": str(DEV),
+        "torch_version": torch.__version__,
+    }
+    with open(os.path.join(ckpt, "run_manifest.json"), "w") as f:
+        json.dump(manifest, f, indent=2, sort_keys=True)
 
     if args.bc:
         samples = load_bc_samples(args.bc, args.w_win, args.w_draw, args.w_loss)
@@ -717,10 +769,14 @@ def main():
                          str(args.gate_games), args.out, "--opp", "pool:8",
                          "--base", gate_ref],
                         capture_output=True, text=True, timeout=3600)
-                    line = next((l for l in r.stdout.splitlines()
-                                 if l.startswith("POOL")), None)
+                    line = (next((l for l in r.stdout.splitlines()
+                                  if l.startswith("POOL")), None)
+                            if r.returncode == 0 else None)
+                    failure = ((r.stderr or r.stdout or "gate failed")[-200:]
+                               if r.returncode != 0
+                               else "gate produced no POOL summary")
                     print(f"  [progress vs start] "
-                          f"{line or ('gate failed: ' + (r.stderr or '')[-200:])}",
+                          f"{line or ('gate failed: ' + failure)}",
                           flush=True)
                 except Exception as e:
                     print(f"  [progress gate error] {e}", flush=True)
