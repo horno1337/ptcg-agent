@@ -265,7 +265,7 @@ class ReflexMove:
         if not view.options:
             return policy.decide_rules(obs)
         state = FE.encode_state(view)
-        option_ids, option_features = FE.encode_options(view)
+        option_ids, option_features = FE.encode_options_for_net(view, self.net)
         logits, _ = self.net.forward(state, option_ids, option_features)
         return NPM.select_indices(
             logits, len(view.options), view.min_count, view.max_count,

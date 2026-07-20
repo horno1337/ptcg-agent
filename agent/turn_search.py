@@ -45,7 +45,6 @@ from .obsview import (
     AREA_ACTIVE,
     AREA_BENCH,
     AREA_HAND,
-    AREA_LOOKING,
     AREA_PLAYER,
     AREA_STADIUM,
     ObsView,
@@ -172,40 +171,9 @@ def _board_token(entry) -> tuple | None:
 
 
 def _resolved_option_card(view: ObsView, opt: dict) -> int | None:
-    # Attached-card prompts point at a public Pokémon slot plus a secondary
-    # index.  Resolve the actual attached object; treating ``index`` as the
-    # card itself maps different energies/tools to the same Pokémon.
-    board = view.board_entry(
-        opt.get("area"), opt.get("index"),
-        opt.get("playerIndex", view.my_index),
-    )
-    if isinstance(board, dict):
-        for index_key, list_key in (
-                ("energyIndex", "energyCards"),
-                ("toolIndex", "tools"),
-                ("preEvolutionIndex", "preEvolution")):
-            attached_index = opt.get(index_key)
-            attached = board.get(list_key) or ()
-            if isinstance(attached_index, int) and \
-                    0 <= attached_index < len(attached):
-                attached_entry = attached[attached_index]
-                attached_id = _entry_id(attached_entry)
-                if attached_id is not None:
-                    return attached_id
-
-    cid = view.option_card_id(opt)
-    # ST_MAIN PLAY/ATTACH options normally carry a bare hand index rather than
-    # an AreaType, so ObsView cannot resolve them through option_card_id().
-    if cid is None and view.select_type == ST_MAIN:
-        idx = opt.get("index")
-        if isinstance(idx, int):
-            cid = view.hand_card_id(idx)
-    if cid is None and opt.get("area") == AREA_LOOKING:
-        idx = opt.get("index")
-        looking = (view.current or {}).get("looking") or ()
-        if isinstance(idx, int) and 0 <= idx < len(looking):
-            cid = _entry_id(looking[idx])
-    return cid
+    # Keep search fingerprints and the learned action encoder on one shared
+    # definition of option identity.
+    return view.semantic_option_card_id(opt)
 
 
 def _attached_option_token(view: ObsView, opt: dict) -> tuple | None:
@@ -813,7 +781,7 @@ def _predict_particle(view: ObsView, my_deck_list: list[int],
 def _policy_logits(net, obs: dict) -> np.ndarray:
     view = ObsView(obs)
     st = FE.encode_state(view)
-    cids, feats = FE.encode_options(view)
+    cids, feats = FE.encode_options_for_net(view, net)
     logits, _ = net.forward(st, cids, feats)
     return np.asarray(logits, dtype=np.float64).reshape(-1)
 

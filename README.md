@@ -138,6 +138,17 @@ Research log (each vs the then-champion, 100-200 game evals):
   discarded by the episode loader, replaced with option 0 during PPO, and
   treated as policy failure at inference/eval. Empty actions now survive the
   entire pipeline and have focused regression coverage.
+- **Semantic action alias audit (2026-07-20, representation fix only)**:
+  MAIN-phase PLAY options carry a bare hand index, not an `area`; the v1/v2
+  encoder therefore assigned card ID 0 to every playable card. In 200 sampled
+  band episodes, all 56,341 PLAY options used this schema, so many distinct
+  decisions reached the option head as identical rows. `FEAT_VERSION=3` now
+  resolves MAIN hand actions, attached cards, stadiums, and the public LOOKING
+  zone through one shared semantic identity helper. Frozen v1/v2 checkpoints are
+  explicitly routed through the byte-compatible legacy encoder, so this does
+  not alter ft3/ft10 behavior. Existing teacher shards remain version-locked;
+  a v3 model must be trained on freshly encoded data. This fixes a learning
+  bottleneck but is **not** a ladder-strength or weight-promotion claim.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -178,9 +189,9 @@ agent/
   ismcts.py                # superseded open-loop prototype, retained for research history
   search_policy.py         # retired PIMC + shared engine/belief helpers
   model.py                 # numpy inference net; shapes derive from weights.npz
-  features.py              # obs -> features, shared by torch trainer and numpy inference
-  obsview.py / cards.py    # read-only obs helpers / card DB lookups
-  weights.npz              # shipped net (committed deliberately at each ship)
+  features.py              # versioned semantic options, shared by training/inference
+  obsview.py / cards.py    # read-only obs/option identity helpers / card DB lookups
+  weights.npz              # tracked ft10 dev net; ft3 champion lives at cvkpaper-v4
   meta_decks.json          # decklists mined from episodes (opponent modeling)
 data/                      # card/attack dumps (tools/dump_cards.py — generated)
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
@@ -193,12 +204,14 @@ tools/
   il_dataset.py            # episode JSONs -> (obs, action, reward); winner-seat weighting
   selfplay_search.py       # historical retired-PIMC flywheel (do not use for new cycles)
   selfplay_teacher.py      # diverse turn-search teacher records (JSONL)
+  download_episodes.py     # resumable top/band Kaggle replay downloader
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
   eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
   eval.py / run_local.py   # rule-agent eval / single game + replay
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
 tests/test_safety.py       # legality fuzz — must stay green for any agent/ change
+tests/test_feature_semantics.py # v3 identity + v1/v2 deploy compatibility
 tests/test_turn_search.py  # semantic actions, STOP ranking, belief/evaluator helpers
 tests/test_teacher_training.py # strict generator -> trainer schema/provenance
 tests/test_rl_env.py       # action/reward/lifecycle/schedule + native-engine smoke
@@ -213,13 +226,25 @@ tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slic
 - Official sample bundle incl. prebuilt `cg/libcg.so`: `~/Desktop/sample_submission/`.
 - Training venv: `~/.venvs/ptcg-rl` (torch + CUDA). Kaggle CLI: `~/.venvs/kaggle`.
 - Episode logs (downloaded from leaderboard game pages): `~/Desktop/ptcg_episodes/`.
+- Downloader-created acquisition slices: `~/Desktop/ptcg_corpus_top/` samples
+  the highest-ranked agents; `~/Desktop/ptcg_corpus_mid/` is the configured
+  score band. Directory names describe collection filters, not labels—the
+  episode JSON still contains both seats and its actual outcome.
 - Search self-play output: `~/Desktop/ptcg_selfplay/`.
 
 ## Workflows
 
 ```bash
 python tests/test_safety.py                       # always before committing agent/
+python tests/test_feature_semantics.py            # semantic IDs + old-net parity
 python tools/eval.py 30 random                    # rules-agent smoke (engine build)
+
+# resumable leaderboard corpora (dedupes out + every repeated --skip-dir)
+python tools/download_episodes.py --top 50 --per-sub 100 \
+    --out ~/Desktop/ptcg_corpus_top --skip-dir ~/Desktop/ptcg_episodes
+python tools/download_episodes.py --min-score 600 --max-score 800 --spread \
+    --top 50 --per-sub 100 --out ~/Desktop/ptcg_corpus_mid \
+    --skip-dir ~/Desktop/ptcg_episodes --skip-dir ~/Desktop/ptcg_corpus_top
 
 # imitation + RL (in the training venv)
 python tools/train.py --bc ~/Desktop/ptcg_episodes --iters 0 \
@@ -273,14 +298,18 @@ git tag <name> && python tools/build_submission.py
   self-limits (budget/decision, disables below 150s, safety panics at 30s).
 - ST_CARD options carry no cardId — resolve via `(area, index, playerIndex)`
   and `select["deck"]` (revealed during deck searches).
+- ST_MAIN PLAY options carry only a hand `index`. Current training must use
+  the v3 semantic resolver; frozen NumPy policies must go through
+  `features.encode_options_for_net` so v1/v2 baselines keep their old inputs.
 - `len(prize)` is the remaining-prize count (entries are null face-down).
 - The engine aborts on double `GameInitialize` — loaders share a PID-stamped
   guard.
 - Local evals over many games in one process: safety's clock now trusts
   per-game `remainingOverageTime`, so this is safe — but keep evals paired
   and 150+ games; 60-game evals swing ±13%.
-- Feature changes: bump `FEAT_VERSION`, append-only scalars; the numpy Net
-  truncates for older weight files so shipped baselines stay evaluable.
+- Feature changes: bump `FEAT_VERSION`, append-only scalars, and preserve the
+  old option resolver for old versions. The NumPy Net truncates state scalars
+  and checkpoint-aware option routing keeps shipped baselines evaluable.
 - Empty `[]` is a real action when `minCount == 0`; never use truthiness to
   distinguish STOP from policy failure (`None`).
 - New RL work uses `tools/rl_env.py`; see

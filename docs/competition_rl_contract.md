@@ -55,6 +55,11 @@ min_count / max_count     selection bounds
 ```
 
 The last option row is the virtual STOP row from `features.encode_options`.
+Feature version 3 binds indirect legal-option schemas to the public card they
+actually manipulate (notably bare-index MAIN plays and attached cards).
+New learner observations use the current version; frozen NumPy opponents use
+`features.encode_options_for_net` and therefore retain their checkpoint's v1/v2
+contract. Old teacher shards are not silently re-encoded as v3 data.
 The raw official observation is available to a controller through
 `env.raw_observation` for rule-policy/debug use, but it is not included in the
 model observation or transition metadata. Bare option indices are never valid
@@ -260,6 +265,7 @@ python tests/test_rl_env.py
 python tests/test_train_vec.py
 python tests/test_selection_semantics.py
 python tests/test_train_semantics.py
+python tests/test_feature_semantics.py
 python tests/test_eval_ab.py
 python tests/test_safety.py
 ```
