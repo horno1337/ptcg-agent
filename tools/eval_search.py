@@ -44,7 +44,7 @@ def reflex_move(obs):
     logits, _ = net.forward(st, cids, feats)
     picks = model.select_indices(logits, feats.shape[0] - 1,
                                  v.min_count, v.max_count)
-    return picks or policy.decide_rules(obs)
+    return picks
 
 
 def main():

@@ -370,14 +370,23 @@ def choose_evolve(view: ObsView) -> list[int]:
 
 def _model_decide(view: ObsView) -> list[int] | None:
     """RL policy path: active when agent/weights.npz is present and loadable.
-    Single-pick selects go through determinized value search when the engine
-    lib is available; everything falls back reflex -> rules on any error."""
+    Main-menu decisions may go through the guarded turn planner; the retired
+    determinized search remains available only to its explicit harness. Every
+    layer fails soft through turn search -> legacy search -> reflex -> rules."""
     try:
         from . import features as _features
         from . import model as _model
         net = _model.load()
         if net is None or not view.options:
             return None
+        if os.environ.get("PTCG_TURN_SEARCH") == "1":
+            try:
+                from . import turn_search as _turn_search
+                picks = _turn_search.decide(view, net, load_deck())
+                if picks is not None:
+                    return picks
+            except Exception:
+                pass
         try:
             from . import search_policy as _search
             picks = _search.decide(view, net, load_deck())
@@ -390,7 +399,7 @@ def _model_decide(view: ObsView) -> list[int] | None:
         logits, _ = net.forward(st, cids, feats)
         picks = _model.select_indices(logits, feats.shape[0] - 1,
                                       view.min_count, view.max_count)
-        return picks if picks else None
+        return picks
     except Exception:
         return None
 

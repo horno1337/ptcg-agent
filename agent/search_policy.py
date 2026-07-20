@@ -207,7 +207,8 @@ def _reflex(net, obs: dict) -> list[int] | None:
     cids, feats = FE.encode_options(v)
     logits, _ = net.forward(st, cids, feats)
     picks = NPM.select_indices(logits, feats.shape[0] - 1, v.min_count, v.max_count)
-    return picks or [0]
+    # [] is a legal, meaningful STOP when minCount == 0.
+    return picks
 
 
 def _value(net, obs: dict, root_player: int) -> float:
@@ -263,6 +264,11 @@ def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
         return None
     sel = view.select
     if sel is None or view.max_count != 1:
+        return None
+    # This retired single-index search has no root branch for the virtual
+    # STOP action.  Optional prompts must defer to reflex instead of silently
+    # forcing one of the real options.
+    if view.min_count == 0:
         return None
     n = len(view.options)
     if not 2 <= n <= MAX_OPTS:
