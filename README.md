@@ -150,8 +150,9 @@ Research log (each vs the then-champion, 100-200 game evals):
   a v3 model must be trained on freshly encoded data. This fixes a learning
   bottleneck but is **not** a ladder-strength or weight-promotion claim.
 - **First freshly encoded v3 BC candidate passes the local gates (2026-07-21,
-  not promoted)**: resumed ft10 and re-encoded 277,273 expert decisions at load
-  time with the semantic v3 option encoder. The deliberately RAM-bounded mix
+  locally promoted; ladder pending)**: resumed ft10 and re-encoded 277,273
+  expert decisions at load time with the semantic v3 option encoder. The
+  deliberately RAM-bounded mix
   used deterministic 1,000-episode mid-MMR and 500-episode top samples plus all
   506 downloaded and 150 synthetic episodes, weighted 1.0/0.2/1.0/0.3. Ten CPU
   epochs at `lr=1e-4` reached NLL 0.851 and exported candidate `4ce6522f...`.
@@ -167,8 +168,8 @@ Research log (each vs the then-champion, 100-200 game evals):
   full 332,045-decision mid corpus was not used because the
   eager loader exhausted 15 GiB RAM and drove swap pressure before training;
   streaming/sharded BC loading is required before scaling this mix. These are
-  strong local results, but the shipped weights remain unchanged pending an
-  explicit promotion and Kaggle ladder validation.
+  strong local results. Candidate `4ce6522f...` is now the tracked submission
+  weight; it is not a new champion unless Kaggle ladder validation confirms it.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -211,7 +212,7 @@ agent/
   model.py                 # numpy inference net; shapes derive from weights.npz
   features.py              # versioned semantic options, shared by training/inference
   obsview.py / cards.py    # read-only obs/option identity helpers / card DB lookups
-  weights.npz              # tracked ft10 dev net; ft3 champion lives at cvkpaper-v4
+  weights.npz              # tracked semantic-v3 candidate; ft3 champion lives at cvkpaper-v4
   meta_decks.json          # decklists mined from episodes (opponent modeling)
 data/                      # card/attack dumps (tools/dump_cards.py — generated)
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
