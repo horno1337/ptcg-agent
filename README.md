@@ -358,10 +358,16 @@ python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
 python tools/eval_turn_search.py 160 --opp pool:8 --opp-policy mixed \
     --budget 0.5 --particles 8
 
-# privileged terminal-Q diagnostic (offline oracle; never submission behavior)
-python tools/eval_counterfactual.py 20 --opp mirror --quiet
+# privileged terminal-Q diagnostic (20 is directional only; 160 is the gate)
+python tools/eval_counterfactual.py 20 --opp mirror \
+    --json-out tools/checkpoints/counterfactual-oracle/mirror-20.json --quiet
 python tools/eval_counterfactual.py 160 --opp pool:8 --opp-policy mixed \
-    --json-out tools/checkpoints/counterfactual/pool8-160.json --quiet
+    --json-out tools/checkpoints/counterfactual-oracle/pool8-160.json --quiet
+# Interrupted runs resume only from an exact source/args/schedule checkpoint:
+python tools/eval_counterfactual.py 20 --opp mirror \
+    --json-out tools/checkpoints/counterfactual-oracle/mirror-20.json \
+    --resume tools/checkpoints/counterfactual-oracle/mirror-20.json.progress.json \
+    --quiet
 
 # search-policy iteration: generate soft targets, then distill in the RL venv
 python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \

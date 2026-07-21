@@ -125,7 +125,9 @@ the ladder.
   upper bound: it may justify a belief-averaged/public-target experiment, but
   does not prove the action is inferable from Kaggle observations or directly
   authorize distillation. Only an observable student that wins its own gates
-  can become a candidate.
+  can become a candidate. Long gates must use the evaluator's atomic progress
+  files; resume only when its source/args/schedule fingerprint validates, and
+  retain the recorded native-RNG segment boundary.
 
 ## Submission discipline
 
