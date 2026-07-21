@@ -184,9 +184,14 @@ Research log (each vs the then-champion, 100-200 game evals):
   continuity/setup denial, not voluntary passivity. A replay-derived eight-deck
   Cinderace local field remained easy for rules pilots and only weakly separated
   Qu-v1 from ft10 (81.9% vs 78.1%, overlapping CIs), so do not add a simplistic
-  rules fallback or blindly BC the opponent's winning actions. NEXT: keep Qu-v1
-  frozen, analyze critical Cinderace recovery/sequencing states, and require a
-  counterfactual teacher or planner to beat the parent before distillation.
+  rules fallback or blindly BC the opponent's winning actions. The guarded
+  planner then showed why its 40-game screens are not promotion evidence:
+  an initial 32-8 vs reflex 27-13 reversed over three additional disjoint
+  shards, aggregating to planner 121/160 (75.6%, CI 68.4-81.6%) versus frozen
+  Qu-v1 123/160 (76.9%, CI 69.8-82.7%). All shards were fault-free, but the
+  planner did not beat its parent; runtime search stays disabled and these
+  targets must not be distilled. NEXT: keep Qu-v1 frozen and obtain genuinely
+  counterfactual labels for critical Cinderace recovery/sequencing states.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
