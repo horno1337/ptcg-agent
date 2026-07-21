@@ -218,6 +218,23 @@ Research log (each vs the then-champion, 100-200 game evals):
   the trunk on the same labels. NEXT: collect advantage/counterfactual targets
   at critical decisions from a teacher that first beats Qu-v1, or use online RL
   against a diverse stronger league.
+- **Privileged terminal-Q establishes a decision-quality upper bound
+  (2026-07-22, research only)**: an exact-hidden terminal-rollout oracle was
+  evaluated on one source-locked, contiguous 160-game pool:8 field schedule
+  against frozen Qu-v1. The oracle scored 147-13 (91.9%, CI 86.6-95.2%) while
+  Qu-v1 scored 115-44-1 (72.2%, CI 64.8-78.5%); the +19.7 pp effect retained a
+  conservative positive interval of +8.0 to +30.4 pp. Across 10,657 eligible
+  attempts it analyzed 3,763 roots and made 170 confirmed overrides (4.5% of
+  analyzed roots), with zero engine, native-search, hidden-state, controller,
+  or dispatcher errors. Eight exact contiguous shards survived two interrupted
+  runs through provenance-locked checkpoints and were accepted only by the
+  strict aggregator. Aggregate artifact SHA-256: `185e3275...de34`. This proves
+  that Qu-v1 leaves substantial consequence-weighted decision quality on the
+  table; it does **not** prove those choices are inferable from public state,
+  because the teacher saw exact deck/hand/prize identities. NEXT: require the
+  advantage to survive disjoint selection/confirmation over multiple hidden
+  worlds sampled from the same public observation before emitting any training
+  target. Production weights remain `4ce6522f...`.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex

@@ -132,6 +132,18 @@ the ladder.
   eight 20-game shards) and recombined by `aggregate_counterfactual.py`; never
   add shard scores by hand or accept overlap, gaps, dirty sources, or per-shard
   pass claims.
+- The exact-hidden upper-bound gate passed on 2026-07-22: 147-13 versus frozen
+  Qu-v1's 115-44-1 over 160 pool:8 games per arm, a +19.7 pp effect with a
+  conservative +8.0 to +30.4 pp interval, 3,763 analyzed roots, 170 overrides,
+  and zero integrity errors. This authorizes only the next experiment, not
+  training or promotion. A belief-averaged teacher must derive every decision
+  from the public observation plus the registered learner deck and a declared
+  opponent-deck prior; exact visualization identities may be used only for an
+  explicit audit label and must never influence sampled worlds, action choice,
+  or deployable features. Select candidate actions and confirm them on disjoint
+  hidden-world groups, keep forward/reverse branch-order pairs together, and
+  retain world hashes/raw terminal outcomes. Only if that observable teacher
+  beats Qu-v1 on its own 160-game field gate may its targets enter training.
 
 ## Submission discipline
 
