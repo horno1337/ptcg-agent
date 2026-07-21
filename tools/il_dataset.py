@@ -18,9 +18,8 @@ import math
 import os
 
 
-def iter_episode(path: str):
-    with open(path) as f:
-        d = json.load(f)
+def iter_document(d: dict):
+    """Yield validated decisions from an already-decoded episode document."""
     steps = d.get("steps") or []
     rewards = d.get("rewards")
     if (not isinstance(rewards, list) or len(rewards) != 2
@@ -68,15 +67,19 @@ def iter_episode(path: str):
             yield obs, list(act), float(rewards[p])
 
 
+def iter_episode(path: str):
+    with open(path) as f:
+        d = json.load(f)
+    yield from iter_document(d)
+
+
 def iter_dir(dir_path: str):
     for f in sorted(glob.glob(os.path.join(dir_path, "*.json"))):
         yield from iter_episode(f)
 
 
-def decks(path: str) -> dict[int, list[int]]:
-    """Player index -> registered 60-card deck, if present in the log."""
-    with open(path) as f:
-        d = json.load(f)
+def decks_from_document(d: dict) -> dict[int, list[int]]:
+    """Player index -> registered 60-card deck in a decoded document."""
     out = {}
     for row in d.get("steps") or []:
         for p in (0, 1):
@@ -84,6 +87,13 @@ def decks(path: str) -> dict[int, list[int]]:
             if act and len(act) == 60 and p not in out:
                 out[p] = list(act)
     return out
+
+
+def decks(path: str) -> dict[int, list[int]]:
+    """Player index -> registered 60-card deck, if present in the log."""
+    with open(path) as f:
+        d = json.load(f)
+    return decks_from_document(d)
 
 
 if __name__ == "__main__":
