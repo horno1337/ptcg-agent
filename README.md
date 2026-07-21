@@ -34,9 +34,10 @@ think-time drains it directly), never crash.
 | cvkpaper-v1 | + determinized 1-ply search | 867 spike → 635 |
 | cvkpaper-v2 | + confidence gate, 2-ply, 51-deck library | 493 |
 | cvkpaper-v3 | + evidence floor (MIN_DETS=3, adaptive ply) | 516 |
-| cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — current champion |
+| cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — former champion |
 | cvkpaper-v5 | cycle3d weights on v4 code | 497 — reverted to ft3 (fa0fc1c) |
 | cvkpaper-v6 | ft10 band-foundation BC + anchored league PPO | ~641 — dev weights, not champion |
+| Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 clone snapshot — current champion |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -150,7 +151,7 @@ Research log (each vs the then-champion, 100-200 game evals):
   a v3 model must be trained on freshly encoded data. This fixes a learning
   bottleneck but is **not** a ladder-strength or weight-promotion claim.
 - **First freshly encoded v3 BC candidate passes the local gates (2026-07-21,
-  locally promoted; ladder pending)**: resumed ft10 and re-encoded 277,273
+  promoted as Qu-v1)**: resumed ft10 and re-encoded 277,273
   expert decisions at load time with the semantic v3 option encoder. The
   deliberately RAM-bounded mix
   used deterministic 1,000-episode mid-MMR and 500-episode top samples plus all
@@ -165,11 +166,27 @@ Research log (each vs the then-champion, 100-200 game evals):
   fallbacks. A dedicated 160-game threat-meta2 check was also non-regressing
   at 87.5% vs ft3's 83.1% (140-20 vs 133-27), and the deployable candidate
   completed the 200-game random smoke at 194-6 with zero agent errors. The
-  full 332,045-decision mid corpus was not used because the
-  eager loader exhausted 15 GiB RAM and drove swap pressure before training;
-  streaming/sharded BC loading is required before scaling this mix. These are
-  strong local results. Candidate `4ce6522f...` is now the tracked submission
-  weight; it is not a new champion unless Kaggle ladder validation confirms it.
+  full 332,045-decision mid corpus was not used because that run lacked memory
+  headroom while another game was running. The eager per-decision object graph
+  is still inefficient, but a clean load-only benchmark must precede any claim
+  that streaming is required. Candidate `4ce6522f...` is the tracked submission
+  weight.
+- **Qu-v1 breaks the ladder ceiling (2026-07-21)**: two byte-identical active
+  submissions from tag `Qu-v1` reached snapshot ratings 739.6 and 885.7. Their
+  146-point separation quantifies the simulation ladder's trajectory variance,
+  while both clearing the previous recent 620-651 band establishes the direction.
+  A 12-hour snapshot contained 117 disjoint games and 15,607 valid decisions;
+  115 games were learner-seat-resolved from the exact registered deck. The main
+  residual bleed is Cinderace/Archaludon (8-17, 32%, CI 17-52%); Mega Lucario,
+  the old ft10 failure, flipped to 17-6 (74%, CI 54-88%). Losses were longer
+  (71.8 vs 62.9 decisions/game) with fewer attacks (4.05 vs 5.22/game), but only
+  2/177 END actions in losses had a legal attack available: this is attacker
+  continuity/setup denial, not voluntary passivity. A replay-derived eight-deck
+  Cinderace local field remained easy for rules pilots and only weakly separated
+  Qu-v1 from ft10 (81.9% vs 78.1%, overlapping CIs), so do not add a simplistic
+  rules fallback or blindly BC the opponent's winning actions. NEXT: keep Qu-v1
+  frozen, analyze critical Cinderace recovery/sequencing states, and require a
+  counterfactual teacher or planner to beat the parent before distillation.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -212,7 +229,7 @@ agent/
   model.py                 # numpy inference net; shapes derive from weights.npz
   features.py              # versioned semantic options, shared by training/inference
   obsview.py / cards.py    # read-only obs/option identity helpers / card DB lookups
-  weights.npz              # tracked semantic-v3 candidate; ft3 champion lives at cvkpaper-v4
+  weights.npz              # tracked Qu-v1 semantic-v3 ladder champion
   meta_decks.json          # decklists mined from episodes (opponent modeling)
 data/                      # card/attack dumps (tools/dump_cards.py — generated)
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
@@ -226,6 +243,7 @@ tools/
   selfplay_search.py       # historical retired-PIMC flywheel (do not use for new cycles)
   selfplay_teacher.py      # diverse turn-search teacher records (JSONL)
   download_episodes.py     # resumable top/band Kaggle replay downloader
+  analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
   eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
@@ -233,6 +251,7 @@ tools/
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
 tests/test_safety.py       # legality fuzz — must stay green for any agent/ change
 tests/test_feature_semantics.py # v3 identity + v1/v2 deploy compatibility
+tests/test_ladder_analysis.py # replay identity/archetype/statistics regression tests
 tests/test_turn_search.py  # semantic actions, STOP ranking, belief/evaluator helpers
 tests/test_teacher_training.py # strict generator -> trainer schema/provenance
 tests/test_rl_env.py       # action/reward/lifecycle/schedule + native-engine smoke

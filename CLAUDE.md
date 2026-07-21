@@ -109,9 +109,10 @@ The ladder is the only real eval; every submission is an A/B measurement.
   clean tree.
 - **The user names the tag and approves every upload** — training/eval/
   commit chains may run autonomously; `kaggle submit` never does.
-- Ladder champion: cvkpaper-v4 (reflex-only, ft3 weights fa0fc1c) carries the
-  team score at ~655. Working-tree development weights are cvkpaper-v6/ft10
-  (~641), not the champion. Always name the baseline explicitly.
+- Ladder champion: Qu-v1, semantic-v3 weights `4ce6522f...` from tag `Qu-v1`.
+  Two byte-identical active submissions reached divergent snapshot ratings
+  (739.6 and 885.7), so name both the frozen baseline and submission trajectory;
+  never mistake one rating path for a precise strength estimate.
 
 ## Commands
 
