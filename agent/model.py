@@ -30,13 +30,15 @@ _KEYS = ["emb", "s1w", "s1b", "s2w", "s2b",
          "v1w", "v1b", "v2w", "v2b",
          "o1w", "o1b", "o2w", "o2b", "o3w", "o3b"]
 
-DECK_ADAPTER_VERSION = 1
+DECK_ADAPTER_VERSION = 2
+_SUPPORTED_DECK_ADAPTER_VERSIONS = (1, 2)
 _DECK_ADAPTER_KEYS = [
     "learner_deck",
     "deck_adapter_o3w",
     "deck_adapter_v2w", "deck_adapter_v2b",
 ]
-_DECK_ADAPTER_GROUP = ["deck_adapter_version", *_DECK_ADAPTER_KEYS]
+_DECK_ADAPTER_V1_GROUP = ["deck_adapter_version", *_DECK_ADAPTER_KEYS]
+_DECK_ADAPTER_V2_GROUP = [*_DECK_ADAPTER_V1_GROUP, "deck_adapter_select_type"]
 
 
 class Net:
@@ -48,23 +50,28 @@ class Net:
         adapterish = {key for key in w.keys()
                       if key == "learner_deck"
                       or str(key).startswith("deck_adapter_")}
-        unknown = adapterish - set(_DECK_ADAPTER_GROUP)
-        if unknown:
-            raise ValueError(f"unknown deck adapter keys: {sorted(unknown)}")
-        present = adapterish & set(_DECK_ADAPTER_GROUP)
-        if present and present != set(_DECK_ADAPTER_GROUP):
-            missing = sorted(set(_DECK_ADAPTER_GROUP) - present)
-            raise ValueError(f"partial deck adapter group; missing {missing}")
         self.deck_adapter_version = 0
-        if present:
+        self.deck_adapter_select_type = None
+        if adapterish:
+            if "deck_adapter_version" not in adapterish:
+                raise ValueError("deck adapter group is missing its version")
             raw_version = np.asarray(w["deck_adapter_version"])
             if (raw_version.shape != () or raw_version.dtype.kind not in "iu"
                     or raw_version.dtype.kind == "b"):
                 raise ValueError("deck adapter version must be an integer scalar")
             self.deck_adapter_version = int(raw_version)
-            if self.deck_adapter_version != DECK_ADAPTER_VERSION:
+            if self.deck_adapter_version not in _SUPPORTED_DECK_ADAPTER_VERSIONS:
                 raise ValueError(
                     f"unsupported deck adapter version {self.deck_adapter_version}")
+            expected_group = set(
+                _DECK_ADAPTER_V2_GROUP if self.deck_adapter_version >= 2
+                else _DECK_ADAPTER_V1_GROUP)
+            if adapterish != expected_group:
+                missing = sorted(expected_group - adapterish)
+                unknown = sorted(adapterish - expected_group)
+                raise ValueError(
+                    f"invalid deck adapter group; missing={missing}, "
+                    f"unknown={unknown}")
             for k in _DECK_ADAPTER_KEYS:
                 if k not in w:
                     raise ValueError(f"deck adapter is missing {k}")
@@ -88,10 +95,32 @@ class Net:
             self._value_adapter_nonzero = bool(
                 np.any(self.deck_adapter_v2w)
                 or np.any(self.deck_adapter_v2b))
+            if self.deck_adapter_version >= 2:
+                raw_select_type = np.asarray(w["deck_adapter_select_type"])
+                if (raw_select_type.shape != ()
+                        or raw_select_type.dtype.kind not in "iu"
+                        or raw_select_type.dtype.kind == "b"):
+                    raise ValueError(
+                        "deck adapter select type must be an integer scalar")
+                select_type = int(raw_select_type)
+                if not -1 <= select_type <= 10:
+                    raise ValueError("deck adapter select type is out of range")
+                self.deck_adapter_select_type = (
+                    None if select_type == -1 else select_type)
 
     @property
     def has_deck_adapter(self) -> bool:
-        return self.deck_adapter_version == DECK_ADAPTER_VERSION
+        return self.deck_adapter_version in _SUPPORTED_DECK_ADAPTER_VERSIONS
+
+    def supports_policy_context(self, opt_feats: np.ndarray) -> bool:
+        """Whether the policy residual owns this SelectType context."""
+        if self.deck_adapter_select_type is None:
+            return True
+        features_array = np.asarray(opt_feats)
+        column = 17 + self.deck_adapter_select_type
+        return (features_array.ndim == 2 and features_array.shape[0] > 0
+                and features_array.shape[1] > column
+                and bool(np.all(features_array[:, column] == 1.0)))
 
     def _validate_adapter_shapes(self) -> None:
         expected = {
@@ -169,7 +198,8 @@ class Net:
         logits = (h @ self.o3w + self.o3b).reshape(-1)
 
         if self.supports_deck(deck_ids):
-            if self._policy_adapter_nonzero:
+            if (self._policy_adapter_nonzero
+                    and self.supports_policy_context(opt_feats)):
                 logits = logits + (h @ self.deck_adapter_o3w).reshape(-1)
             if self._value_adapter_nonzero:
                 value_pre = (value_pre + vh @ self.deck_adapter_v2w

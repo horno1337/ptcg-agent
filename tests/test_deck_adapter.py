@@ -117,6 +117,43 @@ def test_active_torch_numpy_parity_and_non_target_isolation():
         assert isolated[1] == expected[1]
 
 
+def test_select_type_scope_leaves_other_prompts_at_parent():
+    state, option_ids, option_features = state_and_options()
+    with tempfile.TemporaryDirectory() as directory:
+        _, arrays, _, target = make_adapter(directory)
+        frozen, _ = TDA.load_base_npz(os.path.join(directory, "parent.npz"))
+        adapter = TDA.TorchDeckAdapter(frozen, target, policy_select_type=0).to(
+            train.DEV).eval()
+        with torch.no_grad():
+            adapter.policy_delta.fill_(0.05)
+        path = os.path.join(directory, "scoped.npz")
+        TDA.export_adapter_npz(adapter, arrays, path)
+        with np.load(path, allow_pickle=False) as weights:
+            scoped = model.Net(weights)
+        parent = model.Net(arrays)
+        main_features = option_features.copy()
+        main_features[:, 17] = 1.0
+        base_logits, _ = parent.forward(state, option_ids, main_features)
+        main_logits, main_value = scoped.forward(
+            state, option_ids, main_features, target)
+        torch_main_logits, torch_main_value = torch_forward(
+            adapter, state, option_ids, main_features, target)
+        assert not np.array_equal(main_logits, base_logits)
+        np.testing.assert_allclose(main_logits, torch_main_logits, atol=1e-5)
+        assert abs(main_value - torch_main_value) < 1e-5
+        card_features = option_features.copy()
+        card_features[:, 18] = 1.0
+        base_logits, base_value = parent.forward(state, option_ids, card_features)
+        card_logits, card_value = scoped.forward(
+            state, option_ids, card_features, target)
+        torch_card_logits, torch_card_value = torch_forward(
+            adapter, state, option_ids, card_features, target)
+        np.testing.assert_array_equal(card_logits, base_logits)
+        np.testing.assert_allclose(card_logits, torch_card_logits, atol=1e-5)
+        assert card_value == base_value
+        assert abs(card_value - torch_card_value) < 1e-5
+
+
 def test_malformed_adapter_groups_fail_closed():
     with tempfile.TemporaryDirectory() as directory:
         _, arrays, adapter, target = make_adapter(directory)
@@ -129,7 +166,7 @@ def test_malformed_adapter_groups_fail_closed():
         partial["deck_adapter_version"] = np.asarray(1, dtype=np.int32)
         cases.append(partial)
         wrong_version = dict(valid)
-        wrong_version["deck_adapter_version"] = np.asarray(2, dtype=np.int32)
+        wrong_version["deck_adapter_version"] = np.asarray(3, dtype=np.int32)
         cases.append(wrong_version)
         float_deck = dict(valid)
         float_deck["learner_deck"] = np.asarray(target, dtype=np.float32)
@@ -147,6 +184,9 @@ def test_malformed_adapter_groups_fail_closed():
         unknown = dict(valid)
         unknown["deck_adapter_surprise"] = np.zeros(1, dtype=np.float32)
         cases.append(unknown)
+        bad_scope = dict(valid)
+        bad_scope["deck_adapter_select_type"] = np.asarray(11, dtype=np.int32)
+        cases.append(bad_scope)
         for case in cases:
             try:
                 model.Net(case)
@@ -154,6 +194,18 @@ def test_malformed_adapter_groups_fail_closed():
                 pass
             else:
                 raise AssertionError("accepted malformed deck adapter")
+        legacy_v1 = dict(valid)
+        legacy_v1["deck_adapter_version"] = np.asarray(1, dtype=np.int32)
+        legacy_v1.pop("deck_adapter_select_type")
+        assert model.Net(legacy_v1).has_deck_adapter
+        invalid_v1 = dict(legacy_v1)
+        invalid_v1["deck_adapter_select_type"] = np.asarray(0, dtype=np.int32)
+        try:
+            model.Net(invalid_v1)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("v1 adapter accepted a v2 scope field")
 
 
 def test_sequential_kl_covers_stop_and_multi_pick_prefixes():
@@ -216,6 +268,7 @@ def test_manifest_digest_rejects_tampering():
 if __name__ == "__main__":
     test_zero_mismatch_and_permuted_target_parity()
     test_active_torch_numpy_parity_and_non_target_isolation()
+    test_select_type_scope_leaves_other_prompts_at_parent()
     test_malformed_adapter_groups_fail_closed()
     test_sequential_kl_covers_stop_and_multi_pick_prefixes()
     test_build_mismatch_and_production_overwrite_guards()
