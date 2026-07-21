@@ -379,7 +379,11 @@ def _model_decide(view: ObsView) -> list[int] | None:
         net = _model.load()
         if net is None or not view.options:
             return None
-        if os.environ.get("PTCG_TURN_SEARCH") == "1":
+        # The retired/planner paths do not yet carry a registered deck through
+        # every simulated seat.  Never silently mix their base-policy priors
+        # with a deck-adapted root policy.
+        adapted = getattr(net, "has_deck_adapter", False)
+        if not adapted and os.environ.get("PTCG_TURN_SEARCH") == "1":
             try:
                 from . import turn_search as _turn_search
                 picks = _turn_search.decide(view, net, load_deck())
@@ -387,16 +391,22 @@ def _model_decide(view: ObsView) -> list[int] | None:
                     return picks
             except Exception:
                 pass
-        try:
-            from . import search_policy as _search
-            picks = _search.decide(view, net, load_deck())
-            if picks is not None:
-                return picks
-        except Exception:
-            pass
+        if not adapted:
+            try:
+                from . import search_policy as _search
+                picks = _search.decide(view, net, load_deck())
+                if picks is not None:
+                    return picks
+            except Exception:
+                pass
         st = _features.encode_state(view)
         cids, feats = _features.encode_options_for_net(view, net)
-        logits, _ = net.forward(st, cids, feats)
+        # Registered-deck conditioning is an optional model input, separate
+        # from the versioned observation feature contract.  Legacy weights
+        # ignore it; an exact-deck adapter fails closed to its frozen parent
+        # when this registration does not match.
+        logits, _ = _model.forward_registered(
+            net, st, cids, feats, load_deck())
         picks = _model.select_indices(logits, feats.shape[0] - 1,
                                       view.min_count, view.max_count)
         return picks

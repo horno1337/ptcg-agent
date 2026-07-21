@@ -1009,6 +1009,9 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
     deliberate, evidence-backed request to retain the reflex action.
     """
     started = time.monotonic()
+    if getattr(net, "has_deck_adapter", False):
+        _record("deck_adapter_unsupported", started)
+        return None  # simulated seats do not yet carry deck registrations
     if not ENABLED and os.environ.get("PTCG_TURN_SEARCH", "0") != "1":
         _record("disabled", started)
         return None

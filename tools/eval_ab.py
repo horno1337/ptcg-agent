@@ -106,15 +106,19 @@ def load_net(path: str) -> model.Net:
 class DeployableReflex:
     """Frozen reflex with the same rules/safety fail-soft behavior as shipping."""
 
-    def __init__(self, net: model.Net, name: str):
+    def __init__(self, net: model.Net, name: str,
+                 deck: Sequence[int] | None = None):
         self.net = net
         self.name = name
+        self.deck = tuple(deck) if deck is not None else None
         self.calls = 0
+        self.adapter_hits = 0
+        self.adapter_misses = 0
         self.fallbacks = 0
         self.exceptions = Counter()
         self.latency_ms: list[float] = []
 
-    def act(self, obs: dict) -> list[int]:
+    def act(self, obs: dict, deck: Sequence[int] | None = None) -> list[int]:
         started = time.monotonic()
         self.calls += 1
         try:
@@ -130,7 +134,15 @@ class DeployableReflex:
                     state = FE.encode_state(view)
                     option_ids, option_features = FE.encode_options_for_net(
                         view, self.net)
-                    logits, _ = self.net.forward(state, option_ids, option_features)
+                    registration = self.deck if deck is None else deck
+                    if getattr(self.net, "has_deck_adapter", False):
+                        if self.net.supports_deck(registration):
+                            self.adapter_hits += 1
+                        else:
+                            self.adapter_misses += 1
+                    logits, _ = model.forward_registered(
+                        self.net, state, option_ids, option_features,
+                        registration)
                     action = model.select_indices(
                         logits, len(view.options), view.min_count, view.max_count,
                     )
@@ -161,6 +173,8 @@ class DeployableReflex:
             "name": self.name,
             "calls": self.calls,
             "fallbacks": self.fallbacks,
+            "adapter_hits": self.adapter_hits,
+            "adapter_misses": self.adapter_misses,
             "exceptions": dict(self.exceptions),
             "latency_ms": {
                 "mean": float(latency.mean()) if latency.size else 0.0,
@@ -194,6 +208,19 @@ def load_meta(path: str) -> list[list[int]]:
     if not decks:
         raise ValueError("meta library contains no valid decks")
     return decks
+
+
+def resolve_learner_deck(spec: str, meta_path: str) -> list[int]:
+    """Resolve the fixed learner registration without editing the ship deck."""
+    if spec == "self":
+        return policy.load_deck()
+    if spec.startswith("meta:"):
+        index = int(spec.split(":", 1)[1])
+        meta = load_meta(meta_path)
+        if not 0 <= index < len(meta):
+            raise ValueError(f"learner meta index {index} is out of range")
+        return meta[index]
+    raise ValueError("--learner-deck must be self or meta:<index>")
 
 
 def resolve_decks(spec: str, learner_deck: Sequence[int],
@@ -326,8 +353,15 @@ def make_field(deck_specs: Sequence[tuple[str, Sequence[int]]], policy_mode: str
                 weight=1.0, policy_id="rules-v1", schedule_group="rules",
             ))
         if policy_mode in ("reflex", "mixed"):
+            # One diagnostic accumulator can serve the whole field while each
+            # move still supplies its own registered deck to an optional
+            # exact-deck adapter.
+            def reflex_move(obs, rng, registered_deck=tuple(deck)):
+                del rng
+                return reflex.act(obs, registered_deck)
+
             opponents.append(OpponentSpec(
-                f"{deck_key}/reflex", tuple(deck), reflex.opponent_move,
+                f"{deck_key}/reflex", tuple(deck), reflex_move,
                 weight=1.0, policy_id=field_name, schedule_group="reflex",
             ))
     return opponents, reflex
@@ -335,7 +369,8 @@ def make_field(deck_specs: Sequence[tuple[str, Sequence[int]]], policy_mode: str
 
 def run_series(tag: str, controller: DeployableReflex,
                learner_deck: Sequence[int], opponents: Sequence[OpponentSpec],
-               schedule, max_selects: int, time_bank_s: float) -> SeriesResult:
+               schedule, max_selects: int, time_bank_s: float,
+               verbose: bool = True) -> SeriesResult:
     series = SeriesResult(tag)
     env = PTCGRLEnv(
         learner_deck, opponents, max_selects=max_selects,
@@ -403,12 +438,13 @@ def run_series(tag: str, controller: DeployableReflex,
                     infrastructure_error=infrastructure_error,
                 )
             series.records.append(record)
-            print(
-                f"{tag} g{episode.episode_id:04d} local={local_index:04d} "
-                f"seat{episode.learner_seat} {record.result.upper()} "
-                f"opp={record.opponent_key} selects={record.selects}",
-                flush=True,
-            )
+            if verbose:
+                print(
+                    f"{tag} g{episode.episode_id:04d} local={local_index:04d} "
+                    f"seat{episode.learner_seat} {record.result.upper()} "
+                    f"opp={record.opponent_key} selects={record.selects}",
+                    flush=True,
+                )
     finally:
         env.close()
     series.controller = controller.diagnostics()
@@ -437,6 +473,8 @@ def main(argv: Sequence[str] | None = None):
     parser.add_argument("--opp-policy", choices=("rules", "reflex", "mixed"),
                         default="rules")
     parser.add_argument("--meta", default=DEFAULT_META)
+    parser.add_argument("--learner-deck", default="self",
+                        help="self (shipped deck) or meta:<index>")
     parser.add_argument("--seed", type=int, default=0,
                         help="schedule seed (not native-engine trajectory seed)")
     parser.add_argument("--num-shards", type=int, default=1)
@@ -444,6 +482,8 @@ def main(argv: Sequence[str] | None = None):
     parser.add_argument("--max-selects", type=int, default=5000)
     parser.add_argument("--time-bank", type=float, default=600.0)
     parser.add_argument("--json-out", default=None)
+    parser.add_argument("--quiet", action="store_true",
+                        help="suppress per-game lines; keep gate summaries")
     args = parser.parse_args(argv)
 
     if args.games <= 0 or args.games % 2:
@@ -455,7 +495,11 @@ def main(argv: Sequence[str] | None = None):
     try:
         candidate_net = load_net(args.candidate)
         base_net = load_net(args.base)
-        learner_deck = policy.load_deck()
+        learner_deck = resolve_learner_deck(args.learner_deck, args.meta)
+        for label, net in (("candidate", candidate_net), ("base", base_net)):
+            if (net.has_deck_adapter and not net.supports_deck(learner_deck)):
+                raise ValueError(
+                    f"{label} deck adapter does not match --learner-deck")
         deck_specs = resolve_decks(args.opp, learner_deck, args.meta)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
@@ -466,7 +510,8 @@ def main(argv: Sequence[str] | None = None):
     opponent_diagnostics = []
     environments = []
     if args.opp == "mirror":
-        base_controller = DeployableReflex(base_net, f"base:{file_sha256(args.base)}")
+        base_controller = DeployableReflex(
+            base_net, f"base:{file_sha256(args.base)}", learner_deck)
         opponents = [OpponentSpec(
             "mirror/base", tuple(learner_deck), base_controller.opponent_move,
             policy_id=base_controller.name, schedule_group="base",
@@ -477,10 +522,12 @@ def main(argv: Sequence[str] | None = None):
         )
         candidate_controller = DeployableReflex(
             candidate_net, f"candidate:{file_sha256(args.candidate)}",
+            learner_deck,
         )
         result = run_series(
             "candidate-vs-base", candidate_controller, learner_deck,
             opponents, schedule, args.max_selects, args.time_bank,
+            verbose=not args.quiet,
         )
         results.append(result)
         schedules.append(schedule)
@@ -499,10 +546,12 @@ def main(argv: Sequence[str] | None = None):
                 opponents, args.games, args.seed,
                 args.shard_index, args.num_shards,
             )
-            controller = DeployableReflex(net, f"{arm}:{file_sha256(path)}")
+            controller = DeployableReflex(
+                net, f"{arm}:{file_sha256(path)}", learner_deck)
             result = run_series(
                 f"{arm}-field", controller, learner_deck, opponents,
                 schedule, args.max_selects, args.time_bank,
+                verbose=not args.quiet,
             )
             results.append(result)
             schedules.append(schedule)
@@ -562,7 +611,12 @@ def main(argv: Sequence[str] | None = None):
             json.dump(payload, handle, indent=2, sort_keys=True)
             handle.write("\n")
         os.replace(temporary, output)
-    print("SUMMARY " + json.dumps(payload, sort_keys=True), flush=True)
+    if args.quiet:
+        if args.json_out:
+            print(f"SUMMARY_JSON {os.path.abspath(os.path.expanduser(args.json_out))}",
+                  flush=True)
+    else:
+        print("SUMMARY " + json.dumps(payload, sort_keys=True), flush=True)
 
 
 if __name__ == "__main__":
