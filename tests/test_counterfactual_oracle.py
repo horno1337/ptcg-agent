@@ -386,6 +386,10 @@ def test_native_exact_reconstruction_and_sibling_parent_reuse():
             assert root is not None
             assert CFO._root_fingerprint(root["observation"]) == \
                 CFO._root_fingerprint(root_obs)
+            reconstructed_players = root["observation"]["current"]["players"]
+            assert all(all(card is None for card in player["prize"])
+                       for player in reconstructed_players), \
+                "SearchBegin reconstructed a hidden prize face-up"
             actions = tuple((token,) for token in CFO.TS.semantic_options(root_obs))
             first = CFO.TS.map_semantic_action(root["observation"], actions[0])
             second = CFO.TS.map_semantic_action(root["observation"], actions[1])

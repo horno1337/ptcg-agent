@@ -158,6 +158,11 @@ def _root_fingerprint(obs: Mapping[str, Any]) -> str:
     return hashlib.sha256(repr(key).encode("utf-8")).hexdigest()
 
 
+def public_root_fingerprint(obs: Mapping[str, Any]) -> str:
+    """Return the public-only identity shared by exact and belief oracles."""
+    return _root_fingerprint(obs)
+
+
 def _fingerprint_value(value: Any) -> Any:
     """Canonicalize public JSON while ignoring visualization-only names."""
     if isinstance(value, Mapping):
@@ -480,6 +485,9 @@ def _terminal_value(obs: Mapping[str, Any], root_player: int) -> float | None:
 class TerminalOracle:
     """Exact-hidden, terminal-return action evaluator for one frozen net."""
 
+    diagnostic_layer = "counterfactual_oracle"
+    preparation_error_reason = "hidden_state_error"
+
     def __init__(
             self,
             net: model.Net,
@@ -524,6 +532,16 @@ class TerminalOracle:
         if self._search is None:
             self._search = AgentSearch()
         return self._search
+
+    def prepare_observation(self, battle: Battle, obs: dict,
+                            selecting: int) -> None:
+        """Attach the exact local-only state required by this oracle."""
+        enrich_observation(battle, obs, selecting)
+
+    @staticmethod
+    def evidence_fingerprint(obs: Mapping[str, Any]) -> str:
+        """Bind retained evidence to the public root, never to hidden cards."""
+        return public_root_fingerprint(obs)
 
     def root_rejection_reason(self, obs: Mapping[str, Any]) -> str | None:
         """Cheap public-only eligibility screen before privileged enrichment."""
