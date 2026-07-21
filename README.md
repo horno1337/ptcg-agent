@@ -17,7 +17,8 @@ next on any failure:
    pointer-style option scorer (card embeddings + state encoder + per-option
    logits + value head), numpy-only at inference. Trained by behavior
    cloning on leaderboard episodes, then anchored league PPO
-   (`tools/train.py`).
+   (`tools/train.py`). Research checkpoints may append a tiny residual for one
+   exact registered 60-card deck; a deck mismatch takes the frozen parent path.
 3. **Rule-based policy** (`agent/policy.py`) — the hand-written fallback;
    also the league opponent and eval baseline.
 
@@ -192,6 +193,31 @@ Research log (each vs the then-champion, 100-200 game evals):
   planner did not beat its parent; runtime search stays disabled and these
   targets must not be distilled. NEXT: keep Qu-v1 frozen and obtain genuinely
   counterfactual labels for critical Cinderace recovery/sequencing states.
+- **Exact-deck hard-BC adapters fit demonstrations but not strength
+  (2026-07-21, not promoted)**: the adapter path keeps all 178,626 Qu-v1
+  parameters byte-identical and adds only 129 final policy/value-head
+  parameters, activated by the canonical registered-deck multiset. A locked
+  1,000-game fresh top/mid corpus supplied 95,753 exact-Grim decisions; policy
+  cloning used winning seats and the value target used both outcomes with an
+  episode-grouped 80/10/10 split. The all-prompt adapter (`48fd2e7a...`)
+  improved sealed-test policy NLL 1.3169→1.1974 and value MSE
+  1.3276→0.8646, yet lost its direct Qu-v1 mirror 69-87-4 and was flat over
+  the two field slices. A v2 ablation limited the policy residual to MAIN and
+  froze value/non-MAIN behavior exactly (`ca77e234...`): test MAIN NLL improved
+  1.4032→1.3073, direct mirror recovered to 85-71-4, but three paired field
+  gates totaling 640 games/net were only 58.5% vs Qu-v1's 57.8%, with slices
+  crossing in both directions and overlapping intervals. The transfer stress
+  test was decisive: 728 exact-Crustle games / 38,385 decisions lowered test
+  MAIN NLL 2.0447→1.9220 while validation greedy agreement slipped
+  36.4%→36.1%, then scored 70-90 (43.8%, zero faults) against Qu-v1 in the
+  direct mirror (`555c03a9...`). This establishes that Qu-v1 is expressive
+  enough for small deck-specific distribution shifts; the blocker is the
+  supervision objective, not adapter/backbone capacity. Winner actions are
+  observational, mostly unweighted by consequence, and provide no
+  counterfactual credit. Do not promote these candidates or partially unfreeze
+  the trunk on the same labels. NEXT: collect advantage/counterfactual targets
+  at critical decisions from a teacher that first beats Qu-v1, or use online RL
+  against a diverse stronger league.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -244,6 +270,7 @@ tools/
   train.py                 # torch twin: BC (--bc), anchored league PPO, --arch, npz export
   train_vec.py             # paired multi-opponent vector rollouts over rl_env.py
   train_teacher.py         # soft search-target distillation + held-out group split
+  train_deck_adapter.py    # exact-deck frozen-head experiment + locked replay split
   il_dataset.py            # episode JSONs -> (obs, action, reward); winner-seat weighting
   selfplay_search.py       # historical retired-PIMC flywheel (do not use for new cycles)
   selfplay_teacher.py      # diverse turn-search teacher records (JSONL)
@@ -262,6 +289,7 @@ tests/test_teacher_training.py # strict generator -> trainer schema/provenance
 tests/test_rl_env.py       # action/reward/lifecycle/schedule + native-engine smoke
 tests/test_train_vec.py    # vector collection, STOP, returns, PPO plumbing
 tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slices
+tests/test_deck_adapter.py # exact-deck isolation, schema, parity + overwrite guards
 ```
 
 ## Environments & data locations (this machine)
@@ -306,6 +334,14 @@ python tools/train.py --resume .../bc_best.pt --iters 40 --lr 5e-5 \
     --opponent-mix rules=0.30,random=0.25,reflex=0.45 \
     --out tools/checkpoints/rl-env/weights.npz \
     --ckpt-dir tools/checkpoints/rl-env
+
+# frozen Qu-v1 exact-deck probe (MAIN only; research candidate, not promotion)
+~/.venvs/ptcg-rl/bin/python tools/train_deck_adapter.py \
+    --target-meta 4 --source top=~/Desktop/ptcg_corpus_top \
+    --source mid=~/Desktop/ptcg_corpus_mid \
+    --source-mass top=0.75 --source-mass mid=0.25 \
+    --policy-select-type 0 --value-coef 0 \
+    --out-dir tools/checkpoints/deck-adapter-probe
 
 # weight gates on the same environment (training field, holdout, then mirror)
 python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
@@ -365,3 +401,8 @@ git tag <name> && python tools/build_submission.py
   submission enables it only as a one-change, user-approved ladder A/B.
 - Teacher shards are source-locked: finish generation before editing planner,
   mapping, feature, engine, or card-data dependencies; mixed hashes are rejected.
+- Deck adapters are registration metadata, not observation features. They match
+  the exact unordered 60-card multiset, preserve the parent path on mismatch,
+  and adapted packages fail closed if `decks/deck.csv` is different. Runtime
+  search bypasses adapted nets because simulated seats lack trustworthy
+  registered-deck identity.

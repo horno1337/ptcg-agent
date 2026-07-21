@@ -42,7 +42,15 @@ the ladder.
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
   strategy fusion, not lack of time.
-- ACTIVE DIRECTION: **belief-aware turn search + search-policy iteration**.
+- ACTIVE DIRECTION: **counterfactual/advantage supervision on a frozen Qu-v1**.
+  Exact-deck final-head adapters proved that the shared representation can fit
+  held-out Grim and Crustle action distributions, but hard cloning of winning
+  seats did not reliably improve play (the Crustle MAIN probe lost 70-90 to its
+  frozen parent). Do not widen adapters or unfreeze the trunk on the same hard
+  labels. First obtain targets that assign consequence to critical choices:
+  counterfactual action values from a teacher that demonstrably beats Qu-v1, or
+  online advantage estimates against a diverse stronger league.
+- Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
   illegal descendant multi-picks, and used a flat intermediate leaf score.
@@ -51,9 +59,10 @@ the ladder.
   reconciliation, synchronized information-set beams, turn-boundary evaluation,
   and paired evidence/robust-margin gates. It is wired behind `PTCG_TURN_SEARCH=1` and
   remains OFF by default until `tools/eval_turn_search.py` and a one-change
-  ladder A/B justify it. New learning uses `tools/selfplay_teacher.py` soft root
-  targets and `tools/train_teacher.py`; the old PIMC `selfplay_search.py` is
-  research history, not the next flywheel.
+  ladder A/B justify it. Do not distill its soft roots until the planner itself
+  beats the frozen parent. `tools/selfplay_teacher.py` and
+  `tools/train_teacher.py` retain the provenance-safe route once that gate is
+  met; the old PIMC `selfplay_search.py` is research history.
 
 ## Evaluation & gates
 
@@ -96,6 +105,15 @@ the ladder.
   shared value trunk stays intact, and strict source/config hashes reject mixed
   shards. Episode downloads land in `~/Desktop/ptcg_episodes/` (user does this
   manually); refresh `meta_decks.json` after new downloads.
+- Exact-deck experiments use `tools/train_deck_adapter.py`. The Qu arrays stay
+  byte-identical; only a final-head residual is trained, and v2 can scope policy
+  changes to one SelectType. Policy labels are winning target-deck seats, value
+  labels may use both outcomes, and replay manifests are content-locked with
+  game-grouped source/outcome splits. This is research plumbing, not an active
+  promotion route: Grim was inconclusive and Crustle regressed despite lower
+  held-out NLL. A deck mismatch must execute the frozen parent exactly; runtime
+  search must bypass adapted checkpoints because simulated deck identity is not
+  registered.
 
 ## Submission discipline
 

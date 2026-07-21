@@ -133,17 +133,25 @@ def load_base_npz(path: str) -> tuple[TorchNet, dict[str, np.ndarray]]:
 class TorchDeckAdapter(nn.Module):
     """Frozen ``TorchNet`` plus exact-deck final-head deltas."""
 
-    def __init__(self, base: TorchNet, target_deck: Sequence[int]):
+    def __init__(self, base: TorchNet, target_deck: Sequence[int],
+                 policy_select_type: int | None = None):
         super().__init__()
         if len(target_deck) != 60:
             raise ValueError("target deck must contain exactly 60 card IDs")
-        if min(target_deck) < 0 or max(target_deck) >= FE.N_CARD_IDS:
+        if min(target_deck) <= 0 or max(target_deck) >= FE.N_CARD_IDS:
             raise ValueError("target deck contains an invalid card ID")
         self.base = base
         for parameter in self.base.parameters():
             parameter.requires_grad_(False)
         self.register_buffer(
             "target_deck", torch.tensor(sorted(target_deck), dtype=torch.long))
+        if policy_select_type is not None:
+            if (isinstance(policy_select_type, bool)
+                    or not isinstance(policy_select_type, (int, np.integer))
+                    or not 0 <= policy_select_type <= 10):
+                raise ValueError("policy select type must be an integer in [0,10]")
+            policy_select_type = int(policy_select_type)
+        self.policy_select_type = policy_select_type
         self.policy_delta = nn.Parameter(torch.zeros_like(base.o3.weight))
         self.value_delta_weight = nn.Parameter(torch.zeros_like(base.v2.weight))
         self.value_delta_bias = nn.Parameter(torch.zeros_like(base.v2.bias))
@@ -174,6 +182,12 @@ class TorchDeckAdapter(nn.Module):
         if deck_ids is None:
             return base_logits
         active = self._active(deck_ids, sv.shape[0])
+        if self.policy_select_type is not None:
+            # Every real option and virtual STOP row carries the same select
+            # one-hot. Requiring all rows mirrors NumPy inference and fails
+            # closed if malformed features ever reach this training twin.
+            active = active & torch.all(
+                opt_feats[:, :, 17 + self.policy_select_type] == 1.0, dim=1)
         residual = F.linear(hidden, self.policy_delta).squeeze(-1)
         logits = base_logits + residual * active.float().unsqueeze(1)
         return logits.masked_fill(~mask, -1e9)
@@ -209,6 +223,9 @@ def export_adapter_npz(net: TorchDeckAdapter,
             np.float32),
         "deck_adapter_v2b": net.value_delta_bias.detach().cpu().numpy().astype(
             np.float32),
+        "deck_adapter_select_type": np.asarray(
+            -1 if net.policy_select_type is None else net.policy_select_type,
+            dtype=np.int32),
     })
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     temporary = path + ".partial.npz"
@@ -461,7 +478,8 @@ def _read_locked_document(entry: Mapping[str, Any]) -> dict[str, Any]:
     return json.loads(raw)
 
 
-def load_samples(manifest: Mapping[str, Any], base_net: NPM.Net) -> LoadedDataset:
+def load_samples(manifest: Mapping[str, Any], base_net: NPM.Net,
+                 policy_select_type: int | None = None) -> LoadedDataset:
     samples: list[AdapterSample] = []
     by_split_policy: dict[str, list[int]] = defaultdict(list)
     by_split_value: dict[str, list[int]] = defaultdict(list)
@@ -491,7 +509,8 @@ def load_samples(manifest: Mapping[str, Any], base_net: NPM.Net) -> LoadedDatase
             samples.append(sample)
             by_split_value[split].append(index)
             game_counts[split]["value"].add(sample.episode_id)
-            if reward > 0:
+            if (reward > 0 and (policy_select_type is None
+                                or sample.select_type == policy_select_type)):
                 by_split_policy[split].append(index)
                 game_counts[split]["policy"].add(sample.episode_id)
         if len(samples) == before:
@@ -795,6 +814,8 @@ def build_parser() -> argparse.ArgumentParser:
                         help="test override: use this many policy and value steps")
     parser.add_argument("--policy-kl", type=float, default=0.05)
     parser.add_argument("--value-coef", type=float, default=0.25)
+    parser.add_argument("--policy-select-type", type=int, default=-1,
+                        help="-1 adapts all prompts; 0..10 scopes one SelectType")
     parser.add_argument("--val-frac", type=float, default=0.1)
     parser.add_argument("--test-frac", type=float, default=0.1)
     parser.add_argument("--patience", type=int, default=5)
@@ -808,7 +829,7 @@ def main(argv: Sequence[str] | None = None) -> dict[str, Any]:
     args = parser.parse_args(argv)
     if (args.epochs < 0 or args.lr <= 0 or args.batch_size < 1
             or args.steps_per_epoch < 0 or args.policy_kl < 0
-            or args.value_coef <= 0
+            or args.value_coef < 0 or not -1 <= args.policy_select_type <= 10
             or not 0 < args.val_frac < 1 or not 0 < args.test_frac < 1
             or args.val_frac + args.test_frac >= 1 or args.patience < 1
             ):
@@ -847,9 +868,11 @@ def main(argv: Sequence[str] | None = None) -> dict[str, Any]:
         print(f"wrote locked manifest {manifest_path}", flush=True)
 
     numpy_base = NPM.Net(base_arrays)
-    data = load_samples(manifest, numpy_base)
+    policy_select_type = (
+        None if args.policy_select_type == -1 else args.policy_select_type)
+    data = load_samples(manifest, numpy_base, policy_select_type)
     print("dataset " + json.dumps(data.stats, sort_keys=True), flush=True)
-    net = TorchDeckAdapter(base, target_deck).to(DEV)
+    net = TorchDeckAdapter(base, target_deck, policy_select_type).to(DEV)
     parameters = net.trainable_parameters()
     optimizer = torch.optim.AdamW(parameters, lr=args.lr, weight_decay=1e-4)
     base_hash = sha256_file(args.base)
@@ -868,6 +891,7 @@ def main(argv: Sequence[str] | None = None) -> dict[str, Any]:
             "lr": args.lr,
             "policy_kl": args.policy_kl,
             "value_coef": args.value_coef,
+            "policy_select_type": args.policy_select_type,
             "steps_per_epoch": args.steps_per_epoch,
             "seed": args.seed,
         },
@@ -904,8 +928,9 @@ def main(argv: Sequence[str] | None = None) -> dict[str, Any]:
     rng = np.random.default_rng(args.seed + start_epoch)
     policy_steps = (args.steps_per_epoch or math.ceil(
         len(data.policy_indices["train"]) / args.batch_size))
-    value_steps = (args.steps_per_epoch or math.ceil(
-        len(data.value_indices["train"]) / args.batch_size))
+    value_steps = (0 if args.value_coef == 0 else (
+        args.steps_per_epoch or math.ceil(
+            len(data.value_indices["train"]) / args.batch_size)))
     policy_stale = value_stale = 0
     for epoch in range(start_epoch + 1, args.epochs + 1):
         net.train()
@@ -938,7 +963,8 @@ def main(argv: Sequence[str] | None = None) -> dict[str, Any]:
             "loss_per_update": sums["loss"] / len(schedule),
             "policy_nll": sums["policy_nll"] / component_counts["policy"],
             "policy_kl": sums["policy_kl"] / component_counts["policy"],
-            "value_mse": sums["value_mse"] / component_counts["value"],
+            "value_mse": (sums["value_mse"] / component_counts["value"]
+                          if component_counts["value"] else None),
             "policy_updates": component_counts["policy"],
             "value_updates": component_counts["value"],
         }
