@@ -114,6 +114,18 @@ the ladder.
   held-out NLL. A deck mismatch must execute the frozen parent exactly; runtime
   search must bypass adapted checkpoints because simulated deck identity is not
   registered.
+- Counterfactual labels start with `tools/counterfactual_oracle.py` and
+  `tools/eval_counterfactual.py`. This is a privileged offline oracle: local
+  `Battle.visualize()` repairs the hidden zones erased from `search_begin_input`,
+  then every supported MAIN action is rolled to the terminal winner. Exact
+  hidden metadata must never reach `agent/` or a submission. Search states share
+  an unseedable native RNG, so balance forward/reverse action order, retain raw
+  outcome matrices, and select an override on a disjoint split from the one that
+  confirms it. A positive exact-state gate establishes only a full-information
+  upper bound: it may justify a belief-averaged/public-target experiment, but
+  does not prove the action is inferable from Kaggle observations or directly
+  authorize distillation. Only an observable student that wins its own gates
+  can become a candidate.
 
 ## Submission discipline
 

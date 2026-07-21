@@ -278,6 +278,8 @@ tools/
   analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
+  counterfactual_oracle.py # privileged exact-state terminal-Q research oracle
+  eval_counterfactual.py   # oracle/reflex paired field gate; never deploys oracle
   eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
   eval.py / run_local.py   # rule-agent eval / single game + replay
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
@@ -290,6 +292,7 @@ tests/test_rl_env.py       # action/reward/lifecycle/schedule + native-engine sm
 tests/test_train_vec.py    # vector collection, STOP, returns, PPO plumbing
 tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slices
 tests/test_deck_adapter.py # exact-deck isolation, schema, parity + overwrite guards
+tests/test_counterfactual_oracle.py # hidden-state, holdout gate + native branch reuse
 ```
 
 ## Environments & data locations (this machine)
@@ -355,6 +358,11 @@ python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
 python tools/eval_turn_search.py 160 --opp pool:8 --opp-policy mixed \
     --budget 0.5 --particles 8
 
+# privileged terminal-Q diagnostic (offline oracle; never submission behavior)
+python tools/eval_counterfactual.py 20 --opp mirror --quiet
+python tools/eval_counterfactual.py 160 --opp pool:8 --opp-policy mixed \
+    --json-out tools/checkpoints/counterfactual/pool8-160.json --quiet
+
 # search-policy iteration: generate soft targets, then distill in the RL venv
 python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
     --opp pool:16 --opp-policy rules,reflex --budget 0.5 --particles 8
@@ -406,3 +414,12 @@ git tag <name> && python tools/build_submission.py
   and adapted packages fail closed if `decks/deck.csv` is different. Runtime
   search bypasses adapted nets because simulated seats lack trustworthy
   registered-deck identity.
+- The local visualization exposes exact hidden zones for offline research.
+  `counterfactual_oracle.py` may use them only to produce/gate hindsight
+  terminal-Q labels; they never enter deployable observations. Search branches
+  share an unseedable native RNG, so root state is exact but stochastic futures
+  are not common-random-number paired. Rotate/reverse every action order, retain
+  raw outcomes, and keep target selection disjoint from confirmation rollouts.
+  A win here is only a full-information upper bound; before training a
+  deployable student, show that the advantage survives belief averaging over
+  hidden states consistent with the same public observation.
