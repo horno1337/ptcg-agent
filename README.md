@@ -280,6 +280,7 @@ tools/
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
   counterfactual_oracle.py # privileged exact-state terminal-Q research oracle
   eval_counterfactual.py   # oracle/reflex paired field gate; never deploys oracle
+  aggregate_counterfactual.py # strict contiguous-shard 160+ gate aggregation
   eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
   eval.py / run_local.py   # rule-agent eval / single game + replay
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
@@ -293,6 +294,7 @@ tests/test_train_vec.py    # vector collection, STOP, returns, PPO plumbing
 tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slices
 tests/test_deck_adapter.py # exact-deck isolation, schema, parity + overwrite guards
 tests/test_counterfactual_oracle.py # hidden-state, holdout gate + native branch reuse
+tests/test_aggregate_counterfactual.py # source/schedule/evidence-safe shard merge
 ```
 
 ## Environments & data locations (this machine)
@@ -368,6 +370,11 @@ python tools/eval_counterfactual.py 20 --opp mirror \
     --json-out tools/checkpoints/counterfactual-oracle/mirror-20.json \
     --resume tools/checkpoints/counterfactual-oracle/mirror-20.json.progress.json \
     --quiet
+# Eight 20-game field shards use seeds BASE+0,10,...,70; only the strict
+# aggregator may turn their exact contiguous schedule into the 160-game gate.
+python tools/aggregate_counterfactual.py \
+    tools/checkpoints/counterfactual-oracle/field-shard-*.json \
+    --json-out tools/checkpoints/counterfactual-oracle/field-160.json
 
 # search-policy iteration: generate soft targets, then distill in the RL venv
 python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
