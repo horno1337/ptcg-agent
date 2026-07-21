@@ -58,6 +58,7 @@ BEHAVIOR_ARG_NAMES = (
 INFRASTRUCTURE_REASONS = frozenset({
     "analyze_exception",
     "bad_observation",
+    "belief_state_error",
     "exception",
     "hidden_state_error",
     "invalid_exact_hidden_state",
@@ -182,10 +183,19 @@ class OracleMetrics:
             self.elapsed_s.append(time.monotonic() - started)
             return baseline.action
         try:
-            CFO.enrich_observation(battle, obs, selecting)
+            prepare = getattr(oracle, "prepare_observation", None)
+            if callable(prepare):
+                prepare(battle, obs, selecting)
+            else:
+                # Compatibility for focused test doubles and historical
+                # tooling adapters. Production oracles define the hook.
+                CFO.enrich_observation(battle, obs, selecting)
         except Exception as exc:
-            message = f"hidden-state enrichment: {type(exc).__name__}: {exc}"
-            self._record_infrastructure_error("hidden_state_error", message)
+            reason = str(getattr(
+                oracle, "preparation_error_reason", "hidden_state_error"))
+            message = (
+                f"oracle observation preparation: {type(exc).__name__}: {exc}")
+            self._record_infrastructure_error(reason, message)
             self.fallbacks += 1
             self.layers[baseline.layer] += 1
             self.elapsed_s.append(time.monotonic() - started)
@@ -221,11 +231,25 @@ class OracleMetrics:
         self.root_elapsed_s.append(result.elapsed_s)
         chosen = result.chosen_action
         current = obs.get("current") or {}
-        hidden = obs.get(CFO.EXACT_HIDDEN_KEY)
-        public_root_fingerprint = (
-            hidden.get("public_root_fingerprint")
-            if isinstance(hidden, Mapping) else None
-        )
+        fingerprint = getattr(oracle, "evidence_fingerprint", None)
+        if callable(fingerprint):
+            try:
+                public_root_fingerprint = fingerprint(obs)
+            except Exception as exc:
+                message = (
+                    "oracle evidence fingerprint: "
+                    f"{type(exc).__name__}: {exc}")
+                self._record_infrastructure_error(
+                    "root_mapping_failure", message)
+                self.fallbacks += 1
+                self.layers[baseline.layer] += 1
+                return baseline.action
+        else:
+            hidden = obs.get(CFO.EXACT_HIDDEN_KEY)
+            public_root_fingerprint = (
+                hidden.get("public_root_fingerprint")
+                if isinstance(hidden, Mapping) else None
+            )
         evidence_index = len(self.root_diagnostics)
         self.root_diagnostics.append({
             **self._diagnostic_context(),
@@ -273,7 +297,8 @@ class OracleMetrics:
                 "advantages": list(result.advantages),
                 "diagnostics": dict(result.diagnostics),
             })
-        self.layers["counterfactual_oracle"] += 1
+        self.layers[str(getattr(
+            oracle, "diagnostic_layer", "counterfactual_oracle"))] += 1
         return list(chosen)
 
     @staticmethod

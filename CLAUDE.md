@@ -135,7 +135,14 @@ the ladder.
 - The exact-hidden upper-bound gate passed on 2026-07-22: 147-13 versus frozen
   Qu-v1's 115-44-1 over 160 pool:8 games per arm, a +19.7 pp effect with a
   conservative +8.0 to +30.4 pp interval, 3,763 analyzed roots, 170 overrides,
-  and zero integrity errors. This authorizes only the next experiment, not
+  and zero reported runtime integrity errors. A later source audit found that
+  the native `SearchBegin` reconstruction set prize-card area but did not restore
+  the facedown `reverse` bit. Treat that result as a directional privileged
+  upper bound, not prize-mechanic-clean evidence. The local competition engine
+  used by all subsequent gates restores `reverse=true` for reconstructed Prize
+  cards, is content-hashed in provenance, and is covered by the native oracle
+  test; roots with an already-public face-up prize fail closed because the ABI
+  has no prize-visibility mask. This authorizes only the next experiment, not
   training or promotion. A belief-averaged teacher must derive every decision
   from the public observation plus the registered learner deck and a declared
   opponent-deck prior; exact visualization identities may be used only for an
@@ -144,6 +151,19 @@ the ladder.
   hidden-world groups, keep forward/reverse branch-order pairs together, and
   retain world hashes/raw terminal outcomes. Only if that observable teacher
   beats Qu-v1 on its own 160-game field gate may its targets enter training.
+- The observable gate is implemented separately in
+  `tools/belief_counterfactual_oracle.py` and
+  `tools/eval_belief_counterfactual.py`; do not route it through exact-hidden
+  enrichment. Its empirical prior is conditioned only on public card reveals,
+  and schedule meta (`--meta-path`) and sampling prior (`--belief-meta-path`)
+  are separately named and hashed. The adaptive default screens 16 worlds,
+  then evaluates 32 disjoint selection worlds, 32 confirmation worlds, and 16
+  uniform/rare stress worlds with forward/reverse pairs. The 160-game gate also
+  requires at least 64 overrides across 40 games, both seats and pilots, six of
+  eight decks, >=95% complete panels, >=98% valid worlds, conservative clock
+  bounds, and zero infrastructure errors. A gate pass authorizes only
+  observable target generation with multiple-testing control; it does not
+  authorize training, weights, packaging, tagging, or upload by itself.
 
 ## Submission discipline
 

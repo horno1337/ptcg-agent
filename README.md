@@ -234,7 +234,13 @@ Research log (each vs the then-champion, 100-200 game evals):
   because the teacher saw exact deck/hand/prize identities. NEXT: require the
   advantage to survive disjoint selection/confirmation over multiple hidden
   worlds sampled from the same public observation before emitting any training
-  target. Production weights remain `4ce6522f...`.
+  target. A subsequent engine-source audit also found that this run's
+  `SearchBegin` reconstructed prize cards in the Prize area without restoring
+  their facedown bit. The run remains useful as a directional upper bound, but
+  is not clean evidence for prize-dependent mechanics. The local engine is now
+  patched, content-hashed by the new evaluator, and guarded by a native test;
+  public face-up-prize roots fail closed because the ABI lacks a visibility
+  mask. Production weights remain `4ce6522f...`.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -298,6 +304,8 @@ tools/
   counterfactual_oracle.py # privileged exact-state terminal-Q research oracle
   eval_counterfactual.py   # oracle/reflex paired field gate; never deploys oracle
   aggregate_counterfactual.py # strict contiguous-shard 160+ gate aggregation
+  belief_counterfactual_oracle.py # public-only sampled-world terminal teacher
+  eval_belief_counterfactual.py # separate observable-teacher field gate
   eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
   eval.py / run_local.py   # rule-agent eval / single game + replay
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
@@ -312,6 +320,7 @@ tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slic
 tests/test_deck_adapter.py # exact-deck isolation, schema, parity + overwrite guards
 tests/test_counterfactual_oracle.py # hidden-state, holdout gate + native branch reuse
 tests/test_aggregate_counterfactual.py # source/schedule/evidence-safe shard merge
+tests/test_belief_counterfactual.py # no-leak sampler, paired panels + gate contracts
 ```
 
 ## Environments & data locations (this machine)
@@ -393,6 +402,17 @@ python tools/aggregate_counterfactual.py \
     tools/checkpoints/counterfactual-oracle/field-shard-*.json \
     --json-out tools/checkpoints/counterfactual-oracle/field-160.json
 
+# public-only belief terminal-Q: reduced panels are a crash/ABI smoke only.
+# Use explicit, separately frozen schedule/prior paths for scientific gates.
+python tools/eval_belief_counterfactual.py 2 --opp mirror \
+    --screen-worlds 4 --selection-worlds 8 \
+    --confirmation-worlds 8 --stress-worlds 4 --bootstrap-samples 100 \
+    --json-out tools/checkpoints/belief-counterfactual/smoke-2.json --quiet
+python tools/eval_belief_counterfactual.py 160 --opp pool:8 \
+    --opp-policy mixed --meta-path agent/meta_decks.json \
+    --belief-meta-path agent/meta_decks.json \
+    --json-out tools/checkpoints/belief-counterfactual/pool8-160.json --quiet
+
 # search-policy iteration: generate soft targets, then distill in the RL venv
 python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
     --opp pool:16 --opp-policy rules,reflex --budget 0.5 --particles 8
@@ -453,3 +473,11 @@ git tag <name> && python tools/build_submission.py
   A win here is only a full-information upper bound; before training a
   deployable student, show that the advantage survives belief averaging over
   hidden states consistent with the same public observation.
+- `belief_counterfactual_oracle.py` is the public-only follow-up. Its sampler
+  receives only the public observation, registered learner deck, explicitly
+  declared empirical prior, and sampler seed. It never calls `visualize()` or
+  consumes exact-hidden metadata. It requires exact multiset conservation,
+  disjoint selection/confirmation/stress world hashes, paired forward/reverse
+  branch orders, and complete action panels; any native, mapping, sampling, or
+  clock failure falls back to Qu-v1 and invalidates the field gate. Even a pass
+  authorizes target-generation research only, not production weights.
