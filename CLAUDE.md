@@ -127,7 +127,11 @@ the ladder.
   authorize distillation. Only an observable student that wins its own gates
   can become a candidate. Long gates must use the evaluator's atomic progress
   files; resume only when its source/args/schedule fingerprint validates, and
-  retain the recorded native-RNG segment boundary.
+  retain the recorded native-RNG segment boundary. A 160-game field gate may
+  be parallelized only as contiguous paired shards (`BASE+0,10,...,70` for
+  eight 20-game shards) and recombined by `aggregate_counterfactual.py`; never
+  add shard scores by hand or accept overlap, gaps, dirty sources, or per-shard
+  pass claims.
 
 ## Submission discipline
 
