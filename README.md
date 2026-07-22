@@ -40,6 +40,7 @@ think-time drains it directly), never crash.
 | cvkpaper-v6 | ft10 band-foundation BC + anchored league PPO | ~641 — dev weights, not champion |
 | Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 clone snapshot — current champion |
 | Qu-v2 | public-relational Qu-v2A, but packaged runtime silently fell through | 628.2 — **rules fallback, not a model-strength result** |
+| qu-v2.1 | packaging-only Qu-v2 repair, but Kaggle still fell through | first replay: **115/115 rules actions; model still unevaluated** |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -313,6 +314,27 @@ Research log (each vs the then-champion, 100-200 game evals):
   hiding.  Candidate archive SHA is `5e47df5d...64bf2`; it is not a ladder claim
   until the user names/approves a fresh upload and its early replays pass the
   same action-provenance canary.  `Qu-v2-clone` was deliberately not uploaded.
+- **The packaging-only `qu-v2.1` canary also fell through on Kaggle
+  (2026-07-23; do not interpret either clone's rating)**: the first available
+  replay was a mirror in which both seats ran submission `54913621`.  All
+  115 observed actions matched `policy.decide_rules`.  Across the 36-38
+  decisions where the packaged model disagreed with rules (the exact count
+  shifts slightly with NumPy/BLAS near-ties), zero logged actions matched the
+  model.  Local extracted-archive parity therefore did not reproduce the
+  remaining Kaggle-only failure.  The user requested an identical
+  `qu-v2.1-clone`, but both trajectories measure fallback and supply no Qu-v2
+  strength evidence.  Before another promotion, vendor the complete runtime
+  under `agent/`, exercise a closer Kaggle compatibility matrix, and require a
+  post-upload action-provenance canary.
+- **Qu-v2B objective-correction experiment (2026-07-23, training research
+  only)**: keep the Qu-v2A architecture and locked v2 corpus, but make the BC
+  supervision actor-specific and game-balanced.  The registered Alakazam deck
+  receives a 2x BC/value multiplier, top-only games remain seasoning at 0.5x,
+  and the Qu-v1 KL trust region receives independent uniform-per-game mass so
+  losing, non-focus and down-weighted games remain protected.  These controls
+  are provenance- and resume-locked and do not alter the encoded cache.  This
+  experiment cannot authorize deployment until the Kaggle runtime itself is
+  repaired and canaried.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -454,15 +476,18 @@ python tools/research/analyze_corpus_index.py \
 ~/.venvs/ptcg-rl/bin/python tools/training_preflight.py \
     --require-gpu --min-gpu-free-gib 6
 
-# locked strength candidate: band foundation, top seasoning, parent trust region
+# Qu-v2B: actor-focused, game-balanced supervision + independent trust region
 ~/.venvs/ptcg-rl/bin/python tools/research/train_qu_v2a.py \
     --manifest tools/checkpoints/corpus-index/field-all-v2.json \
-    --out-dir tools/checkpoints/qu-v2a-field-v1 \
+    --out-dir tools/checkpoints/qu-v2b-field-v1 \
     --cache-dir tools/checkpoints/qu-v2a-cache \
     --epochs 8 --batch-size 128 --learning-rate 1e-4 \
-    --source-weight legacy=1 --source-weight mid=1 --source-weight top=0.2 \
-    --qu-v1-anchor agent/weights.npz --kl-coefficient 0.1 \
-    --require-gpu --min-gpu-free-gib 6
+    --source-weight legacy=1 --source-weight mid=1 --source-weight top=0.5 \
+    --game-normalized \
+    --deck-weight 3f4515092dc59df397f365a9b79c7cf0c1cb73b9aa38bc47c1b18e9df4c2fdaf=2 \
+    --qu-v1-anchor tools/baselines/qu-v1-weights.npz \
+    --kl-coefficient 0.5 --kl-weighting uniform-game \
+    --device cuda --require-gpu --min-gpu-free-gib 6
 # After interruption, repeat the identical command with --resume-latest;
 # scientific arguments, code/data contracts, runtime and cache are locked.
 

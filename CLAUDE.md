@@ -42,18 +42,20 @@ the ladder.
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
   strategy fusion, not lack of time.
-- ACTIVE DIRECTION: do **not** retrain from the `Qu-v2` score.  Replay
-  fingerprinting proved all 2,800 resolved ladder actions were the hand-written
-  rules fallback; the extracted intended model matched only 1,654 (59.1%).  The
-  run therefore contains no ladder evidence about Qu-v2A weights or
-  architecture.  Keep
-  weights `fe1e12fd...` and the deck byte-identical, repair only the runtime
-  (`ndarray.clip(1.0, None)` for NumPy 1.x compatibility plus a shipped
-  `tools/__init__.py` package marker), then ladder-test that packaging-only
-  change after the user names and approves it.  The extracted archive must pass
-  `tools/audit_submission_runtime.py` on the saved 2,800 prompts before any
-  upload, and the first new ladder replays must pass an action-provenance canary
-  before rating is interpreted.  Qu-v1 remains the frozen ladder champion.
+- ACTIVE DIRECTION: do **not** retrain from any `Qu-v2`/`qu-v2.1` rating.
+  Both ladder packages executed the hand-written rules fallback rather than
+  the neural policy.  The packaging-only repair passed exact local archive
+  parity, but its first Kaggle mirror replay still matched rules on 115/115
+  actions and matched the model on zero of 36-38 model/rules disagreements.
+  The remaining Kaggle-only exception is hidden by the fail-soft dispatcher.
+  Before another promotion, move the complete Qu-v2 runtime under `agent/`,
+  test a closer Kaggle compatibility matrix, and require the first downloaded
+  ladder replays to fingerprint the model.  Independently, the user authorized
+  the Qu-v2B objective-correction research run: same architecture and locked
+  v2 corpus, actor-specific Alakazam BC/value emphasis, game normalization,
+  top-source seasoning, and an independently normalized uniform-per-game
+  frozen-Qu-v1 KL anchor.  Training/evaluation may proceed, but no resulting
+  weights may be integrated or uploaded until the runtime blocker is fixed.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
@@ -126,6 +128,13 @@ the ladder.
   foundation-weighted. The random-init Qu-v1 control is required before making
   a representation-causality claim; the frozen-parent-KL strength run does not
   isolate architecture.
+- Qu-v2B adds read-time-only actor deck multipliers and independent KL
+  weighting. `--deck-weight SHA=MULTIPLIER` applies only to the acting seat's
+  BC/value loss. `--kl-weighting uniform-game` contributes
+  `1 / indexed_game_decision_count` per decision under its own denominator;
+  source, outcome and deck weights must never change the trust-region mass.
+  Zero-supervision rows remain KL-protected, the encoded cache remains
+  weight-free, and both policies are provenance- and resume-locked.
 - Policy iteration: `tools/selfplay_teacher.py` keeps paired search scores and
   soft root distributions on learner-reached states against a deck/policy pool;
   `tools/train_teacher.py` uses a game-grouped holdout and the band BC anchor.
