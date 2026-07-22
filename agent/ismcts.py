@@ -85,6 +85,8 @@ def _step(L, state, act):
 def decide(view: ObsView, net, my_deck_list: list[int],
            budget_s: float, max_iters: int = 600) -> list[int] | None:
     """PUCT-ISMCTS for a single-pick select. None -> caller falls back to reflex."""
+    if getattr(net, "has_deck_adapter", False):
+        return None  # simulated seats do not yet carry deck registrations
     sel = view.select
     if sel is None or view.max_count != 1:
         return None
