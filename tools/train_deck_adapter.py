@@ -796,7 +796,11 @@ def validate_output_dir(path: str) -> tuple[str, str]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", default=os.path.join(ROOT, "agent", "weights.npz"))
+    parser.add_argument(
+        "--base",
+        default=os.path.join(
+            ROOT, "tools", "baselines", "qu-v1-weights.npz"),
+    )
     parser.add_argument("--meta", default=os.path.join(ROOT, "agent", "meta_decks.json"))
     parser.add_argument("--target-meta", type=int, required=True)
     parser.add_argument("--source", action="append", default=[], metavar="NAME=DIR")

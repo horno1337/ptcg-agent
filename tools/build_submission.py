@@ -14,7 +14,13 @@ import numpy as np
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 sys.path.insert(0, ROOT)
-INCLUDE = ["main.py", "agent", "data", "decks"]
+INCLUDE = [
+    "main.py", "agent", "data", "decks",
+    # Qu-v2 weights are content-bound to this exact public-only encoder.  The
+    # production model is Torch-free; only the encoder and package marker ship.
+    "tools/research/__init__.py",
+    "tools/research/qu_v2a_features.py",
+]
 CG_LIB = os.environ.get(
     "CG_LIB",
     os.path.expanduser("~/Desktop/sample_submission/sample_submission/cg/libcg.so"))
@@ -28,8 +34,9 @@ def validate_deck_adapter(weights_path=None, deck=None):
     if not os.path.isfile(weights_path):
         return
     from agent import model, policy
-    with np.load(weights_path, allow_pickle=False) as weights:
-        net = model.Net(weights)
+    net = model.load(weights_path)
+    if net is None:
+        raise ValueError("agent/weights.npz is not a supported production model")
     registration = policy.load_deck() if deck is None else deck
     if net.has_deck_adapter and not net.supports_deck(registration):
         raise ValueError(

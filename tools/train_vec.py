@@ -63,7 +63,8 @@ from rl_env import (  # noqa: E402
 DEFAULT_OUT = os.path.join(ROOT, "tools", "checkpoints", "rl-env", "weights.npz")
 DEFAULT_CKPT = os.path.join(ROOT, "tools", "checkpoints", "rl-env")
 DEFAULT_META = os.path.join(ROOT, "agent", "meta_decks.json")
-DEFAULT_OPP_WEIGHTS = os.path.join(ROOT, "agent", "weights.npz")
+DEFAULT_OPP_WEIGHTS = os.path.join(
+    ROOT, "tools", "baselines", "qu-v1-weights.npz")
 
 
 def file_sha256(path: str | None) -> str | None:

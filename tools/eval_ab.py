@@ -58,7 +58,8 @@ from rl_env import (  # noqa: E402
 )
 
 
-DEFAULT_BASE = os.path.join(ROOT, "agent", "weights.npz")
+DEFAULT_BASE = os.path.join(
+    ROOT, "tools", "baselines", "qu-v1-weights.npz")
 DEFAULT_META = os.path.join(ROOT, "agent", "meta_decks.json")
 
 

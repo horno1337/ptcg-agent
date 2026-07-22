@@ -357,7 +357,7 @@ def test_strict_rollout_controller_error_releases_state_and_invalidates():
 def test_native_exact_reconstruction_and_sibling_parent_reuse():
     if not os.path.exists(_LIB_PATH):
         return
-    net = ETS.load_net(os.path.join(ROOT, "agent", "weights.npz"))
+    net = ETS.load_net(ETS.DEFAULT_WEIGHTS)
     learner = policy.load_deck()
     opponent = ETS.load_meta_decks()[0]
     with Battle(learner, opponent) as battle:
