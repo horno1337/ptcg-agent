@@ -107,7 +107,7 @@ def assert_features_equal(left: QF.PublicFeatures, right: QF.PublicFeatures):
 def test_public_rich_features_and_deck_multiset_invariance():
     deck = policy.load_deck()
     encoded = QF.encode_public_observation(observation(), deck)
-    assert QF.SCHEMA == "ptcg.qu-v2a.public-relational.v3"
+    assert QF.SCHEMA == "ptcg.qu-v2a.public-relational.v4"
     assert encoded.board_ids[0] == 743
     np.testing.assert_array_equal(encoded.board_energy_ids[0, :2], [13, 19])
     assert encoded.board_tool_ids[0, 0] == 1129
@@ -155,6 +155,22 @@ def test_transient_overkill_hp_is_normalized_for_public_option_features():
     assert encoded.option_features[0, QF.BASE.OPT_FEATS + 5] == 1.0
     assert encoded.board_features[7, 4] == 0.0
     assert encoded.board_features[7, 6] == 1.0
+    QF.validate_public_features(encoded)
+
+
+def test_negative_engine_count_sentinels_are_normalized_to_zero():
+    obs = observation()
+    obs["select"]["remainDamageCounter"] = -1
+    obs["select"]["remainEnergyCost"] = -1
+    obs["current"]["turnActionCount"] = -1
+    obs["current"]["players"][0]["deckCount"] = -1
+
+    encoded = QF.encode_public_observation(obs, policy.load_deck())
+
+    assert encoded.prompt_features[41] == 0.0
+    assert encoded.prompt_features[42] == 0.0
+    assert encoded.prompt_features[43] == 0.0
+    assert encoded.prompt_features[49] == 0.0
     QF.validate_public_features(encoded)
 
 
@@ -450,6 +466,9 @@ def test_numpy_artifact_and_input_validation_fail_closed():
     negative_option_hp = sample.option_features.copy()
     negative_option_hp[0, QF.BASE_OPTION_HP_FRACTION_INDEX] = -0.1
     invalid_samples.append(replace(sample, option_features=negative_option_hp))
+    negative_prompt_count = sample.prompt_features.copy()
+    negative_prompt_count[43] = -0.1
+    invalid_samples.append(replace(sample, prompt_features=negative_prompt_count))
     inconsistent_discard_count = sample.prompt_features.copy()
     inconsistent_discard_count[72] = 0.0
     invalid_samples.append(replace(
@@ -472,6 +491,7 @@ def test_numpy_artifact_and_input_validation_fail_closed():
 if __name__ == "__main__":
     test_public_rich_features_and_deck_multiset_invariance()
     test_transient_overkill_hp_is_normalized_for_public_option_features()
+    test_negative_engine_count_sentinels_are_normalized_to_zero()
     test_discard_cardinality_breaks_mean_pool_collision()
     test_public_encoder_rejects_privileged_inputs_and_bad_registration()
     test_torch_numpy_parity_and_option_permutation_equivariance()
