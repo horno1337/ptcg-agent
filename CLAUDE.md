@@ -164,6 +164,15 @@ the ladder.
   bounds, and zero infrastructure errors. A gate pass authorizes only
   observable target generation with multiple-testing control; it does not
   authorize training, weights, packaging, tagging, or upload by itself.
+- The first full-panel public-belief probe (2026-07-22, four games) was
+  infrastructure-clean but produced zero overrides from 76 analyzed roots and
+  27 stability-tested candidates. One attach-target candidate passed every
+  confirmation/stress check but missed the locked selection margin (3.125 pp
+  versus 5 pp). This is a diagnostic, not permission to tune the threshold on
+  the probe. The only resulting gate change is bookkeeping: a deliberate
+  selection-agrees-reflex exit is complete at its requested stage and no longer
+  counts as a failed confirmation panel. Run the locked 20-game calibration
+  before deciding whether a 160-game belief gate is worth its compute.
 
 ## Submission discipline
 

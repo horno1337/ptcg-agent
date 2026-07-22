@@ -137,10 +137,14 @@ def _root_stability_summary(metrics: ECF.OracleMetrics) -> dict[str, Any]:
     expanded = [root for root in roots
                 if bool((root.get("diagnostics") or {}).get(
                     "expansion_requested"))]
-    # Timeouts are not emitted as completed root evidence. Counting all of them
-    # against expansion completion is conservative, including screen timeouts.
+    # ``expansion_requested`` means the screen expanded into the paired
+    # selection panel. A deliberate selection-agrees-reflex result is complete
+    # at that stage and never requested confirmation/stress panels, so it must
+    # not dilute full-panel completion. Timeouts are not retained as root
+    # evidence; count every one against the full-panel denominator anyway. This
+    # remains conservative because it includes screen/selection timeouts too.
     incomplete = int(metrics.reasons.get("insufficient_evidence", 0))
-    denominator = len(expanded) + incomplete
+    full_panel_attempts = len(complete) + incomplete
     requested = generated = 0
     for root in roots:
         diagnostics = root.get("diagnostics") or {}
@@ -164,9 +168,10 @@ def _root_stability_summary(metrics: ECF.OracleMetrics) -> dict[str, Any]:
     }
     return {
         "complete_panels": len(complete),
+        "full_panel_attempts": full_panel_attempts,
         "expanded_roots": len(expanded),
         "incomplete_evidence": incomplete,
-        "complete_panel_rate": len(complete) / max(denominator, 1),
+        "complete_panel_rate": len(complete) / max(full_panel_attempts, 1),
         "requested_worlds": requested,
         "generated_worlds": generated,
         "world_validity": generated / max(requested, 1),
