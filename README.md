@@ -276,6 +276,22 @@ Research log (each vs the then-champion, 100-200 game evals):
   ladder-transfer estimates: 859/1,004 test agent identities and 371/464 test
   exact-deck identities also occur in train. EpisodeId is only a collection-time
   proxy. Qu-v2A must beat frozen Qu-v1 in the engine before it means progress.
+- **Qu-v2A clears the locked field gates and production smoke (2026-07-22,
+  approved for the `Qu-v2` ladder submission)**: the eight-epoch anchored run
+  selected epoch 8 at validation objective 1.2731 and sealed-test objective
+  1.2711, exporting `fe1e12fd...`.  Against the exact frozen Qu-v1 artifact it
+  led on primary pool:8 by +6.25 pp (123-37 vs 113-47), on withheld pool:8:16
+  by +10.63 pp (124-36 vs 107-53), and won direct mirror 93-67 (58.1%, CI
+  50.4-65.5).  The lineage threat meta2 gate was +8.13 pp (145-15 vs 132-28).
+  A noisy 1-9 meta3/reflex slice was isolated rather than rationalized: the
+  dedicated mixed-pilot meta3 gate reversed it decisively at +26.25 pp
+  (100-60 vs 58-102).  All 1,440 comparative engine games were valid with zero
+  truncations, exceptions, repairs or fallbacks.  The Torch-free production
+  twin is exact-logit/value/action tested against the evaluated implementation,
+  preserves Qu-v1 archive compatibility and rules fallback, and scored 198-2
+  with zero agent errors in the required 200-game random smoke.  The shipped
+  weights remain deck-conditioned through the explicit registered 60-card
+  multiset; no deck edit is part of this submission.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -318,11 +334,12 @@ agent/
   model.py                 # numpy inference net; shapes derive from weights.npz
   features.py              # versioned semantic options, shared by training/inference
   obsview.py / cards.py    # read-only obs/option identity helpers / card DB lookups
-  weights.npz              # tracked Qu-v1 semantic-v3 ladder champion
+  weights.npz              # tracked Qu-v2 public-relational candidate
   meta_decks.json          # decklists mined from episodes (opponent modeling)
 data/                      # card/attack dumps (tools/dump_cards.py — generated)
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
 tools/
+  baselines/qu-v1-weights.npz # frozen Qu-v1 control; never packaged
   cabt.py                  # engine bindings + battle runner (+ search API, search_begin_input)
   rl_env.py                # competition-faithful RL lifecycle, actions, schedules, provenance
   train.py                 # torch twin: BC (--bc), anchored league PPO, --arch, npz export
@@ -372,6 +389,7 @@ tests/test_qu_v2a.py      # public feature contract + Torch/NumPy parity
 tests/test_qu_v2a_training.py # streaming/cache/resume/output-lock semantics
 tests/test_qu_v1_control.py # matched same-corpus representation control
 tests/test_eval_qu_v2a.py # frozen-baseline and paired-evaluator guards
+tests/test_qu_v2_deployment.py # exact research/production parity + fail-soft routing
 ```
 
 ## Environments & data locations (this machine)

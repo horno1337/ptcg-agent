@@ -58,7 +58,8 @@ except Exception as exc:  # pragma: no cover - exercised during staged rollout
     _TS_IMPORT_ERROR = exc
 
 
-DEFAULT_WEIGHTS = os.path.join(ROOT, "agent", "weights.npz")
+DEFAULT_WEIGHTS = os.path.join(
+    ROOT, "tools", "baselines", "qu-v1-weights.npz")
 DEFAULT_META = os.path.join(ROOT, "agent", "meta_decks.json")
 DEFAULT_DECK_FILE = os.path.join(ROOT, "decks", "deck.csv")
 Move = Callable[[dict], list[int]]

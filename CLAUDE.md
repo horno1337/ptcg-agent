@@ -42,14 +42,15 @@ the ladder.
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
   strategy fusion, not lack of time.
-- ACTIVE DIRECTION: keep shipped Qu-v1 frozen while testing a public-only,
-  matched-capacity Qu-v2A representation with content-locked behavior cloning
-  and an optional frozen-parent KL trust region. Exact-deck adapters proved the
-  old representation can fit held-out action distributions, but hard cloning
-  did not reliably improve play; the observable public-belief teacher then
-  failed its locked calibration. That teacher route is closed. Qu-v2A is
-  candidate-only research, not a production architecture or evidence that more
-  behavior cloning alone beats the corpus ceiling.
+- ACTIVE DIRECTION: Qu-v2A passed the locked primary, withheld, mirror, meta2
+  lineage-threat, meta3 follow-up and random-smoke gates on 2026-07-22; the user
+  approved the one-change `Qu-v2` ladder submission.  Its production path is a
+  Torch-free NumPy twin plus the exact content-locked public encoder, with
+  Qu-v1 archive compatibility and fail-soft rules fallback retained.  Qu-v1
+  remains the frozen comparison artifact and ladder champion until the Qu-v2
+  trajectory supplies real ladder evidence.  Exact-deck adapters proved the
+  old representation can fit held-out action distributions, while the failed
+  observable public-belief teacher route remains closed.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
@@ -212,11 +213,17 @@ The ladder is the only real eval; every submission is an A/B measurement.
   clean tree.
 - **The user names the tag and approves every upload** — training/eval/
   commit chains may run autonomously; `kaggle submit` never does.
-- Qu-v2A currently has no production dispatcher or packaging path, and its
-  research evaluator has no random-opponent smoke. Passing its research gates
-  authorizes only a separately reviewed integration; it does not authorize
-  replacing `agent/weights.npz`, tagging, packaging, or upload.
+- Qu-v2 production integration must keep the evaluated feature encoder
+  content-locked, pass `tests/test_qu_v2_deployment.py`, `tests/test_safety.py`
+  and the 200-game random smoke, and package without importing Torch.  A future
+  Qu-v2 candidate still requires the same separately reviewed integration;
+  research-gate success alone never authorizes replacing `agent/weights.npz`,
+  tagging, packaging, or upload.
 - Ladder champion: Qu-v1, semantic-v3 weights `4ce6522f...` from tag `Qu-v1`.
+  Its post-promotion research control is
+  `tools/baselines/qu-v1-weights.npz`; Qu-v1-only search/oracle/evaluator
+  tooling must use that file rather than mutable shipped
+  `agent/weights.npz`.
   Two byte-identical active submissions reached divergent snapshot ratings
   (739.6 and 885.7), so name both the frozen baseline and submission trajectory;
   never mistake one rating path for a precise strength estimate.

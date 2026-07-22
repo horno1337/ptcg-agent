@@ -379,6 +379,16 @@ def _model_decide(view: ObsView) -> list[int] | None:
         net = _model.load()
         if net is None or not view.options:
             return None
+        if getattr(net, "is_qu_v2", False):
+            # Qu-v2's candidate artifact is bound to this exact public-only
+            # encoder.  Keep it outside the legacy feature/version adapter so
+            # Qu-v1 archives retain their byte-compatible path.
+            from tools.research import qu_v2a_features as _qu_v2_features
+            sample = _qu_v2_features.encode_public_observation(
+                view.obs, load_deck())
+            logits, _ = net.forward(sample)
+            return _model.decode_qu_v2(
+                logits, len(view.options), view.min_count, view.max_count)
         # The retired/planner paths do not yet carry a registered deck through
         # every simulated seat.  Never silently mix their base-policy priors
         # with a deck-adapted root policy.

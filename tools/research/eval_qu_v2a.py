@@ -56,7 +56,7 @@ from tools.research import qu_v2a_model as QM  # noqa: E402
 SCHEMA = "ptcg-eval-qu-v2a-v1"
 TRAINING_SCHEMA = "ptcg.qu-v2a.training.v1"
 TRAINING_PROVENANCE_NAME = "candidate-qu-v2a-training-manifest.json"
-DEFAULT_BASE = (ROOT / "agent" / "weights.npz").resolve()
+DEFAULT_BASE = (ROOT / "tools" / "baselines" / "qu-v1-weights.npz").resolve()
 DEFAULT_META = (ROOT / "agent" / "meta_decks.json").resolve()
 FROZEN_QU_V1_SHA256 = (
     "4ce6522f2b825165a56e4c3a086ef4f420cff53fab56d530dfa19cccd10ba033"
@@ -533,7 +533,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         if _sha256_file(DEFAULT_BASE) != FROZEN_QU_V1_SHA256:
             raise EvaluationError(
-                "agent/weights.npz is not the frozen Qu-v1 champion artifact"
+                "tools/baselines/qu-v1-weights.npz is not the frozen Qu-v1 "
+                "champion artifact"
             )
         base_net = EVAL.load_net(str(DEFAULT_BASE))
         learner_deck = EVAL.resolve_learner_deck(args.learner_deck, args.meta)

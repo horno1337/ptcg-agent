@@ -10,7 +10,8 @@ from cabt import Battle, random_agent
 from agent import features as FE, model, policy
 from agent.obsview import ObsView
 
-net = model.Net(np.load(os.path.join(ROOT, "agent", "weights.npz")))
+net = model.Net(np.load(os.path.join(
+    ROOT, "tools", "baselines", "qu-v1-weights.npz")))
 
 def reflex_move(obs):
     v = ObsView(obs)
