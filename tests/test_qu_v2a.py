@@ -107,7 +107,7 @@ def assert_features_equal(left: QF.PublicFeatures, right: QF.PublicFeatures):
 def test_public_rich_features_and_deck_multiset_invariance():
     deck = policy.load_deck()
     encoded = QF.encode_public_observation(observation(), deck)
-    assert QF.SCHEMA == "ptcg.qu-v2a.public-relational.v2"
+    assert QF.SCHEMA == "ptcg.qu-v2a.public-relational.v3"
     assert encoded.board_ids[0] == 743
     np.testing.assert_array_equal(encoded.board_energy_ids[0, :2], [13, 19])
     assert encoded.board_tool_ids[0, 0] == 1129
@@ -132,6 +132,30 @@ def test_public_rich_features_and_deck_multiset_invariance():
     transport["logs"] = ["different", "debug", "history"]
     transport["search_begin_input"] = "different opaque payload"
     assert_features_equal(encoded, QF.encode_public_observation(transport, deck))
+
+
+def test_transient_overkill_hp_is_normalized_for_public_option_features():
+    obs = observation()
+    knocked_out = _pokemon(120, 1, 21, hp=-10, max_hp=90)
+    obs["current"]["players"][1]["bench"] = [knocked_out]
+    obs["select"]["option"] = [{
+        "type": OT_PLAY,
+        "area": AREA_BENCH,
+        "index": 0,
+        "playerIndex": 1,
+    }]
+
+    encoded = QF.encode_public_observation(obs, policy.load_deck())
+
+    # BASE feature 79 historically forwards raw hp/maxHp, including negative
+    # values during overkill resolution.  Qu-v2A owns a non-negative public
+    # contract and consistently represents the transient target as zero HP.
+    assert encoded.option_features[0, QF.BASE_OPTION_HP_FRACTION_INDEX] == 0.0
+    assert encoded.option_features[0, QF.BASE.OPT_FEATS + 4] == 0.0
+    assert encoded.option_features[0, QF.BASE.OPT_FEATS + 5] == 1.0
+    assert encoded.board_features[7, 4] == 0.0
+    assert encoded.board_features[7, 6] == 1.0
+    QF.validate_public_features(encoded)
 
 
 def test_discard_cardinality_breaks_mean_pool_collision():
@@ -423,6 +447,9 @@ def test_numpy_artifact_and_input_validation_fail_closed():
     nonfinite_features = sample.prompt_features.copy()
     nonfinite_features[0] = np.nan
     invalid_samples.append(replace(sample, prompt_features=nonfinite_features))
+    negative_option_hp = sample.option_features.copy()
+    negative_option_hp[0, QF.BASE_OPTION_HP_FRACTION_INDEX] = -0.1
+    invalid_samples.append(replace(sample, option_features=negative_option_hp))
     inconsistent_discard_count = sample.prompt_features.copy()
     inconsistent_discard_count[72] = 0.0
     invalid_samples.append(replace(
@@ -444,6 +471,7 @@ def test_numpy_artifact_and_input_validation_fail_closed():
 
 if __name__ == "__main__":
     test_public_rich_features_and_deck_multiset_invariance()
+    test_transient_overkill_hp_is_normalized_for_public_option_features()
     test_discard_cardinality_breaks_mean_pool_collision()
     test_public_encoder_rejects_privileged_inputs_and_bad_registration()
     test_torch_numpy_parity_and_option_permutation_equivariance()

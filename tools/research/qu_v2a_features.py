@@ -32,7 +32,7 @@ from agent import features as BASE
 from agent.obsview import AREA_ACTIVE, AREA_BENCH, ObsView
 
 
-SCHEMA = "ptcg.qu-v2a.public-relational.v2"
+SCHEMA = "ptcg.qu-v2a.public-relational.v3"
 
 # Qu-v2A delegates semantic option binding and static card metadata to the
 # shipped agent modules.  Their public constants are part of this feature
@@ -127,6 +127,7 @@ BOARD_FEATURES = 20
 PROMPT_FEATURES = 74
 OPTION_EXTRA_FEATURES = 16
 OPTION_FEATURES = BASE.OPT_FEATS + OPTION_EXTRA_FEATURES
+BASE_OPTION_HP_FRACTION_INDEX = 79
 
 _EXACT_HIDDEN_KEY = "_counterfactual_exact_hidden_v1"
 _HP_NORM = 340.0
@@ -556,6 +557,14 @@ def encode_public_observation(
 
     option_ids, base_option_features = BASE.encode_options(
         view, BASE_FEATURE_VERSION)
+    # The engine temporarily retains knocked-out Pokemon while resolving
+    # multi-target damage and KO prompts.  Their public ``hp`` can therefore
+    # be negative (overkill damage), while BASE feature 79 is documented and
+    # consumed as an HP fraction.  Qu-v2A's board and relational encoders
+    # already map that state to zero HP; normalize the inherited copy to the
+    # same [0, 1] contract without changing Qu-v1's frozen feature semantics.
+    hp_fraction = base_option_features[:, BASE_OPTION_HP_FRACTION_INDEX]
+    np.clip(hp_fraction, 0.0, 1.0, out=hp_fraction)
     target_ids, option_extra = _encode_option_extras(view, option_ids, deck)
     option_features = np.concatenate(
         [base_option_features, option_extra], axis=1).astype(np.float32, copy=False)
