@@ -260,6 +260,8 @@ def _value_det(obs: dict, root_player: int) -> float:
 
 def decide(view: ObsView, net, my_deck_list: list[int]) -> list[int] | None:
     """One-ply determinized value search. None -> caller falls back."""
+    if getattr(net, "has_deck_adapter", False):
+        return None  # simulated seats do not yet carry deck registrations
     if not ENABLED:
         return None
     sel = view.select

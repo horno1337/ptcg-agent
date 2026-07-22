@@ -17,7 +17,8 @@ next on any failure:
    pointer-style option scorer (card embeddings + state encoder + per-option
    logits + value head), numpy-only at inference. Trained by behavior
    cloning on leaderboard episodes, then anchored league PPO
-   (`tools/train.py`).
+   (`tools/train.py`). Research checkpoints may append a tiny residual for one
+   exact registered 60-card deck; a deck mismatch takes the frozen parent path.
 3. **Rule-based policy** (`agent/policy.py`) — the hand-written fallback;
    also the league opponent and eval baseline.
 
@@ -34,9 +35,10 @@ think-time drains it directly), never crash.
 | cvkpaper-v1 | + determinized 1-ply search | 867 spike → 635 |
 | cvkpaper-v2 | + confidence gate, 2-ply, 51-deck library | 493 |
 | cvkpaper-v3 | + evidence floor (MIN_DETS=3, adaptive ply) | 516 |
-| cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — current champion |
+| cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — former champion |
 | cvkpaper-v5 | cycle3d weights on v4 code | 497 — reverted to ft3 (fa0fc1c) |
 | cvkpaper-v6 | ft10 band-foundation BC + anchored league PPO | ~641 — dev weights, not champion |
+| Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 clone snapshot — current champion |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -149,6 +151,131 @@ Research log (each vs the then-champion, 100-200 game evals):
   not alter ft3/ft10 behavior. Existing teacher shards remain version-locked;
   a v3 model must be trained on freshly encoded data. This fixes a learning
   bottleneck but is **not** a ladder-strength or weight-promotion claim.
+- **First freshly encoded v3 BC candidate passes the local gates (2026-07-21,
+  promoted as Qu-v1)**: resumed ft10 and re-encoded 277,273
+  expert decisions at load time with the semantic v3 option encoder. The
+  deliberately RAM-bounded mix
+  used deterministic 1,000-episode mid-MMR and 500-episode top samples plus all
+  506 downloaded and 150 synthetic episodes, weighted 1.0/0.2/1.0/0.3. Ten CPU
+  epochs at `lr=1e-4` reached NLL 0.851 and exported candidate `4ce6522f...`.
+  Against ft10 it scored 80.6% (129/160, CI 73.8-86.0) versus 77.5% (124/160,
+  CI 70.4-83.3) on pool:8: a positive but inconclusive +3.1 pp screen. Against
+  the ft3 ladder champion it passed all three axes: pool:8 83.1% vs 63.8%
+  (133-27 vs 102-58), withheld pool:8:16 76.3% vs 65.0% (122-38 vs 104-56),
+  and direct mirror 113-47 (70.6%, CI 63.2-77.1). Every gate was valid with
+  zero truncations, engine/infrastructure faults, controller exceptions, or
+  fallbacks. A dedicated 160-game threat-meta2 check was also non-regressing
+  at 87.5% vs ft3's 83.1% (140-20 vs 133-27), and the deployable candidate
+  completed the 200-game random smoke at 194-6 with zero agent errors. The
+  full 332,045-decision mid corpus was not used because that run lacked memory
+  headroom while another game was running. The eager per-decision object graph
+  is still inefficient, but a clean load-only benchmark must precede any claim
+  that streaming is required. Candidate `4ce6522f...` is the tracked submission
+  weight.
+- **Qu-v1 breaks the ladder ceiling (2026-07-21)**: two byte-identical active
+  submissions from tag `Qu-v1` reached snapshot ratings 739.6 and 885.7. Their
+  146-point separation quantifies the simulation ladder's trajectory variance,
+  while both clearing the previous recent 620-651 band establishes the direction.
+  A 12-hour snapshot contained 117 disjoint games and 15,607 valid decisions;
+  115 games were learner-seat-resolved from the exact registered deck. The main
+  residual bleed is Cinderace/Archaludon (8-17, 32%, CI 17-52%); Mega Lucario,
+  the old ft10 failure, flipped to 17-6 (74%, CI 54-88%). Losses were longer
+  (71.8 vs 62.9 decisions/game) with fewer attacks (4.05 vs 5.22/game), but only
+  2/177 END actions in losses had a legal attack available: this is attacker
+  continuity/setup denial, not voluntary passivity. A replay-derived eight-deck
+  Cinderace local field remained easy for rules pilots and only weakly separated
+  Qu-v1 from ft10 (81.9% vs 78.1%, overlapping CIs), so do not add a simplistic
+  rules fallback or blindly BC the opponent's winning actions. The guarded
+  planner then showed why its 40-game screens are not promotion evidence:
+  an initial 32-8 vs reflex 27-13 reversed over three additional disjoint
+  shards, aggregating to planner 121/160 (75.6%, CI 68.4-81.6%) versus frozen
+  Qu-v1 123/160 (76.9%, CI 69.8-82.7%). All shards were fault-free, but the
+  planner did not beat its parent; runtime search stays disabled and these
+  targets must not be distilled. NEXT: keep Qu-v1 frozen and obtain genuinely
+  counterfactual labels for critical Cinderace recovery/sequencing states.
+- **Exact-deck hard-BC adapters fit demonstrations but not strength
+  (2026-07-21, not promoted)**: the adapter path keeps all 178,626 Qu-v1
+  parameters byte-identical and adds only 129 final policy/value-head
+  parameters, activated by the canonical registered-deck multiset. A locked
+  1,000-game fresh top/mid corpus supplied 95,753 exact-Grim decisions; policy
+  cloning used winning seats and the value target used both outcomes with an
+  episode-grouped 80/10/10 split. The all-prompt adapter (`48fd2e7a...`)
+  improved sealed-test policy NLL 1.3169→1.1974 and value MSE
+  1.3276→0.8646, yet lost its direct Qu-v1 mirror 69-87-4 and was flat over
+  the two field slices. A v2 ablation limited the policy residual to MAIN and
+  froze value/non-MAIN behavior exactly (`ca77e234...`): test MAIN NLL improved
+  1.4032→1.3073, direct mirror recovered to 85-71-4, but three paired field
+  gates totaling 640 games/net were only 58.5% vs Qu-v1's 57.8%, with slices
+  crossing in both directions and overlapping intervals. The transfer stress
+  test was decisive: 728 exact-Crustle games / 38,385 decisions lowered test
+  MAIN NLL 2.0447→1.9220 while validation greedy agreement slipped
+  36.4%→36.1%, then scored 70-90 (43.8%, zero faults) against Qu-v1 in the
+  direct mirror (`555c03a9...`). This establishes that Qu-v1 is expressive
+  enough for small deck-specific distribution shifts; the blocker is the
+  supervision objective, not adapter/backbone capacity. Winner actions are
+  observational, mostly unweighted by consequence, and provide no
+  counterfactual credit. Do not promote these candidates or partially unfreeze
+  the trunk on the same labels. NEXT: collect advantage/counterfactual targets
+  at critical decisions from a teacher that first beats Qu-v1, or use online RL
+  against a diverse stronger league.
+- **Privileged terminal-Q establishes a decision-quality upper bound
+  (2026-07-22, research only)**: an exact-hidden terminal-rollout oracle was
+  evaluated on one source-locked, contiguous 160-game pool:8 field schedule
+  against frozen Qu-v1. The oracle scored 147-13 (91.9%, CI 86.6-95.2%) while
+  Qu-v1 scored 115-44-1 (72.2%, CI 64.8-78.5%); the +19.7 pp effect retained a
+  conservative positive interval of +8.0 to +30.4 pp. Across 10,657 eligible
+  attempts it analyzed 3,763 roots and made 170 confirmed overrides (4.5% of
+  analyzed roots), with zero engine, native-search, hidden-state, controller,
+  or dispatcher errors. Eight exact contiguous shards survived two interrupted
+  runs through provenance-locked checkpoints and were accepted only by the
+  strict aggregator. Aggregate artifact SHA-256: `185e3275...de34`. This proves
+  that Qu-v1 leaves substantial consequence-weighted decision quality on the
+  table; it does **not** prove those choices are inferable from public state,
+  because the teacher saw exact deck/hand/prize identities. NEXT: require the
+  advantage to survive disjoint selection/confirmation over multiple hidden
+  worlds sampled from the same public observation before emitting any training
+  target. A subsequent engine-source audit also found that this run's
+  `SearchBegin` reconstructed prize cards in the Prize area without restoring
+  their facedown bit. The run remains useful as a directional upper bound, but
+  is not clean evidence for prize-dependent mechanics. The local engine is now
+  patched, content-hashed by the new evaluator, and guarded by a native test;
+  public face-up-prize roots fail closed because the ABI lacks a visibility
+  mask. Production weights remain `4ce6522f...`.
+- **Public-belief infrastructure works, but the first signal probe did not
+  justify a field gate (2026-07-22, research only)**: two paired-seat rules
+  games and two paired-seat reflex games at the full 16/32/32/16 world settings
+  materialized 6,080/6,080 worlds with zero engine, sampler, controller, or
+  dispatcher errors. Across 214 eligible decisions, 76 roots completed at
+  least screening and 27 non-reflex candidates reached the full stability
+  test; none became an override. The closest case preferred attaching to
+  Kadabra instead of Qu-v1's Alakazam and passed 9/10 locked checks
+  (confirmation +15.6 pp, bootstrap lower +6.25 pp, sign p=0.0059), but its
+  independent selection margin was +3.125 pp versus the predeclared +5 pp
+  requirement. Do not lower that threshold on this four-game observation.
+  Full-panel accounting was corrected so a deliberate selection-stage
+  agreement is not mislabeled as an incomplete confirmation panel.
+- **The locked public-belief calibration failed; stop this label route
+  (2026-07-22, research only)**: over the completed source-locked 20-game
+  calibration, the belief oracle scored 14-6 versus frozen Qu-v1's 17-3, a
+  -15.0 pp effect with CI [-46.7, +21.5]. It produced only 3 confirmed overrides
+  across 3 games and opponent decks 3 and 5. Just 82/114 requested full panels
+  completed (71.9%); sampled-world validity was 100%, p95 target think time was
+  447.3s, and there were zero infrastructure or engine errors. The locked gate
+  failed: do **not** run the 160-game belief gate or train from these labels.
+  Artifact: `tools/checkpoints/belief-counterfactual/calibration-field20-d389076.json`,
+  SHA-256 `463bb34a103c3bd2a866b32336f595dd5168a13ecf3df2e18bc63f26bae6ce06`.
+- **Full-corpus Qu-v2A foundation (2026-07-22, candidate only; no strength
+  claim)**: corpus-index v2 grouped 13,898 paths into 13,650 unique games and
+  deduplicated 248 legacy/top aliases. It accepted 13,639 games and 1,886,141
+  decisions for BC; 11 malformed/nonterminal games remain visible but excluded.
+  The append-stable 80/10/10 split contains 1,501,933/191,702/192,506
+  train/validation/test decisions. Its strict prompt-to-next-action audit found
+  22 invalid action rows among 1,914,520 expected prompts. Corpus content SHA is
+  `ef231339...c065`; embedded manifest SHA is `3f73b87b...4ef2` (raw index file
+  SHA `bd0c11c2...9401c1`). Random holdouts are interpolation diagnostics, not
+  ladder-transfer estimates: 859/1,004 test agent identities and 371/464 test
+  exact-deck identities also occur in train. EpisodeId is only a collection-time
+  proxy. Qu-v2A must beat frozen Qu-v1 in the engine before it means progress.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -191,7 +318,7 @@ agent/
   model.py                 # numpy inference net; shapes derive from weights.npz
   features.py              # versioned semantic options, shared by training/inference
   obsview.py / cards.py    # read-only obs/option identity helpers / card DB lookups
-  weights.npz              # tracked ft10 dev net; ft3 champion lives at cvkpaper-v4
+  weights.npz              # tracked Qu-v1 semantic-v3 ladder champion
   meta_decks.json          # decklists mined from episodes (opponent modeling)
 data/                      # card/attack dumps (tools/dump_cards.py — generated)
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
@@ -201,22 +328,50 @@ tools/
   train.py                 # torch twin: BC (--bc), anchored league PPO, --arch, npz export
   train_vec.py             # paired multi-opponent vector rollouts over rl_env.py
   train_teacher.py         # soft search-target distillation + held-out group split
+  train_deck_adapter.py    # exact-deck frozen-head experiment + locked replay split
   il_dataset.py            # episode JSONs -> (obs, action, reward); winner-seat weighting
   selfplay_search.py       # historical retired-PIMC flywheel (do not use for new cycles)
   selfplay_teacher.py      # diverse turn-search teacher records (JSONL)
   download_episodes.py     # resumable top/band Kaggle replay downloader
+  index_corpus.py          # append-stable content lock + strict action audit
+  training_preflight.py    # fail-closed RAM/swap/selected-GPU resource gate
+  research/
+    analyze_corpus_index.py # metadata-only corpus and overlap diagnostics
+    qu_v2a_features.py     # public-only relational prompt representation
+    qu_v2a_model.py        # matched-capacity Torch/NumPy candidate twins
+    train_qu_v2a.py        # bounded BC, per-game cache, exact epoch resume
+    train_qu_v1_control.py # random-init same-corpus representation control
+    eval_qu_v2a.py         # paired candidate versus frozen Qu-v1 evaluator
+  analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
+  counterfactual_oracle.py # privileged exact-state terminal-Q research oracle
+  eval_counterfactual.py   # oracle/reflex paired field gate; never deploys oracle
+  aggregate_counterfactual.py # strict contiguous-shard 160+ gate aggregation
+  belief_counterfactual_oracle.py # public-only sampled-world terminal teacher
+  eval_belief_counterfactual.py # separate observable-teacher field gate
   eval_ab.py               # shared-env weight gate: score/CI/clock/errors/provenance
   eval.py / run_local.py   # rule-agent eval / single game + replay
   build_submission.py      # packages submission; injects official cg/libcg.so (CG_LIB)
 tests/test_safety.py       # legality fuzz — must stay green for any agent/ change
 tests/test_feature_semantics.py # v3 identity + v1/v2 deploy compatibility
+tests/test_ladder_analysis.py # replay identity/archetype/statistics regression tests
 tests/test_turn_search.py  # semantic actions, STOP ranking, belief/evaluator helpers
 tests/test_teacher_training.py # strict generator -> trainer schema/provenance
 tests/test_rl_env.py       # action/reward/lifecycle/schedule + native-engine smoke
 tests/test_train_vec.py    # vector collection, STOP, returns, PPO plumbing
 tests/test_eval_ab.py      # unified score/draw/invalid semantics + holdout slices
+tests/test_deck_adapter.py # exact-deck isolation, schema, parity + overwrite guards
+tests/test_counterfactual_oracle.py # hidden-state, holdout gate + native branch reuse
+tests/test_aggregate_counterfactual.py # source/schedule/evidence-safe shard merge
+tests/test_belief_counterfactual.py # no-leak sampler, paired panels + gate contracts
+tests/test_corpus_index.py # deduplication, append-stable splits, strict action audit
+tests/test_corpus_diagnostics.py # signed metadata-only corpus diagnostics
+tests/test_training_preflight.py # RAM/swap/GPU gate behavior
+tests/test_qu_v2a.py      # public feature contract + Torch/NumPy parity
+tests/test_qu_v2a_training.py # streaming/cache/resume/output-lock semantics
+tests/test_qu_v1_control.py # matched same-corpus representation control
+tests/test_eval_qu_v2a.py # frozen-baseline and paired-evaluator guards
 ```
 
 ## Environments & data locations (this machine)
@@ -246,6 +401,45 @@ python tools/download_episodes.py --min-score 600 --max-score 800 --spread \
     --top 50 --per-sub 100 --out ~/Desktop/ptcg_corpus_mid \
     --skip-dir ~/Desktop/ptcg_episodes --skip-dir ~/Desktop/ptcg_corpus_top
 
+# content-lock the complete corpus; unrelated appended games do not move old splits
+python tools/index_corpus.py \
+    legacy=~/Desktop/ptcg_episodes mid=~/Desktop/ptcg_corpus_mid \
+    top=~/Desktop/ptcg_corpus_top \
+    --json-out tools/checkpoints/corpus-index/field-all-v2.json
+python tools/research/analyze_corpus_index.py \
+    tools/checkpoints/corpus-index/field-all-v2.json \
+    --json-out tools/checkpoints/corpus-index/field-all-v2-diagnostics.json
+
+# fail before opening the corpus if current resources are insufficient
+~/.venvs/ptcg-rl/bin/python tools/training_preflight.py \
+    --require-gpu --min-gpu-free-gib 6
+
+# locked strength candidate: band foundation, top seasoning, parent trust region
+~/.venvs/ptcg-rl/bin/python tools/research/train_qu_v2a.py \
+    --manifest tools/checkpoints/corpus-index/field-all-v2.json \
+    --out-dir tools/checkpoints/qu-v2a-field-v1 \
+    --cache-dir tools/checkpoints/qu-v2a-cache \
+    --epochs 8 --batch-size 128 --learning-rate 1e-4 \
+    --source-weight legacy=1 --source-weight mid=1 --source-weight top=0.2 \
+    --qu-v1-anchor agent/weights.npz --kl-coefficient 0.1 \
+    --require-gpu --min-gpu-free-gib 6
+# After interruption, repeat the identical command with --resume-latest;
+# scientific arguments, code/data contracts, runtime and cache are locked.
+
+# candidate-only paired field gates; none authorizes production integration
+python tools/research/eval_qu_v2a.py 160 \
+    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp pool:8 --opp-policy mixed \
+    --json-out tools/checkpoints/qu-v2a-field-v1/eval-pool8.json
+python tools/research/eval_qu_v2a.py 160 \
+    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp pool:8:16 --opp-policy mixed \
+    --json-out tools/checkpoints/qu-v2a-field-v1/eval-holdout.json
+python tools/research/eval_qu_v2a.py 160 \
+    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp mirror \
+    --json-out tools/checkpoints/qu-v2a-field-v1/eval-mirror.json
+
 # imitation + RL (in the training venv)
 python tools/train.py --bc ~/Desktop/ptcg_episodes --iters 0 \
     --out tools/checkpoints/bcN/weights.npz --ckpt-dir tools/checkpoints/bcN
@@ -262,6 +456,14 @@ python tools/train.py --resume .../bc_best.pt --iters 40 --lr 5e-5 \
     --out tools/checkpoints/rl-env/weights.npz \
     --ckpt-dir tools/checkpoints/rl-env
 
+# frozen Qu-v1 exact-deck probe (MAIN only; research candidate, not promotion)
+~/.venvs/ptcg-rl/bin/python tools/train_deck_adapter.py \
+    --target-meta 4 --source top=~/Desktop/ptcg_corpus_top \
+    --source mid=~/Desktop/ptcg_corpus_mid \
+    --source-mass top=0.75 --source-mass mid=0.25 \
+    --policy-select-type 0 --value-coef 0 \
+    --out-dir tools/checkpoints/deck-adapter-probe
+
 # weight gates on the same environment (training field, holdout, then mirror)
 python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
     --base agent/weights.npz --opp pool:8
@@ -273,6 +475,33 @@ python tools/eval_ab.py 160 tools/checkpoints/rl-env/weights.npz \
 # guarded planner A/B (planner is enabled by the harness only)
 python tools/eval_turn_search.py 160 --opp pool:8 --opp-policy mixed \
     --budget 0.5 --particles 8
+
+# privileged terminal-Q diagnostic (20 is directional only; 160 is the gate)
+python tools/eval_counterfactual.py 20 --opp mirror \
+    --json-out tools/checkpoints/counterfactual-oracle/mirror-20.json --quiet
+python tools/eval_counterfactual.py 160 --opp pool:8 --opp-policy mixed \
+    --json-out tools/checkpoints/counterfactual-oracle/pool8-160.json --quiet
+# Interrupted runs resume only from an exact source/args/schedule checkpoint:
+python tools/eval_counterfactual.py 20 --opp mirror \
+    --json-out tools/checkpoints/counterfactual-oracle/mirror-20.json \
+    --resume tools/checkpoints/counterfactual-oracle/mirror-20.json.progress.json \
+    --quiet
+# Eight 20-game field shards use seeds BASE+0,10,...,70; only the strict
+# aggregator may turn their exact contiguous schedule into the 160-game gate.
+python tools/aggregate_counterfactual.py \
+    tools/checkpoints/counterfactual-oracle/field-shard-*.json \
+    --json-out tools/checkpoints/counterfactual-oracle/field-160.json
+
+# public-only belief terminal-Q: reduced panels are a crash/ABI smoke only.
+# Use explicit, separately frozen schedule/prior paths for scientific gates.
+python tools/eval_belief_counterfactual.py 2 --opp mirror \
+    --screen-worlds 4 --selection-worlds 8 \
+    --confirmation-worlds 8 --stress-worlds 4 --bootstrap-samples 100 \
+    --json-out tools/checkpoints/belief-counterfactual/smoke-2.json --quiet
+python tools/eval_belief_counterfactual.py 160 --opp pool:8 \
+    --opp-policy mixed --meta-path agent/meta_decks.json \
+    --belief-meta-path agent/meta_decks.json \
+    --json-out tools/checkpoints/belief-counterfactual/pool8-160.json --quiet
 
 # search-policy iteration: generate soft targets, then distill in the RL venv
 python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
@@ -316,7 +545,41 @@ git tag <name> && python tools/build_submission.py
   `docs/competition_rl_contract.md`. Select-cap and opponent-fault truncations
   are never relabeled as draws or positive reward, and the native engine RNG
   is explicitly unseedable even when the Python schedule has a seed.
+- Qu-v2A consumes only the current public state and the acting seat's registered
+  deck. It excludes transport logs, search input, exact-hidden payloads,
+  opponent hands, and opponent deck lists. Its source weights use
+  `max_across_source_membership_v1`, so a legacy/top alias stays
+  foundation-weighted.
+- The Qu-v2A cache stores one pickle-free NPZ per game and binds replay bytes,
+  registered decks, loader/indexer code, transitive feature dependencies, and
+  the optional Qu-v1 anchor. Validation selects the checkpoint; test is first
+  opened only after selection. The default candidate has 189,538 parameters
+  versus 178,626 in the same-corpus Qu-v1 control. Only an unanchored matched
+  comparison can support a representation-causality claim; the anchored
+  strength run cannot.
 - `turn_search.py` stays disabled by default. Local gates may enable it; a
   submission enables it only as a one-change, user-approved ladder A/B.
 - Teacher shards are source-locked: finish generation before editing planner,
   mapping, feature, engine, or card-data dependencies; mixed hashes are rejected.
+- Deck adapters are registration metadata, not observation features. They match
+  the exact unordered 60-card multiset, preserve the parent path on mismatch,
+  and adapted packages fail closed if `decks/deck.csv` is different. Runtime
+  search bypasses adapted nets because simulated seats lack trustworthy
+  registered-deck identity.
+- The local visualization exposes exact hidden zones for offline research.
+  `counterfactual_oracle.py` may use them only to produce/gate hindsight
+  terminal-Q labels; they never enter deployable observations. Search branches
+  share an unseedable native RNG, so root state is exact but stochastic futures
+  are not common-random-number paired. Rotate/reverse every action order, retain
+  raw outcomes, and keep target selection disjoint from confirmation rollouts.
+  A win here is only a full-information upper bound; before training a
+  deployable student, show that the advantage survives belief averaging over
+  hidden states consistent with the same public observation.
+- `belief_counterfactual_oracle.py` is the public-only follow-up. Its sampler
+  receives only the public observation, registered learner deck, explicitly
+  declared empirical prior, and sampler seed. It never calls `visualize()` or
+  consumes exact-hidden metadata. It requires exact multiset conservation,
+  disjoint selection/confirmation/stress world hashes, paired forward/reverse
+  branch orders, and complete action panels; any native, mapping, sampling, or
+  clock failure falls back to Qu-v1 and invalidates the field gate. Even a pass
+  authorizes target-generation research only, not production weights.
