@@ -39,6 +39,7 @@ think-time drains it directly), never crash.
 | cvkpaper-v5 | cycle3d weights on v4 code | 497 — reverted to ft3 (fa0fc1c) |
 | cvkpaper-v6 | ft10 band-foundation BC + anchored league PPO | ~641 — dev weights, not champion |
 | Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 clone snapshot — current champion |
+| Qu-v2 | public-relational Qu-v2A, but packaged runtime silently fell through | 628.2 — **rules fallback, not a model-strength result** |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -292,6 +293,26 @@ Research log (each vs the then-champion, 100-200 game evals):
   with zero agent errors in the required 200-game random smoke.  The shipped
   weights remain deck-conditioned through the explicit registered 60-card
   multiset; no deck edit is part of this submission.
+- **The `Qu-v2` ladder run never executed its neural policy (2026-07-22,
+  packaging post-mortem; do not retrain from this score)**: 42/43 replays were
+  learner-resolved and every one of 2,800 observed actions matched
+  `policy.decide_rules` exactly.  The extracted intended production policy
+  matched only 1,654/2,800 (59.1%), while frozen Qu-v1's real ladder actions
+  matched its net 7,441/7,731 (96.25%).  Thus Qu-v2's 628.2 rating and its 0-5
+  Grimmsnarl / 1-4 Lucario slices measure the rules fallback, not weights
+  `fe1e12fd...` or the relational architecture.  Two independent package
+  hazards could trigger the swallowed exception: production used
+  NumPy-2.1-only `ndarray.clip(min=...)`,
+  and the tar shipped `tools/research` without `tools/__init__.py`, allowing an
+  installed regular `tools` package to shadow the encoder.  The packaging-only
+  repair uses the stable `clip(1.0, None)` signature and ships the package
+  marker; weights and deck remain byte-identical.  The new exact-archive gate
+  extracts the tar under a hostile `tools` package and checks all 2,800 saved
+  prompts: model/final/rules reference parity is 2,800/2,800, no model action is
+  missing, and 1,146 model-vs-rules disagreement prompts prevent fallback from
+  hiding.  Candidate archive SHA is `5e47df5d...64bf2`; it is not a ladder claim
+  until the user names/approves a fresh upload and its early replays pass the
+  same action-provenance canary.  `Qu-v2-clone` was deliberately not uploaded.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -360,6 +381,7 @@ tools/
     train_qu_v1_control.py # random-init same-corpus representation control
     eval_qu_v2a.py         # paired candidate versus frozen Qu-v1 evaluator
   analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
+  audit_submission_runtime.py # extracted-tar replay action identity gate
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
   counterfactual_oracle.py # privileged exact-state terminal-Q research oracle
@@ -534,6 +556,10 @@ python tools/mine_meta_decks.py
 
 # package + ship (clean tree, tag first; tag name chosen by the maintainer)
 git tag <name> && python tools/build_submission.py
+python tools/audit_submission_runtime.py \
+    tools/checkpoints/qu-v2-ladder/original --team '増殖するG' \
+    --archive submission.tar.gz --reference-weights agent/weights.npz \
+    --json-out tools/checkpoints/qu-v2-ladder/package-audit.json
 ~/.venvs/kaggle/bin/kaggle competitions submit pokemon-tcg-ai-battle \
     -f submission.tar.gz -m "<name>"
 ```

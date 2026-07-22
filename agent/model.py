@@ -293,7 +293,9 @@ def _qu_v2_expected_shapes(architecture: tuple[int, ...], qf):
 def _qu_v2_masked_mean(values: np.ndarray, mask: np.ndarray,
                        axis: int) -> np.ndarray:
     weights = np.expand_dims(mask.astype(np.float32), -1)
-    denominator = weights.sum(axis=axis).clip(min=1.0)
+    # ``min=``/``max=`` aliases were added to ndarray.clip in NumPy 2.1.
+    # Kaggle may provide NumPy 1.x, whose stable signature is (a_min, a_max).
+    denominator = weights.sum(axis=axis).clip(1.0, None)
     return (values * weights).sum(axis=axis) / denominator
 
 
@@ -365,7 +367,7 @@ class QuV2Net:
         mask = ids > 0
         embedded = self.embedding[ids]
         weights = np.expand_dims(mask.astype(np.float32), -1)
-        denominator = weights.sum(axis=-2).clip(min=1.0)
+        denominator = weights.sum(axis=-2).clip(1.0, None)
         return (embedded * weights).sum(axis=-2) / denominator
 
     def _state_vector(self, sample) -> np.ndarray:

@@ -18,6 +18,7 @@ INCLUDE = [
     "main.py", "agent", "data", "decks",
     # Qu-v2 weights are content-bound to this exact public-only encoder.  The
     # production model is Torch-free; only the encoder and package marker ship.
+    "tools/__init__.py",
     "tools/research/__init__.py",
     "tools/research/qu_v2a_features.py",
 ]
@@ -43,23 +44,32 @@ def validate_deck_adapter(weights_path=None, deck=None):
             "agent/weights.npz targets a different registered deck than "
             "decks/deck.csv; refusing to build an inactive adapter")
 
-def main():
+
+def build(output=None, cg_lib=None):
+    """Build one archive; parameters make the exact packager testable."""
+    output = out if output is None else os.fspath(output)
+    cg_lib = CG_LIB if cg_lib is None else os.fspath(cg_lib)
     validate_deck_adapter()
-    with tarfile.open(out, "w:gz") as tar:
+    with tarfile.open(output, "w:gz") as tar:
         for item in INCLUDE:
             p = os.path.join(ROOT, item)
             tar.add(
                 p, arcname=item,
                 filter=lambda ti: None if "__pycache__" in ti.name else ti,
             )
-        if CG_LIB != "skip":
-            if not os.path.exists(CG_LIB):
+        if cg_lib != "skip":
+            if not os.path.exists(cg_lib):
                 raise FileNotFoundError(
-                    f"{CG_LIB} missing - set CG_LIB to the official libcg.so "
+                    f"{cg_lib} missing - set CG_LIB to the official libcg.so "
                     "or CG_LIB=skip")
-            tar.add(CG_LIB, arcname="cg/libcg.so")
-            print(f"bundled cg/libcg.so from {CG_LIB}")
-    print("wrote", out, f"({os.path.getsize(out)/1024:.0f} KB)")
+            tar.add(cg_lib, arcname="cg/libcg.so")
+            print(f"bundled cg/libcg.so from {cg_lib}")
+    print("wrote", output, f"({os.path.getsize(output)/1024:.0f} KB)")
+    return output
+
+
+def main():
+    build()
 
 
 if __name__ == "__main__":
