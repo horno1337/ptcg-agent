@@ -257,6 +257,15 @@ def _check_compact_training_is_actor_deck_isolated_and_test_is_deferred():
         ).hexdigest()
         assert provenance["candidate_only"] is True
         assert provenance["resource_preflight"]["skipped_for_tests"] is True
+        weights_config = provenance["configuration"]["weights"]
+        assert weights_config["decks"] == {}
+        assert weights_config["deck_weight_policy"] == \
+            TRAIN.DECK_WEIGHT_POLICY
+        assert provenance["configuration"]["kl_weighting"] == "sample"
+        assert provenance["configuration"]["kl_weighting_policy"] == \
+            TRAIN.KL_WEIGHTING_POLICIES["sample"]
+        assert provenance["configuration"]["kl_denominator_policy"] == \
+            TRAIN.KL_DENOMINATOR_POLICY
         assert len(provenance["input"]["selected_games"]) == 6
         assert provenance["selection"]["best_epoch"] == result["best_epoch"]
         assert provenance["events"][-1]["split"] == "test"
@@ -368,6 +377,124 @@ def _check_source_weight_uses_full_membership_not_selected_alias():
     assert TRAIN.SOURCE_WEIGHT_POLICY == "max_across_source_membership_v1"
 
 
+def _check_actor_deck_weight_and_kl_weighting_are_independent():
+    deck_hashes = ("c" * 64, "d" * 64)
+    game = TRAIN.LockedGame(
+        game_uid="a" * 64,
+        episode_id=1,
+        split="train",
+        split_rank=1,
+        content_sha256="b" * 64,
+        source_membership=("synthetic",),
+        source="synthetic",
+        path=Path("unused.json"),
+        decision_count=4,
+        rewards=(1.0, -1.0),
+        registered_decks=((1,) * 60, (2,) * 60),
+        registered_deck_sha256s=deck_hashes,
+    )
+    encoded = tuple(
+        TRAIN.EncodedSample(
+            features=None,  # type: ignore[arg-type]
+            picks=(0,),
+            n_opts=1,
+            n_min=1,
+            n_max=1,
+            reward=1.0,
+            parent_logits=np.zeros(2, dtype=np.float32),
+            acting_seat=seat,
+        )
+        for seat in (0, 1)
+    )
+    base = TRAIN.TrainingConfig(
+        manifest_path=Path("unused.json"),
+        out_dir=Path("unused-candidate"),
+        win_weight=1.0,
+        draw_weight=1.0,
+        loss_weight=1.0,
+        source_weights={"synthetic": 1.0},
+        deck_weights={deck_hashes[0]: 3.0, deck_hashes[1]: 0.0},
+        kl_coefficient=1.0,
+        kl_weighting="uniform-game",
+        test_skip_resource_preflight=True,
+    )
+    with mock.patch.object(
+            TRAIN, "_encoded_game_samples", return_value=encoded):
+        samples = list(TRAIN.iter_game_samples(game, base, None))
+    assert [sample.weight for sample in samples] == [3.0, 0.0]
+    assert [sample.kl_weight for sample in samples] == [0.25, 0.25]
+    with mock.patch.object(
+            TRAIN, "_encoded_game_samples", return_value=encoded):
+        per_decision = list(TRAIN.iter_game_samples(
+            game, replace(base, kl_weighting="sample"), None))
+    assert [sample.kl_weight for sample in per_decision] == [1.0, 1.0]
+    assert TRAIN.DECK_WEIGHT_POLICY == \
+        "actor_registered_deck_sha256_multiplier_v1"
+
+
+def _check_kl_uses_an_independent_denominator():
+    parameter = torch.tensor(1.0, requires_grad=True)
+    policy_nll = parameter * torch.zeros(2)
+    value_mse = parameter * torch.zeros(2)
+    kl = torch.stack((parameter, parameter * 3.0))
+    weights = torch.tensor((100.0, 1.0))
+    kl_weights = torch.tensor((1.0, 1.0))
+    config = TRAIN.TrainingConfig(
+        manifest_path=Path("unused.json"),
+        out_dir=Path("unused-candidate"),
+        value_coefficient=0.5,
+        kl_coefficient=1.0,
+        test_skip_resource_preflight=True,
+    )
+    objective = TRAIN._weighted_objective(
+        policy_nll, value_mse, kl, weights, kl_weights, config)
+    objective.backward()
+    assert math.isclose(float(objective.detach()), 2.0, abs_tol=1e-7)
+    assert parameter.grad is not None
+    assert math.isclose(float(parameter.grad.detach()), 2.0, abs_tol=1e-7)
+
+    metrics = TRAIN.MetricAccumulator()
+    metrics.add(
+        torch.tensor((1.0, 3.0)),
+        torch.tensor((2.0, 4.0)),
+        torch.tensor((5.0, 7.0)),
+        weights,
+        kl_weights,
+    )
+    result = metrics.finish(value_coefficient=0.5, kl_coefficient=1.0)
+    assert result["weight_sum"] == 101.0
+    assert result["kl_weight_sum"] == 2.0
+    assert math.isclose(result["kl"], 6.0, abs_tol=1e-7)
+
+
+def _check_deck_weight_parser_and_unknown_hash_fail_closed():
+    valid = "a" * 64
+    assert TRAIN._deck_weights([f"{valid}=2.5"]) == {valid: 2.5}
+    for raw in (
+        "missing-separator",
+        f"{valid.upper()}=2",
+        f"{valid}=nan",
+        f"{valid}=inf",
+        f"{valid}=-1",
+    ):
+        with _raises(TRAIN.TrainingError, "deck weight"):
+            TRAIN._deck_weights([raw])
+    with _raises(TRAIN.TrainingError, "duplicate deck weight"):
+        TRAIN._deck_weights([f"{valid}=1", f"{valid}=2"])
+
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        manifest_path, _, _ = _synthetic_index(root)
+        config = _config(
+            manifest_path,
+            root / "candidate",
+            epochs=1,
+            deck_weights={"f" * 64: 2.0},
+        )
+        with _raises(TRAIN.TrainingError, "acting-seat decks"):
+            TRAIN.run_training(config)
+
+
 def _check_persistent_cache_hits_epoch_two_and_defers_test():
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
@@ -432,6 +559,7 @@ def _check_persistent_cache_hits_epoch_two_and_defers_test():
         for path in cache_files:
             with np.load(path, allow_pickle=False) as archive:
                 assert "weight" not in archive.files
+                assert "kl_weight" not in archive.files
                 assert all(archive[name].dtype.kind != "O" for name in archive.files)
 
         provenance = json.loads(result["provenance_path"].read_text(encoding="utf-8"))
@@ -493,7 +621,7 @@ def _check_resume_latest_matches_uninterrupted_training_and_refuses_drift():
 
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
-        manifest_path, _, _ = _synthetic_index(root)
+        manifest_path, _, raw_decks = _synthetic_index(root)
         uninterrupted_config = _config(
             manifest_path,
             root / "uninterrupted",
@@ -533,6 +661,19 @@ def _check_resume_latest_matches_uninterrupted_training_and_refuses_drift():
         )
         with _raises(TRAIN.TrainingError, "resume lock drifted"):
             TRAIN.run_training(drifted)
+        target_deck = INDEX.deck_sha256(raw_decks[0])
+        with _raises(TRAIN.TrainingError, "resume lock drifted"):
+            TRAIN.run_training(replace(
+                interrupted_config,
+                resume_latest=True,
+                deck_weights={target_deck: 2.0},
+            ))
+        with _raises(TRAIN.TrainingError, "resume lock drifted"):
+            TRAIN.run_training(replace(
+                interrupted_config,
+                resume_latest=True,
+                kl_weighting="uniform-game",
+            ))
 
         # Simulate a crash after a later partial epoch atomically replaced the
         # standalone best file but before it could publish a new latest file.
@@ -593,6 +734,15 @@ class QuV2ATrainingTests(unittest.TestCase):
 
     def test_source_weight_uses_full_membership_not_selected_alias(self):
         _check_source_weight_uses_full_membership_not_selected_alias()
+
+    def test_actor_deck_weight_and_kl_weighting_are_independent(self):
+        _check_actor_deck_weight_and_kl_weighting_are_independent()
+
+    def test_kl_uses_an_independent_denominator(self):
+        _check_kl_uses_an_independent_denominator()
+
+    def test_deck_weight_parser_and_unknown_hash_fail_closed(self):
+        _check_deck_weight_parser_and_unknown_hash_fail_closed()
 
     def test_persistent_cache_hits_epoch_two_and_defers_test(self):
         _check_persistent_cache_hits_epoch_two_and_defers_test()

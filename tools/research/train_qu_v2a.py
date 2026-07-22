@@ -49,6 +49,12 @@ from tools.research import qu_v2a_model as QM
 
 TRAINING_SCHEMA = "ptcg.qu-v2a.training.v1"
 SOURCE_WEIGHT_POLICY = "max_across_source_membership_v1"
+DECK_WEIGHT_POLICY = "actor_registered_deck_sha256_multiplier_v1"
+KL_WEIGHTING_POLICIES = {
+    "sample": "uniform_per_decision_v1",
+    "uniform-game": "inverse_indexed_game_decision_count_v1",
+}
+KL_DENOMINATOR_POLICY = "independent_kl_weight_sum_v1"
 CACHE_SCHEMA = "ptcg.qu-v2a.encoded-game-cache.v1"
 CHECKPOINT_NAME = "candidate-qu-v2a-checkpoint.pt"
 LATEST_NAME = "candidate-qu-v2a-latest.pt"
@@ -89,11 +95,13 @@ class TrainingConfig:
     draw_weight: float = 0.3
     loss_weight: float = 0.1
     source_weights: Mapping[str, float] = field(default_factory=dict)
+    deck_weights: Mapping[str, float] = field(default_factory=dict)
     game_normalized: bool = False
     cache_dir: Path | None = None
     resume_latest: bool = False
     qu_v1_anchor_path: Path | None = None
     kl_coefficient: float = 0.0
+    kl_weighting: str = "sample"
     min_available_bytes: int = 6 * training_preflight.GIB
     min_swap_free_bytes: int = 4 * training_preflight.GIB
     require_gpu: bool = False
@@ -152,6 +160,7 @@ class TrainingSample:
     weight: float
     parent_logits: np.ndarray | None
     acting_seat: int = -1
+    kl_weight: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -225,6 +234,7 @@ class MetricAccumulator:
     weighted_value_mse: float = 0.0
     weighted_kl: float = 0.0
     weight_sum: float = 0.0
+    kl_weight_sum: float = 0.0
     samples: int = 0
     batches: int = 0
 
@@ -234,27 +244,37 @@ class MetricAccumulator:
         value_mse: torch.Tensor,
         kl: torch.Tensor,
         weights: torch.Tensor,
+        kl_weights: torch.Tensor,
     ) -> None:
         detached_weights = weights.detach()
+        detached_kl_weights = kl_weights.detach()
         self.weighted_policy_nll += float(
             (policy_nll.detach() * detached_weights).sum().cpu())
         self.weighted_value_mse += float(
             (value_mse.detach() * detached_weights).sum().cpu())
-        self.weighted_kl += float((kl.detach() * detached_weights).sum().cpu())
+        self.weighted_kl += float(
+            (kl.detach() * detached_kl_weights).sum().cpu())
         self.weight_sum += float(detached_weights.sum().cpu())
+        self.kl_weight_sum += float(detached_kl_weights.sum().cpu())
         self.samples += int(len(weights))
         self.batches += 1
 
     def finish(self, value_coefficient: float, kl_coefficient: float) -> dict[str, Any]:
         if self.samples == 0 or self.weight_sum <= 0.0:
             raise TrainingError("split produced no positive-weight decisions")
+        if kl_coefficient > 0.0 and self.kl_weight_sum <= 0.0:
+            raise TrainingError("split produced no positive KL-weight decisions")
         policy = self.weighted_policy_nll / self.weight_sum
         value = self.weighted_value_mse / self.weight_sum
-        kl = self.weighted_kl / self.weight_sum
+        kl = (
+            self.weighted_kl / self.kl_weight_sum
+            if self.kl_weight_sum > 0.0 else 0.0
+        )
         return {
             "samples": self.samples,
             "batches": self.batches,
             "weight_sum": self.weight_sum,
+            "kl_weight_sum": self.kl_weight_sum,
             "policy_nll": policy,
             "value_mse": value,
             "kl": kl,
@@ -487,6 +507,17 @@ def _validate_config(config: TrainingConfig) -> None:
             raise TrainingError("source weight labels must be non-empty strings")
         if not math.isfinite(value) or value < 0.0:
             raise TrainingError(f"source weight for {label!r} must be non-negative")
+    for deck_sha256, value in config.deck_weights.items():
+        if not _is_sha256(deck_sha256):
+            raise TrainingError(
+                f"deck weight key must be a lowercase SHA-256: {deck_sha256!r}")
+        if not math.isfinite(value) or value < 0.0:
+            raise TrainingError(
+                f"deck weight for {deck_sha256!r} must be non-negative")
+    if config.kl_weighting not in KL_WEIGHTING_POLICIES:
+        raise TrainingError(
+            "kl_weighting must be one of "
+            + ", ".join(sorted(KL_WEIGHTING_POLICIES)))
     if config.device not in ("auto", "cpu", "cuda"):
         raise TrainingError("device must be auto, cpu, or cuda")
     if config.kl_coefficient > 0.0 and config.qu_v1_anchor_path is None:
@@ -875,6 +906,17 @@ def _source_weight(config: TrainingConfig, game: LockedGame) -> float:
         float(config.source_weights.get(label, 1.0))
         for label in game.source_membership
     )
+
+
+def _deck_weight(
+    config: TrainingConfig, game: LockedGame, acting_seat: int,
+) -> float:
+    """Weight only the acting seat's registered deck, never the whole game."""
+    if acting_seat not in (0, 1):
+        raise TrainingError(
+            f"game {game.game_uid} has invalid acting seat {acting_seat}")
+    deck_sha256 = game.registered_deck_sha256s[acting_seat]
+    return float(config.deck_weights.get(deck_sha256, 1.0))
 
 
 def _parent_logits(anchor: QuV1Net, obs: Mapping[str, Any], expected_rows: int) -> np.ndarray:
@@ -1296,8 +1338,18 @@ def iter_game_samples(
     source_weight = _source_weight(config, game)
     normalizer = float(game.decision_count) if config.game_normalized else 1.0
     for encoded in _encoded_game_samples(game, anchor, cache):
-        weight = source_weight * _outcome_weight(config, encoded.reward) / normalizer
-        if weight <= 0.0:
+        weight = (
+            source_weight
+            * _outcome_weight(config, encoded.reward)
+            * _deck_weight(config, game, encoded.acting_seat)
+            / normalizer
+        )
+        kl_weight = (
+            1.0 / float(game.decision_count)
+            if config.kl_weighting == "uniform-game"
+            else 1.0
+        )
+        if weight <= 0.0 and config.kl_coefficient <= 0.0:
             continue
         yield TrainingSample(
             features=encoded.features,
@@ -1309,6 +1361,7 @@ def iter_game_samples(
             weight=float(weight),
             parent_logits=encoded.parent_logits,
             acting_seat=encoded.acting_seat,
+            kl_weight=float(kl_weight),
         )
 
 
@@ -1429,7 +1482,9 @@ def _batch_terms(
     net: QM.TorchQuV2A,
     samples: Sequence[TrainingSample],
     device: torch.device,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[
+    torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor,
+]:
     batch = QM.collate([sample.features for sample in samples], device=device)
     logits, values = net(batch)
     sequence = [_sequence_terms(logits[index], sample)
@@ -1440,7 +1495,31 @@ def _batch_terms(
         [sample.reward for sample in samples], dtype=values.dtype, device=device)
     weights = torch.tensor(
         [sample.weight for sample in samples], dtype=values.dtype, device=device)
-    return policy_nll, (values - rewards).square(), kl, weights
+    kl_weights = torch.tensor(
+        [sample.kl_weight for sample in samples],
+        dtype=values.dtype,
+        device=device,
+    )
+    return policy_nll, (values - rewards).square(), kl, weights, kl_weights
+
+
+def _weighted_objective(
+    policy_nll: torch.Tensor,
+    value_mse: torch.Tensor,
+    kl: torch.Tensor,
+    weights: torch.Tensor,
+    kl_weights: torch.Tensor,
+    config: TrainingConfig,
+) -> torch.Tensor:
+    """Normalize supervision and the parent trust region independently."""
+    supervised_denominator = weights.sum().clamp(min=1e-12)
+    supervised = (
+        (policy_nll * weights).sum()
+        + config.value_coefficient * (value_mse * weights).sum()
+    ) / supervised_denominator
+    kl_denominator = kl_weights.sum().clamp(min=1e-12)
+    anchor = (kl * kl_weights).sum() / kl_denominator
+    return supervised + config.kl_coefficient * anchor
 
 
 def _run_split(
@@ -1456,20 +1535,17 @@ def _run_split(
     grad_context = torch.enable_grad() if training else torch.no_grad()
     with grad_context:
         for minibatch in _batches(samples, config.batch_size):
-            policy_nll, value_mse, kl, weights = _batch_terms(net, minibatch, device)
-            denominator = weights.sum().clamp(min=1e-12)
-            objective = (
-                (policy_nll * weights).sum()
-                + config.value_coefficient * (value_mse * weights).sum()
-                + config.kl_coefficient * (kl * weights).sum()
-            ) / denominator
+            policy_nll, value_mse, kl, weights, kl_weights = _batch_terms(
+                net, minibatch, device)
+            objective = _weighted_objective(
+                policy_nll, value_mse, kl, weights, kl_weights, config)
             if training:
                 assert optimizer is not None
                 optimizer.zero_grad(set_to_none=True)
                 objective.backward()
                 torch.nn.utils.clip_grad_norm_(net.parameters(), config.gradient_clip)
                 optimizer.step()
-            metrics.add(policy_nll, value_mse, kl, weights)
+            metrics.add(policy_nll, value_mse, kl, weights, kl_weights)
     return metrics.finish(config.value_coefficient, config.kl_coefficient)
 
 
@@ -1655,9 +1731,14 @@ def _config_manifest(config: TrainingConfig, device: torch.device) -> dict[str, 
             "loss": config.loss_weight,
             "sources": dict(sorted(config.source_weights.items())),
             "source_membership_policy": SOURCE_WEIGHT_POLICY,
+            "decks": dict(sorted(config.deck_weights.items())),
+            "deck_weight_policy": DECK_WEIGHT_POLICY,
             "game_normalized_by_decision_count": config.game_normalized,
         },
         "kl_coefficient": config.kl_coefficient,
+        "kl_weighting": config.kl_weighting,
+        "kl_weighting_policy": KL_WEIGHTING_POLICIES[config.kl_weighting],
+        "kl_denominator_policy": KL_DENOMINATOR_POLICY,
         "qu_v1_anchor_path": (
             str(config.qu_v1_anchor_path.expanduser().resolve())
             if config.qu_v1_anchor_path is not None else None
@@ -1753,8 +1834,13 @@ def _resume_lock(
             "loss_weight": config.loss_weight,
             "source_weights": dict(sorted(config.source_weights.items())),
             "source_weight_policy": SOURCE_WEIGHT_POLICY,
+            "deck_weights": dict(sorted(config.deck_weights.items())),
+            "deck_weight_policy": DECK_WEIGHT_POLICY,
             "game_normalized": config.game_normalized,
             "kl_coefficient": config.kl_coefficient,
+            "kl_weighting": config.kl_weighting,
+            "kl_weighting_policy": KL_WEIGHTING_POLICIES[config.kl_weighting],
+            "kl_denominator_policy": KL_DENOMINATOR_POLICY,
         },
         "runtime": {
             "torch": str(torch.__version__),
@@ -2006,6 +2092,17 @@ def _run_training_locked(
     if unknown_weights:
         raise TrainingError("source weights do not match selected aliases: "
                             + ", ".join(unknown_weights))
+    known_decks = {
+        deck_sha256
+        for split in _SPLITS
+        for game in plan.games[split]
+        for deck_sha256 in game.registered_deck_sha256s
+    }
+    unknown_deck_weights = sorted(set(config.deck_weights) - known_decks)
+    if unknown_deck_weights:
+        raise TrainingError(
+            "deck weights do not match selected acting-seat decks: "
+            + ", ".join(unknown_deck_weights))
     _seed_everything(config.seed)
     anchor = _load_anchor(config.qu_v1_anchor_path)
     anchor_sha256 = (
@@ -2329,6 +2426,25 @@ def _source_weights(values: Sequence[str]) -> dict[str, float]:
     return result
 
 
+def _deck_weights(values: Sequence[str]) -> dict[str, float]:
+    result: dict[str, float] = {}
+    for raw in values:
+        deck_sha256, separator, number = raw.partition("=")
+        if (not separator or not _is_sha256(deck_sha256)
+                or deck_sha256 in result):
+            raise TrainingError(
+                f"invalid or duplicate deck weight {raw!r}; "
+                "expected lowercase SHA256=MULTIPLIER")
+        try:
+            value = float(number)
+        except ValueError as error:
+            raise TrainingError(f"invalid deck weight {raw!r}") from error
+        if not math.isfinite(value) or value < 0.0:
+            raise TrainingError(f"invalid deck weight {raw!r}")
+        result[deck_sha256] = value
+    return result
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
@@ -2361,11 +2477,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--source-weight", action="append", default=[], metavar="LABEL=WEIGHT")
     parser.add_argument(
+        "--deck-weight", action="append", default=[],
+        metavar="SHA256=MULTIPLIER",
+        help="multiply BC/value weight only for decisions by this exact deck",
+    )
+    parser.add_argument(
         "--game-normalized", action="store_true",
         help="divide each decision weight by its indexed game decision count",
     )
     parser.add_argument("--qu-v1-anchor", type=Path)
     parser.add_argument("--kl-coefficient", type=_nonnegative_float, default=0.0)
+    parser.add_argument(
+        "--kl-weighting",
+        choices=tuple(sorted(KL_WEIGHTING_POLICIES)),
+        default="sample",
+        help="weight parent KL uniformly by decision or uniformly by game",
+    )
     parser.add_argument(
         "--min-available-gib", type=training_preflight.gib,
         default=training_preflight.gib(6.0),
@@ -2414,9 +2541,11 @@ def main(argv: Iterable[str] | None = None) -> int:
             draw_weight=args.draw_weight,
             loss_weight=args.loss_weight,
             source_weights=_source_weights(args.source_weight),
+            deck_weights=_deck_weights(args.deck_weight),
             game_normalized=args.game_normalized,
             qu_v1_anchor_path=args.qu_v1_anchor,
             kl_coefficient=args.kl_coefficient,
+            kl_weighting=args.kl_weighting,
             min_available_bytes=args.min_available_gib,
             min_swap_free_bytes=args.min_swap_free_gib,
             require_gpu=args.require_gpu,
