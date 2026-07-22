@@ -241,6 +241,21 @@ Research log (each vs the then-champion, 100-200 game evals):
   patched, content-hashed by the new evaluator, and guarded by a native test;
   public face-up-prize roots fail closed because the ABI lacks a visibility
   mask. Production weights remain `4ce6522f...`.
+- **Public-belief infrastructure works, but the first signal probe did not
+  justify a field gate (2026-07-22, research only)**: two paired-seat rules
+  games and two paired-seat reflex games at the full 16/32/32/16 world settings
+  materialized 6,080/6,080 worlds with zero engine, sampler, controller, or
+  dispatcher errors. Across 214 eligible decisions, 76 roots completed at
+  least screening and 27 non-reflex candidates reached the full stability
+  test; none became an override. The closest case preferred attaching to
+  Kadabra instead of Qu-v1's Alakazam and passed 9/10 locked checks
+  (confirmation +15.6 pp, bootstrap lower +6.25 pp, sign p=0.0059), but its
+  independent selection margin was +3.125 pp versus the predeclared +5 pp
+  requirement. Do not lower that threshold on this four-game observation.
+  Full-panel accounting was corrected so a deliberate selection-stage
+  agreement is not mislabeled as an incomplete confirmation panel. NEXT: a
+  source-locked 20-game calibration estimates whether robust public overrides
+  are frequent enough to justify the 160-game gate.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex

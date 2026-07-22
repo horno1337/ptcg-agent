@@ -307,6 +307,28 @@ def test_belief_gate_requires_root_diversity_and_clock_evidence():
     assert not gate["criteria"]["minimum_override_decks_met"]
 
 
+def test_panel_completion_does_not_penalize_deliberate_selection_agreement():
+    metrics = ECF.OracleMetrics(
+        reasons=Counter({"insufficient_evidence": 1}),
+        root_diagnostics=[
+            {"diagnostics": {
+                "panel_complete": True, "expansion_requested": True,
+                "requested_worlds": 80, "generated_worlds": 80,
+            }},
+            {"diagnostics": {
+                "panel_complete": False, "expansion_requested": True,
+                "requested_worlds": 80, "generated_worlds": 80,
+            }},
+        ],
+    )
+    summary = EBC._root_stability_summary(metrics)
+    assert summary["complete_panels"] == 1
+    assert summary["expanded_roots"] == 2
+    assert summary["incomplete_evidence"] == 1
+    assert summary["full_panel_attempts"] == 2
+    assert summary["complete_panel_rate"] == 0.5
+
+
 def test_cli_defaults_are_full_belief_gate_thresholds():
     args = EBC.build_parser().parse_args(["2"])
     assert args.minimum_gate_games == 160
@@ -327,5 +349,6 @@ if __name__ == "__main__":
     test_world_level_statistics_do_not_count_direction_rows_twice()
     test_analyze_uses_only_public_worlds_and_keeps_direction_pairs_together()
     test_belief_gate_requires_root_diversity_and_clock_evidence()
+    test_panel_completion_does_not_penalize_deliberate_selection_agreement()
     test_cli_defaults_are_full_belief_gate_thresholds()
     print("all belief counterfactual tests passed")
