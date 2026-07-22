@@ -42,14 +42,14 @@ the ladder.
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
   strategy fusion, not lack of time.
-- ACTIVE DIRECTION: **counterfactual/advantage supervision on a frozen Qu-v1**.
-  Exact-deck final-head adapters proved that the shared representation can fit
-  held-out Grim and Crustle action distributions, but hard cloning of winning
-  seats did not reliably improve play (the Crustle MAIN probe lost 70-90 to its
-  frozen parent). Do not widen adapters or unfreeze the trunk on the same hard
-  labels. First obtain targets that assign consequence to critical choices:
-  counterfactual action values from a teacher that demonstrably beats Qu-v1, or
-  online advantage estimates against a diverse stronger league.
+- ACTIVE DIRECTION: keep shipped Qu-v1 frozen while testing a public-only,
+  matched-capacity Qu-v2A representation with content-locked behavior cloning
+  and an optional frozen-parent KL trust region. Exact-deck adapters proved the
+  old representation can fit held-out action distributions, but hard cloning
+  did not reliably improve play; the observable public-belief teacher then
+  failed its locked calibration. That teacher route is closed. Qu-v2A is
+  candidate-only research, not a production architecture or evidence that more
+  behavior cloning alone beats the corpus ceiling.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
@@ -76,6 +76,13 @@ the ladder.
   the ladder disposes.
 - Corpus rule: band-representative games (our own ladder episodes, both
   seats) are the base; top-team scouting is seasoning, not foundation.
+- Random corpus validation/test loss is an interpolation diagnostic, not a
+  ladder-transfer estimate: the v2 manifest has substantial agent and exact-deck
+  identity overlap across splits. Qu-v2A strength must be measured in the
+  engine by `tools/research/eval_qu_v2a.py`, whose baseline is hard-locked to
+  frozen Qu-v1 SHA-256 `4ce6522f...10ba033`. Require valid, fault-free primary
+  pool:8, withheld pool:8:16, mirror, and threat-deck checks before considering
+  a separately reviewed deployment integration.
 - Planner gates must additionally report root coverage, reflex disagreement,
   valid particles, fallback reasons, p50/p95/max latency, cumulative clock,
   errors, hashes and confidence intervals. Evaluate exact-known, withheld
@@ -97,6 +104,17 @@ the ladder.
   `tools/eval_ab.py` uses the same environment and scores
   `(W + 0.5D) / scheduled`; any truncation/infrastructure failure invalidates
   the gate rather than becoming a draw.
+- The Qu-v2A research path uses `tools/index_corpus.py` and
+  `tools/research/train_qu_v2a.py`: append-stable game-grouped splits, strict
+  prompt-to-next-action auditing, replay/content/deck/source locks, bounded
+  streaming, a content-keyed pickle-free per-game cache, selected-device
+  resource preflight, exclusive output-directory locking, and exact
+  completed-epoch resume. Validation alone selects the checkpoint; test is
+  first opened after selection. Source aliases use
+  `max_across_source_membership_v1`, so a legacy/top duplicate remains
+  foundation-weighted. The random-init Qu-v1 control is required before making
+  a representation-causality claim; the frozen-parent-KL strength run does not
+  isolate architecture.
 - Policy iteration: `tools/selfplay_teacher.py` keeps paired search scores and
   soft root distributions on learner-reached states against a deck/policy pool;
   `tools/train_teacher.py` uses a game-grouped holdout and the band BC anchor.
@@ -171,8 +189,16 @@ the ladder.
   versus 5 pp). This is a diagnostic, not permission to tune the threshold on
   the probe. The only resulting gate change is bookkeeping: a deliberate
   selection-agrees-reflex exit is complete at its requested stage and no longer
-  counts as a failed confirmation panel. Run the locked 20-game calibration
-  before deciding whether a 160-game belief gate is worth its compute.
+  counts as a failed confirmation panel.
+- The locked 20-game public-belief calibration is complete and failed its gate:
+  belief oracle 14-6 versus frozen Qu-v1 17-3, a -15.0 pp effect with CI
+  [-46.7, +21.5], and only 3 confirmed overrides across 3 games and opponent
+  decks 3 and 5. It completed 82/114 full panels (71.9%) with 100% sampled-world
+  validity, p95 target think time 447.3s, and zero infrastructure or engine
+  errors. Do not run the 160-game belief gate and do not train from these
+  labels. Locked artifact:
+  `tools/checkpoints/belief-counterfactual/calibration-field20-d389076.json`,
+  SHA-256 `463bb34a103c3bd2a866b32336f595dd5168a13ecf3df2e18bc63f26bae6ce06`.
 
 ## Submission discipline
 
@@ -186,6 +212,10 @@ The ladder is the only real eval; every submission is an A/B measurement.
   clean tree.
 - **The user names the tag and approves every upload** — training/eval/
   commit chains may run autonomously; `kaggle submit` never does.
+- Qu-v2A currently has no production dispatcher or packaging path, and its
+  research evaluator has no random-opponent smoke. Passing its research gates
+  authorizes only a separately reviewed integration; it does not authorize
+  replacing `agent/weights.npz`, tagging, packaging, or upload.
 - Ladder champion: Qu-v1, semantic-v3 weights `4ce6522f...` from tag `Qu-v1`.
   Two byte-identical active submissions reached divergent snapshot ratings
   (739.6 and 885.7), so name both the frozen baseline and submission trajectory;

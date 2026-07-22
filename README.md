@@ -253,9 +253,29 @@ Research log (each vs the then-champion, 100-200 game evals):
   independent selection margin was +3.125 pp versus the predeclared +5 pp
   requirement. Do not lower that threshold on this four-game observation.
   Full-panel accounting was corrected so a deliberate selection-stage
-  agreement is not mislabeled as an incomplete confirmation panel. NEXT: a
-  source-locked 20-game calibration estimates whether robust public overrides
-  are frequent enough to justify the 160-game gate.
+  agreement is not mislabeled as an incomplete confirmation panel.
+- **The locked public-belief calibration failed; stop this label route
+  (2026-07-22, research only)**: over the completed source-locked 20-game
+  calibration, the belief oracle scored 14-6 versus frozen Qu-v1's 17-3, a
+  -15.0 pp effect with CI [-46.7, +21.5]. It produced only 3 confirmed overrides
+  across 3 games and opponent decks 3 and 5. Just 82/114 requested full panels
+  completed (71.9%); sampled-world validity was 100%, p95 target think time was
+  447.3s, and there were zero infrastructure or engine errors. The locked gate
+  failed: do **not** run the 160-game belief gate or train from these labels.
+  Artifact: `tools/checkpoints/belief-counterfactual/calibration-field20-d389076.json`,
+  SHA-256 `463bb34a103c3bd2a866b32336f595dd5168a13ecf3df2e18bc63f26bae6ce06`.
+- **Full-corpus Qu-v2A foundation (2026-07-22, candidate only; no strength
+  claim)**: corpus-index v2 grouped 13,898 paths into 13,650 unique games and
+  deduplicated 248 legacy/top aliases. It accepted 13,639 games and 1,886,141
+  decisions for BC; 11 malformed/nonterminal games remain visible but excluded.
+  The append-stable 80/10/10 split contains 1,501,933/191,702/192,506
+  train/validation/test decisions. Its strict prompt-to-next-action audit found
+  22 invalid action rows among 1,914,520 expected prompts. Corpus content SHA is
+  `ef231339...c065`; embedded manifest SHA is `3f73b87b...4ef2` (raw index file
+  SHA `bd0c11c2...9401c1`). Random holdouts are interpolation diagnostics, not
+  ladder-transfer estimates: 859/1,004 test agent identities and 371/464 test
+  exact-deck identities also occur in train. EpisodeId is only a collection-time
+  proxy. Qu-v2A must beat frozen Qu-v1 in the engine before it means progress.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -313,6 +333,15 @@ tools/
   selfplay_search.py       # historical retired-PIMC flywheel (do not use for new cycles)
   selfplay_teacher.py      # diverse turn-search teacher records (JSONL)
   download_episodes.py     # resumable top/band Kaggle replay downloader
+  index_corpus.py          # append-stable content lock + strict action audit
+  training_preflight.py    # fail-closed RAM/swap/selected-GPU resource gate
+  research/
+    analyze_corpus_index.py # metadata-only corpus and overlap diagnostics
+    qu_v2a_features.py     # public-only relational prompt representation
+    qu_v2a_model.py        # matched-capacity Torch/NumPy candidate twins
+    train_qu_v2a.py        # bounded BC, per-game cache, exact epoch resume
+    train_qu_v1_control.py # random-init same-corpus representation control
+    eval_qu_v2a.py         # paired candidate versus frozen Qu-v1 evaluator
   analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
   eval_turn_search.py      # planner/reflex A/B, clock + coverage + CI diagnostics
@@ -336,6 +365,13 @@ tests/test_deck_adapter.py # exact-deck isolation, schema, parity + overwrite gu
 tests/test_counterfactual_oracle.py # hidden-state, holdout gate + native branch reuse
 tests/test_aggregate_counterfactual.py # source/schedule/evidence-safe shard merge
 tests/test_belief_counterfactual.py # no-leak sampler, paired panels + gate contracts
+tests/test_corpus_index.py # deduplication, append-stable splits, strict action audit
+tests/test_corpus_diagnostics.py # signed metadata-only corpus diagnostics
+tests/test_training_preflight.py # RAM/swap/GPU gate behavior
+tests/test_qu_v2a.py      # public feature contract + Torch/NumPy parity
+tests/test_qu_v2a_training.py # streaming/cache/resume/output-lock semantics
+tests/test_qu_v1_control.py # matched same-corpus representation control
+tests/test_eval_qu_v2a.py # frozen-baseline and paired-evaluator guards
 ```
 
 ## Environments & data locations (this machine)
@@ -364,6 +400,45 @@ python tools/download_episodes.py --top 50 --per-sub 100 \
 python tools/download_episodes.py --min-score 600 --max-score 800 --spread \
     --top 50 --per-sub 100 --out ~/Desktop/ptcg_corpus_mid \
     --skip-dir ~/Desktop/ptcg_episodes --skip-dir ~/Desktop/ptcg_corpus_top
+
+# content-lock the complete corpus; unrelated appended games do not move old splits
+python tools/index_corpus.py \
+    legacy=~/Desktop/ptcg_episodes mid=~/Desktop/ptcg_corpus_mid \
+    top=~/Desktop/ptcg_corpus_top \
+    --json-out tools/checkpoints/corpus-index/field-all-v2.json
+python tools/research/analyze_corpus_index.py \
+    tools/checkpoints/corpus-index/field-all-v2.json \
+    --json-out tools/checkpoints/corpus-index/field-all-v2-diagnostics.json
+
+# fail before opening the corpus if current resources are insufficient
+~/.venvs/ptcg-rl/bin/python tools/training_preflight.py \
+    --require-gpu --min-gpu-free-gib 6
+
+# locked strength candidate: band foundation, top seasoning, parent trust region
+~/.venvs/ptcg-rl/bin/python tools/research/train_qu_v2a.py \
+    --manifest tools/checkpoints/corpus-index/field-all-v2.json \
+    --out-dir tools/checkpoints/qu-v2a-field-v1 \
+    --cache-dir tools/checkpoints/qu-v2a-cache \
+    --epochs 8 --batch-size 128 --learning-rate 1e-4 \
+    --source-weight legacy=1 --source-weight mid=1 --source-weight top=0.2 \
+    --qu-v1-anchor agent/weights.npz --kl-coefficient 0.1 \
+    --require-gpu --min-gpu-free-gib 6
+# After interruption, repeat the identical command with --resume-latest;
+# scientific arguments, code/data contracts, runtime and cache are locked.
+
+# candidate-only paired field gates; none authorizes production integration
+python tools/research/eval_qu_v2a.py 160 \
+    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp pool:8 --opp-policy mixed \
+    --json-out tools/checkpoints/qu-v2a-field-v1/eval-pool8.json
+python tools/research/eval_qu_v2a.py 160 \
+    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp pool:8:16 --opp-policy mixed \
+    --json-out tools/checkpoints/qu-v2a-field-v1/eval-holdout.json
+python tools/research/eval_qu_v2a.py 160 \
+    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp mirror \
+    --json-out tools/checkpoints/qu-v2a-field-v1/eval-mirror.json
 
 # imitation + RL (in the training venv)
 python tools/train.py --bc ~/Desktop/ptcg_episodes --iters 0 \
@@ -470,6 +545,18 @@ git tag <name> && python tools/build_submission.py
   `docs/competition_rl_contract.md`. Select-cap and opponent-fault truncations
   are never relabeled as draws or positive reward, and the native engine RNG
   is explicitly unseedable even when the Python schedule has a seed.
+- Qu-v2A consumes only the current public state and the acting seat's registered
+  deck. It excludes transport logs, search input, exact-hidden payloads,
+  opponent hands, and opponent deck lists. Its source weights use
+  `max_across_source_membership_v1`, so a legacy/top alias stays
+  foundation-weighted.
+- The Qu-v2A cache stores one pickle-free NPZ per game and binds replay bytes,
+  registered decks, loader/indexer code, transitive feature dependencies, and
+  the optional Qu-v1 anchor. Validation selects the checkpoint; test is first
+  opened only after selection. The default candidate has 189,538 parameters
+  versus 178,626 in the same-corpus Qu-v1 control. Only an unanchored matched
+  comparison can support a representation-causality claim; the anchored
+  strength run cannot.
 - `turn_search.py` stays disabled by default. Local gates may enable it; a
   submission enables it only as a one-change, user-approved ladder A/B.
 - Teacher shards are source-locked: finish generation before editing planner,
