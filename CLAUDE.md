@@ -42,15 +42,18 @@ the ladder.
 - Runtime search (PIMC) is retired (`search_policy.ENABLED = False`) — it lost on
   the ladder even after local parity (v2/v3 post-mortems), the root cause being
   strategy fusion, not lack of time.
-- ACTIVE DIRECTION: Qu-v2A passed the locked primary, withheld, mirror, meta2
-  lineage-threat, meta3 follow-up and random-smoke gates on 2026-07-22; the user
-  approved the one-change `Qu-v2` ladder submission.  Its production path is a
-  Torch-free NumPy twin plus the exact content-locked public encoder, with
-  Qu-v1 archive compatibility and fail-soft rules fallback retained.  Qu-v1
-  remains the frozen comparison artifact and ladder champion until the Qu-v2
-  trajectory supplies real ladder evidence.  Exact-deck adapters proved the
-  old representation can fit held-out action distributions, while the failed
-  observable public-belief teacher route remains closed.
+- ACTIVE DIRECTION: do **not** retrain from the `Qu-v2` score.  Replay
+  fingerprinting proved all 2,800 resolved ladder actions were the hand-written
+  rules fallback; the extracted intended model matched only 1,654 (59.1%).  The
+  run therefore contains no ladder evidence about Qu-v2A weights or
+  architecture.  Keep
+  weights `fe1e12fd...` and the deck byte-identical, repair only the runtime
+  (`ndarray.clip(1.0, None)` for NumPy 1.x compatibility plus a shipped
+  `tools/__init__.py` package marker), then ladder-test that packaging-only
+  change after the user names and approves it.  The extracted archive must pass
+  `tools/audit_submission_runtime.py` on the saved 2,800 prompts before any
+  upload, and the first new ladder replays must pass an action-provenance canary
+  before rating is interpreted.  Qu-v1 remains the frozen ladder champion.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
@@ -84,6 +87,13 @@ the ladder.
   frozen Qu-v1 SHA-256 `4ce6522f...10ba033`. Require valid, fault-free primary
   pool:8, withheld pool:8:16, mirror, and threat-deck checks before considering
   a separately reviewed deployment integration.
+- Every promoted runtime must be tested from the **exact extracted tarball**,
+  not repository imports or a copied include list.  For Qu-v2, run
+  `tools/audit_submission_runtime.py` under a hostile installed `tools` package
+  and require package/reference model and final-action parity on every saved
+  prompt, zero missing model actions, zero exceptions, and a non-empty
+  model-vs-rules disagreement set.  A legal random smoke cannot detect a
+  silently swallowed model exception because the rules fallback is also legal.
 - Planner gates must additionally report root coverage, reflex disagreement,
   valid particles, fallback reasons, p50/p95/max latency, cumulative clock,
   errors, hashes and confidence intervals. Evaluate exact-known, withheld
@@ -215,7 +225,8 @@ The ladder is the only real eval; every submission is an A/B measurement.
   commit chains may run autonomously; `kaggle submit` never does.
 - Qu-v2 production integration must keep the evaluated feature encoder
   content-locked, pass `tests/test_qu_v2_deployment.py`, `tests/test_safety.py`
-  and the 200-game random smoke, and package without importing Torch.  A future
+  and the 200-game random smoke, package without importing Torch, and pass the
+  exact-archive replay fingerprint gate.  A future
   Qu-v2 candidate still requires the same separately reviewed integration;
   research-gate success alone never authorizes replacing `agent/weights.npz`,
   tagging, packaging, or upload.
@@ -241,6 +252,8 @@ python tools/selfplay_teacher.py OUT.jsonl N --opp pool:8 --worker ID
 python tools/mine_meta_decks.py           # refresh opponent-model library
 python tools/eval_search.py 20 --budget 0.03 --seed N   # pre-ship: search @ ladder-like compute
 python tools/build_submission.py          # package (injects cg/libcg.so; CG_LIB)
+python tools/audit_submission_runtime.py tools/checkpoints/qu-v2-ladder/original \
+  --team '増殖するG' --archive submission.tar.gz  # exact-tar identity gate
 ```
 
 `[]` is a valid STOP action when `minCount == 0`; only `None` means policy

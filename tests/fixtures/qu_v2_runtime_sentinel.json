@@ -1,0 +1,80 @@
+{
+  "episode_id": 87512488,
+  "logged_action": [0, 1],
+  "intended_action": [1, 0],
+  "rules_action": [0, 1],
+  "observation": {
+    "current": {
+      "energyAttached": false,
+      "firstPlayer": 0,
+      "looking": null,
+      "players": [
+        {
+          "active": [null],
+          "asleep": false,
+          "bench": [],
+          "benchMax": 5,
+          "burned": false,
+          "confused": false,
+          "deckCount": 46,
+          "discard": [],
+          "hand": [
+            {"id": 1141, "playerIndex": 0, "serial": 44},
+            {"id": 1102, "playerIndex": 0, "serial": 36},
+            {"id": 1152, "playerIndex": 0, "serial": 50},
+            {"id": 676, "playerIndex": 0, "serial": 25},
+            {"id": 1227, "playerIndex": 0, "serial": 60},
+            {"id": 1152, "playerIndex": 0, "serial": 48},
+            {"id": 675, "playerIndex": 0, "serial": 24}
+          ],
+          "handCount": 7,
+          "paralyzed": false,
+          "poisoned": false,
+          "prize": [null, null, null, null, null, null]
+        },
+        {
+          "active": [null],
+          "asleep": false,
+          "bench": [],
+          "benchMax": 5,
+          "burned": false,
+          "confused": false,
+          "deckCount": 47,
+          "discard": [],
+          "hand": null,
+          "handCount": 6,
+          "paralyzed": false,
+          "poisoned": false,
+          "prize": [null, null, null, null, null, null]
+        }
+      ],
+      "result": -1,
+      "retreated": false,
+      "stadium": [],
+      "stadiumPlayed": false,
+      "supporterPlayed": false,
+      "turn": 0,
+      "turnActionCount": 5,
+      "yourIndex": 0
+    },
+    "logs": [{"cardId": 675, "playerIndex": 0, "serial": 24, "type": 4}],
+    "remainingOverageTime": 599.601542,
+    "search_begin_input": "AGUATEBAKEALEAbIDALC-+CCm-lFRwANBg-ZBHAELCQyGTwwG-MBC4-PJEAPY-ZBBg-ZBv-fIB-VEQ-VBL-+BI-UBBCw*3HBKMCACCl-WBIB-2BCkABgACfg-VBCABQ-gIClABgACiQ-VBEABgEA0B-VYE4EACB8-WBIB-MZdQQACHs-WBgE-2LIABEACCB-WBIB-MFgABQACH0-WBgE-2fMsEACC-XBIB-WNE*2TDgAEMACgABDAKMACgABG-FBgADGkAEBAPBABQBgWgAUEBABDwAF",
+    "select": {
+      "context": 2,
+      "contextCard": null,
+      "deck": null,
+      "effect": null,
+      "maxCount": 2,
+      "minCount": 0,
+      "option": [
+        {"area": 2, "index": 3, "playerIndex": 0, "type": 3},
+        {"area": 2, "index": 6, "playerIndex": 0, "type": 3}
+      ],
+      "remainDamageCounter": 0,
+      "remainEnergyCost": 0,
+      "type": 1
+    },
+    "step": 5
+  }
+}
