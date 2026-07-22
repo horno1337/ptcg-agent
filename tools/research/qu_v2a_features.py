@@ -32,7 +32,7 @@ from agent import features as BASE
 from agent.obsview import AREA_ACTIVE, AREA_BENCH, ObsView
 
 
-SCHEMA = "ptcg.qu-v2a.public-relational.v3"
+SCHEMA = "ptcg.qu-v2a.public-relational.v4"
 
 # Qu-v2A delegates semantic option binding and static card metadata to the
 # shipped agent modules.  Their public constants are part of this feature
@@ -289,6 +289,11 @@ def _finite_number(value: Any, default: float = 0.0) -> float:
     return default
 
 
+def _nonnegative_number(value: Any, default: float = 0.0) -> float:
+    """Normalize public counts while treating negative engine sentinels as zero."""
+    return max(_finite_number(value, default), 0.0)
+
+
 def _copy_ids(entries: Any, size: int) -> np.ndarray:
     result = np.zeros(size, dtype=np.int32)
     if not isinstance(entries, (list, tuple)):
@@ -444,24 +449,24 @@ def _prompt_features(view: ObsView, registered_deck: np.ndarray) -> np.ndarray:
     context_index = _CONTEXTS.index(context) if known_context else len(_CONTEXTS)
     result[11 + context_index] = 1.0
 
-    result[37] = _finite_number(select.get("minCount"), 1.0) / 5.0
-    result[38] = _finite_number(select.get("maxCount"), 1.0) / 5.0
+    result[37] = _nonnegative_number(select.get("minCount"), 1.0) / 5.0
+    result[38] = _nonnegative_number(select.get("maxCount"), 1.0) / 5.0
     result[39] = len(select.get("option") or ()) / 24.0
-    result[40] = _finite_number(current.get("turn")) / 40.0
-    result[41] = _finite_number(current.get("turnActionCount")) / 32.0
-    result[42] = _finite_number(select.get("remainDamageCounter")) / 34.0
+    result[40] = _nonnegative_number(current.get("turn")) / 40.0
+    result[41] = _nonnegative_number(current.get("turnActionCount")) / 32.0
+    result[42] = _nonnegative_number(select.get("remainDamageCounter")) / 34.0
     energy_cost = select.get("remainEnergyCost")
     result[43] = (len(energy_cost) if isinstance(energy_cost, (list, tuple))
-                  else _finite_number(energy_cost)) / 5.0
+                  else _nonnegative_number(energy_cost)) / 5.0
     for offset, name in enumerate((
             "supporterPlayed", "energyAttached", "stadiumPlayed", "retreated")):
         result[44 + offset] = 1.0 if current.get(name) else 0.0
     result[48] = 1.0 if current.get("firstPlayer") == view.my_index else 0.0
-    result[49] = _finite_number(me.get("deckCount")) / 60.0
-    result[50] = _finite_number(opponent.get("deckCount")) / 60.0
-    result[51] = _finite_number(
+    result[49] = _nonnegative_number(me.get("deckCount")) / 60.0
+    result[50] = _nonnegative_number(opponent.get("deckCount")) / 60.0
+    result[51] = _nonnegative_number(
         me.get("handCount"), float(len(me.get("hand") or ()))) / 30.0
-    result[52] = _finite_number(opponent.get("handCount")) / 30.0
+    result[52] = _nonnegative_number(opponent.get("handCount")) / 30.0
     result[53] = len(me.get("prize") or ()) / 6.0
     result[54] = len(opponent.get("prize") or ()) / 6.0
     for owner, player in enumerate((me, opponent)):
