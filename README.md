@@ -326,6 +326,23 @@ Research log (each vs the then-champion, 100-200 game evals):
   strength evidence.  Before another promotion, vendor the complete runtime
   under `agent/`, exercise a closer Kaggle compatibility matrix, and require a
   post-upload action-provenance canary.
+- **A cross-UID packaging fault is the leading Kaggle-only root cause
+  (2026-07-23; repaired locally, not yet canaried)**: the exact `qu-v2.1`
+  archive stored `agent/weights.npz` as mode 0600, inherited from the
+  trainer's atomic temporary output, while every pre-Qu-v2 weight artifact was
+  world-readable. A runner that extracts and executes under different UIDs
+  therefore makes `np.load` raise; the fail-soft dispatcher converts that
+  deterministically into rules play. The packager now canonicalizes regular
+  files to 0644 and directories to 0755. Qu-v2's Torch-free encoder is
+  vendored under `agent/`, its evaluated fingerprint remains pinned without
+  production filesystem hashing, and the submission has no `tools` runtime
+  dependency. The upgraded exact-archive audit rejects the old 0600 tar and
+  executes the repaired archive as UID/GID 1 with `sys.modules['tools']`
+  pre-poisoned. On all 2,800 saved prompts it achieved 2,800/2,800 reference
+  model and final-action parity, zero missing model actions, and retained 1,146
+  model/rules disagreements. Weights remain byte-identical at
+  `fe1e12fd...187a`. This is strong causal evidence, not Kaggle proof; only a
+  user-named packaging-only canary and its first replay can close the incident.
 - **Qu-v2B objective-correction experiment (2026-07-23, training research
   only)**: keep the Qu-v2A architecture and locked v2 corpus, but make the BC
   supervision actor-specific and game-balanced.  The registered Alakazam deck
@@ -588,6 +605,10 @@ python tools/audit_submission_runtime.py \
 ~/.venvs/kaggle/bin/kaggle competitions submit pokemon-tcg-ai-battle \
     -f submission.tar.gz -m "<name>"
 ```
+
+The package audit fails closed unless it can run the extracted archive as a
+non-owner UID using the exact active Python environment; `unshare`, `mount`,
+and `setpriv` are required.
 
 ## Hard-won gotchas
 

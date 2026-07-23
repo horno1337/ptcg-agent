@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -33,7 +34,7 @@ from tools.research import qu_v2a_features as QF  # noqa: E402
 from tools.research import qu_v2a_model as QM  # noqa: E402
 
 
-SCHEMA = "ptcg-submission-runtime-audit-v1"
+SCHEMA = "ptcg-submission-runtime-audit-v2"
 
 
 class AuditError(RuntimeError):
@@ -61,8 +62,65 @@ def _safe_extract(archive: Path, destination: Path) -> list[str]:
                 ) from error
             if member.issym() or member.islnk():
                 raise AuditError(f"archive contains a link: {member.name}")
+            if member.isdir() and member.mode != 0o755:
+                raise AuditError(
+                    f"archive directory is not portable 0755: "
+                    f"{member.name} ({member.mode:04o})"
+                )
+            if member.isfile() and member.mode != 0o644:
+                raise AuditError(
+                    f"archive file is not portable 0644: "
+                    f"{member.name} ({member.mode:04o})"
+                )
         handle.extractall(destination, members=members, filter="data")
     return sorted(member.name for member in members)
+
+
+def _cross_uid_command(
+        script: str, payload: Path, interpreter_mount: Path,
+) -> list[str]:
+    """Run under the exact Python environment as a non-owner UID."""
+    unshare = shutil.which("unshare")
+    mount = shutil.which("mount")
+    setpriv = shutil.which("setpriv")
+    if unshare is None or mount is None or setpriv is None:
+        raise AuditError(
+            "cross-UID audit requires unshare, mount, and setpriv executables"
+        )
+    prefix = Path(sys.prefix).resolve()
+    executable = Path(sys.executable)
+    try:
+        executable_relative = executable.relative_to(Path(sys.prefix))
+    except ValueError as error:
+        raise AuditError(
+            "Python executable is outside its environment prefix"
+        ) from error
+    interpreter_mount.mkdir(mode=0o755)
+    shell = (
+        'set -eu\n'
+        '"$1" --bind "$2" "$3"\n'
+        '"$1" -o remount,bind,ro "$3"\n'
+        'exec "$4" --reuid=1 --regid=1 --clear-groups '
+        '"$3/$5" -c "$6" "$7"\n'
+    )
+    return [
+        unshare,
+        "--user",
+        "--map-auto",
+        "--map-root-user",
+        "--mount",
+        "/bin/sh",
+        "-c",
+        shell,
+        "cross-uid-runtime",
+        mount,
+        str(prefix),
+        str(interpreter_mount),
+        setpriv,
+        str(executable_relative),
+        script,
+        str(payload),
+    ]
 
 
 def _load_reference(path: Path) -> QM.NumpyQuV2A:
@@ -140,7 +198,9 @@ def _collect_prompts(
 _EXTRACTED_SCRIPT = r'''\
 import builtins
 import json
+import os
 import sys
+import types
 
 original_import = builtins.__import__
 def guarded_import(name, *args, **kwargs):
@@ -148,6 +208,12 @@ def guarded_import(name, *args, **kwargs):
         raise RuntimeError("submission attempted to import Torch")
     return original_import(name, *args, **kwargs)
 builtins.__import__ = guarded_import
+
+# A package cached in sys.modules wins over sys.path ordering. Production must
+# be self-contained under agent/, not merely prepend its own extraction root.
+poisoned_tools = types.ModuleType("tools")
+poisoned_tools.__path__ = []
+sys.modules["tools"] = poisoned_tools
 
 from agent import model, policy, safety
 from agent.obsview import ObsView
@@ -159,6 +225,8 @@ with open(sys.argv[1], encoding="utf-8") as handle:
     rows = json.load(handle)
 
 counts = {
+    "effective_uid": os.geteuid(),
+    "effective_gid": os.getegid(),
     "prompts": len(rows),
     "model_none": 0,
     "model_matches_reference": 0,
@@ -212,8 +280,14 @@ def audit(
         root = Path(temporary)
         extracted = root / "submission"
         hostile = root / "site-packages/tools"
+        interpreter_mount = root / "python-environment"
         extracted.mkdir()
         hostile.mkdir(parents=True)
+        # TemporaryDirectory defaults to 0700. The namespace maps this owner
+        # to UID 0 and executes the archive as UID 1, so make the audit tree
+        # traversable under the same world permissions a second container UID
+        # would receive.
+        root.chmod(0o755)
         (hostile / "__init__.py").write_text(
             "raise RuntimeError('unrelated tools package imported')\n",
             encoding="utf-8",
@@ -221,9 +295,7 @@ def audit(
         members = _safe_extract(archive, extracted)
         required = {
             "agent/weights.npz",
-            "tools/__init__.py",
-            "tools/research/__init__.py",
-            "tools/research/qu_v2a_features.py",
+            "agent/qu_v2_features.py",
         }
         missing = sorted(required - set(members))
         if missing:
@@ -238,8 +310,10 @@ def audit(
         )
         environment = dict(os.environ)
         environment["PYTHONPATH"] = str(hostile.parent)
+        environment["PYTHONDONTWRITEBYTECODE"] = "1"
         completed = subprocess.run(
-            [sys.executable, "-c", _EXTRACTED_SCRIPT, str(payload)],
+            _cross_uid_command(
+                _EXTRACTED_SCRIPT, payload, interpreter_mount),
             cwd=extracted,
             env=environment,
             text=True,
@@ -249,7 +323,9 @@ def audit(
         )
         if completed.returncode != 0:
             raise AuditError(
-                "extracted runtime failed:\n" + completed.stderr[-4000:])
+                "cross-UID extracted runtime failed:\n"
+                + completed.stderr[-4000:]
+            )
         try:
             runtime = json.loads(completed.stdout.strip())
         except json.JSONDecodeError as error:
@@ -267,6 +343,8 @@ def audit(
         raise AuditError("reference policy failed on replay prompts")
     if runtime.get("model_none") != 0:
         raise AuditError("extracted policy silently returned no model action")
+    if runtime.get("effective_uid") != 1 or runtime.get("effective_gid") != 1:
+        raise AuditError("extracted runtime did not execute as the non-owner UID")
     for key in required_equal:
         if runtime.get(key) != prompt_count:
             raise AuditError(

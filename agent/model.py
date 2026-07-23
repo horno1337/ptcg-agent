@@ -313,10 +313,10 @@ class QuV2Net:
     has_deck_adapter = False
 
     def __init__(self, weights: Mapping[str, np.ndarray]):
-        # Keep the trained feature implementation content-locked.  It is
-        # shipped as a tiny runtime dependency; unlike the research model it
-        # imports no Torch code.
-        from tools.research import qu_v2a_features as qf
+        # Keep the Torch-free production encoder inside the agent package.
+        # Its embedded fingerprint is checked against the evaluated artifact;
+        # runtime imports never depend on a top-level research/tools package.
+        from . import qu_v2_features as qf
 
         names = frozenset(weights.keys())
         if names != _QU_V2_KEYS:
