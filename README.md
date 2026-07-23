@@ -380,6 +380,17 @@ Research log (each vs the then-champion, 100-200 game evals):
   parent and Qu-v1. Every arm must be fault-free; primary must strictly beat
   parent and not trail Qu-v1, all secondary fields must not trail either
   reference, and both mirrors must exceed 50%.
+  The matrix passed with zero invalid games, controller fallbacks, repairs or
+  exceptions. Qu-v2B beat the canary parent 95-65 in direct mirror (59.4%,
+  CI 51.6-66.7%) and Qu-v1 108-52 (67.5%). Field scores for
+  Qu-v2B/parent/Qu-v1 were primary 80.6/80.0/70.6%, holdout
+  80.0/75.0/65.0%, threat 95.0/94.4/83.1%, sentinel 61.9/53.8/35.6%, and
+  Dragapult 95.0/89.4/85.0%. Aggregate manifest
+  `d863f8a4...43113` passed every pre-registered check. The exact
+  `ec69a2db...a8447` artifact is therefore authorized for production
+  integration and one user-approved ladder submission; its production path
+  also completed a 200-game random smoke at 197-3 with zero errors. The ladder
+  still decides external strength.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex

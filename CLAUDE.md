@@ -77,7 +77,11 @@ the ladder.
   `aggregate_qu_v2b_gate.py`: five three-arm field axes plus direct parent and
   Qu-v1 mirrors, 160 games/arm, zero faults/fallbacks/repairs, primary strictly
   above parent and not below Qu-v1, secondary fields not below either, and both
-  mirrors above 50%. Only an aggregate exit 0 permits integration/upload.
+  mirrors above 50%. The matrix completed with zero faults and aggregate
+  manifest `d863f8a4...43113`: Qu-v2B passed all checks, including 59.4%
+  (95-65) direct versus the canary parent and higher point estimates on every
+  field. Exact weights `ec69a2db...a8447` are authorized for integration and
+  the user's single `Qu-v2B` submission; do not clone without a later request.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue

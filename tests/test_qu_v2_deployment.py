@@ -179,8 +179,8 @@ def test_extracted_runtime_wins_over_an_installed_tools_package():
         sentinel = json.loads((
             ROOT / "tests/fixtures/qu_v2_runtime_sentinel.json"
         ).read_text(encoding="utf-8"))
-        (package / "observation.json").write_text(
-            json.dumps(sentinel["observation"]), encoding="utf-8")
+        (package / "runtime-sentinel.json").write_text(
+            json.dumps(sentinel), encoding="utf-8")
         script = """
 import json
 import os
@@ -193,16 +193,17 @@ from agent import model, policy
 from agent.obsview import ObsView
 net = model.load()
 assert isinstance(net, model.QuV2Net), type(net)
-with open('observation.json', encoding='utf-8') as handle:
-    obs = json.load(handle)
+with open('runtime-sentinel.json', encoding='utf-8') as handle:
+    sentinel = json.load(handle)
+obs = sentinel['observation']
 sample = net._qf.encode_public_observation(obs, policy.load_deck())
 logits, value = net.forward(sample)
 assert logits.shape == (len(obs['select']['option']) + 1,)
 assert isinstance(value, float)
 action = policy._model_decide(ObsView(obs))
 rules = policy.decide_rules(obs)
-assert action == [1, 0], action
-assert rules == [0, 1], rules
+assert action == sentinel['intended_action'], action
+assert rules == sentinel['rules_action'], rules
 assert action != rules
 print(f'runtime-ok:{os.geteuid()}:{os.getegid()}')
 """
@@ -212,7 +213,7 @@ print(f'runtime-ok:{os.geteuid()}:{os.getegid()}')
         completed = subprocess.run(
             audit_submission_runtime._cross_uid_command(
                 script,
-                package / "observation.json",
+                package / "runtime-sentinel.json",
                 root / "python-environment",
             ),
             cwd=package,
