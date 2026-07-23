@@ -94,6 +94,17 @@ the ladder.
   Cinderace improved to 8-2 from Qu-v1's 8-17 historical bleed; Grimmsnarl
   was 7-6 and Dragapult only 1-2 (too sparse). Do not tune a matchup from this
   early sample; extend the same replay audit after more games.
+- Qu-v2B multi-deck capability was screened locally on 2026-07-23 with 80
+  games/arm for B, Qu-v2A parent, and Qu-v1 on identical mixed `pool:8`
+  schedules. Scores were Grimmsnarl 83.8/85.0/51.9%,
+  Cinderace/Archaludon 75.0/70.0/63.8%, and Dragapult 43.8/51.2/22.5%,
+  with zero invalids/fallbacks/repairs/exceptions across 720 games. This proves
+  the Qu-v2 registered-deck representation transfers beyond Alakazam, but the
+  B objective is not uniformly better: its Dragapult point estimate trails
+  the parent, with overlapping intervals. The screen authorizes no deck
+  change, adapter training, package, tag, or upload. Confirm only a
+  strategically selected deck at 160+ games/arm before further work; use
+  advantage supervision, not hard winner-action BC.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue

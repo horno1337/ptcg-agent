@@ -476,6 +476,23 @@ Research log (each vs the then-champion, 100-200 game evals):
   actions. This is observational and not causal; wait for a larger replay
   sample before matchup-specific training. Locked local reports live under
   `tools/checkpoints/qu-v2b-ladder/` and are gitignored.
+- **Qu-v2B can pilot other decks, but its Alakazam-focused objective is not
+  universally transferable (2026-07-23, capability screen only)**: a
+  pre-registered 80-game-per-arm `pool:8` screen gave Qu-v2B, its Qu-v2A
+  parent, and Qu-v1 the same non-Alakazam learner deck and schedule. Across
+  720 games there were zero invalid games, fallbacks, repairs, or exceptions.
+  With Grimmsnarl the three arms scored 83.8%, 85.0%, and 51.9%; with
+  Cinderace/Archaludon, 75.0%, 70.0%, and 63.8%; with Dragapult, 43.8%,
+  51.2%, and 22.5%. Qu-v2's registered-deck/public-relational architecture
+  therefore transfers far better than Qu-v1, especially to Grimmsnarl and
+  Cinderace. Qu-v2B remained parent-parity on Grimmsnarl and led by 5 pp on
+  Cinderace, but trailed the parent by 7.5 pp on Dragapult; all B/parent
+  intervals overlap at this screen size. This does not authorize a deck
+  change or an adapter. If the meta motivates multi-deck work, confirm one
+  selected deck at 160+ games per arm and train it with deck-specific
+  advantage targets rather than another hard-BC adapter. Locked summary:
+  `tools/checkpoints/qu-v2b-deck-transfer-v1/summary.json`, SHA-256
+  `9b259e0b...34fe22`.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
