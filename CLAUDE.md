@@ -302,7 +302,9 @@ the ladder.
   authorized pairwise-only memorization test then reached 0.9948
   game-balanced accuracy on 115 confirmed pairs/16 roots with the compact
   9,329-parameter critic; its zero-hidden arm reached the same score. This
-  establishes label-protocol repeatability and tiny-set capacity only.
+  establishes label-protocol repeatability and a tiny-set plumbing/capacity
+  sanity check only; it is not evidence of learned strength or proximity to a
+  deployable teacher.
   Generalization, privileged signal, public teacher strength, and actor
   transfer remain unanswered, so actor training, Qu-v3, packaging, and
   promotion remain unauthorized.
@@ -314,6 +316,25 @@ the ladder.
   root-level cluster uncertainty, and never regress unresolved dense advantage
   magnitudes. Count actual terminal branches as `options * panel repetitions`;
   never call panel repetitions alone “rollouts” in compute accounting.
+- The held-out critic decision matrix is binding. Both privileged and active
+  public-only failing means no generalizing teacher. Privileged passing while
+  public-only fails means hidden-only oracle signal: stop, and do not distill
+  it or revive belief averaging. Public-only matching privileged means the
+  signal is publicly inferable and may advance to a separate action-selection
+  gate against frozen Qu-v2B. Public-only passing while privileged fails is an
+  invalid/control-path diagnostic. Zero-hidden parity is strong positive
+  evidence, but a negative gap is inconclusive until an active public-only or
+  shuffled-hidden capacity control confirms it.
+- Size the next cohorts in confirmed pairs, not raw roots: at least 300 train,
+  100 validation, and 100 future sealed-test pairs, split by source game and
+  disjoint from the 60 development games already opened. Pairwise accuracy is
+  directional and has a 0.50 null; the public test arm must exceed chance with
+  game-cluster uncertainty, not merely look large relative to 1.0. The
+  observed yield is about four confirmed pairs per resolved game, making
+  roughly 120 fresh games the arithmetic floor and about 150 the operational
+  target. While the two Qu-v2B submissions remain live, protect both slots and
+  harvest their replays; do not replace either merely to accelerate this
+  experiment.
 
 ## Submission discipline
 
