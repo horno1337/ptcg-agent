@@ -326,8 +326,8 @@ Research log (each vs the then-champion, 100-200 game evals):
   strength evidence.  Before another promotion, vendor the complete runtime
   under `agent/`, exercise a closer Kaggle compatibility matrix, and require a
   post-upload action-provenance canary.
-- **A cross-UID packaging fault is the leading Kaggle-only root cause
-  (2026-07-23; repaired locally, not yet canaried)**: the exact `qu-v2.1`
+- **A cross-UID packaging fault was the Kaggle-only root cause
+  (2026-07-23; repaired and canary-confirmed)**: the exact `qu-v2.1`
   archive stored `agent/weights.npz` as mode 0600, inherited from the
   trainer's atomic temporary output, while every pre-Qu-v2 weight artifact was
   world-readable. A runner that extracts and executes under different UIDs
@@ -341,8 +341,12 @@ Research log (each vs the then-champion, 100-200 game evals):
   pre-poisoned. On all 2,800 saved prompts it achieved 2,800/2,800 reference
   model and final-action parity, zero missing model actions, and retained 1,146
   model/rules disagreements. Weights remain byte-identical at
-  `fe1e12fd...187a`. This is strong causal evidence, not Kaggle proof; only a
-  user-named packaging-only canary and its first replay can close the incident.
+  `fe1e12fd...187a`. Submission `54915729`,
+  `qu-v2.2-runtime-canary`, closed the incident: the chronologically first
+  replay was an unresolved same-team mirror, while the next and first uniquely
+  resolved replay (`87565398`) matched the model on 35/36 disagreement prompts,
+  rules on 0/36, and another action on 1/36. The pre-registered classifier
+  returned `passed_model_live`; Qu-v2A's Kaggle strength is now measurable.
 - **The packaging canary read-out is pre-registered before upload**: pass one
   learner-seat-resolved replay file to `audit_submission_runtime.py` with
   `--ladder-canary`. The model/rules disagreement subset must be non-empty,
@@ -357,15 +361,25 @@ Research log (each vs the then-champion, 100-200 game evals):
   differed by 146 rating points. If the runtime is clean but Qu-v2 disappoints,
   the revert artifact is `tools/baselines/qu-v1-weights.npz`, SHA-256
   `4ce6522f...10ba033`.
-- **Qu-v2B objective-correction experiment (2026-07-23, training research
-  only)**: keep the Qu-v2A architecture and locked v2 corpus, but make the BC
+- **Qu-v2B objective-correction experiment (2026-07-23, trained candidate;
+  engine gates pending)**: keep the Qu-v2A architecture and locked v2 corpus,
+  but make the BC
   supervision actor-specific and game-balanced.  The registered Alakazam deck
   receives a 2x BC/value multiplier, top-only games remain seasoning at 0.5x,
   and the Qu-v1 KL trust region receives independent uniform-per-game mass so
   losing, non-focus and down-weighted games remain protected.  These controls
   are provenance- and resume-locked and do not alter the encoded cache.  This
-  experiment cannot authorize deployment until the Kaggle runtime itself is
-  repaired and canaried.
+  eight-epoch CUDA run completed cleanly in 4h17m. Validation objective improved
+  within this objective from 1.5224 to 1.3650; the separately opened test split
+  reached objective 1.3621 over 192,506 decisions. These numbers are not
+  comparable with Qu-v2A's differently scaled objective. Candidate weights are
+  `ec69a2db...a8447`, and its manifest/source/corpus/anchor locks validate.
+  Promotion requires the locked 2,720-game engine matrix: 160 games/arm on
+  primary pool:8, holdout pool:8:16, threat meta:2, sentinel meta:3 and
+  Dragapult meta:6 for Qu-v2B/parent/Qu-v1, plus 160-game direct mirrors versus
+  parent and Qu-v1. Every arm must be fault-free; primary must strictly beat
+  parent and not trail Qu-v1, all secondary fields must not trail either
+  reference, and both mirrors must exceed 50%.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex

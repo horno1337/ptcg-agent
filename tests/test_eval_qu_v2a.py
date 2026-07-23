@@ -114,6 +114,47 @@ def test_controller_honors_panic_reserve_and_records_latency():
     assert diagnostics["latency_ms"]["total"] >= 0.0
 
 
+def test_controller_can_pilot_the_frozen_parent_opponent_seat():
+    net = FixedNet([0.9, 0.1, 0.5])
+    controller = EVAL.QuV2AController(net, "parent", deck())
+    assert controller.opponent_move(observation(), object()) == [0]
+    assert controller.calls == 1
+
+
+def test_frozen_parent_artifacts_are_exactly_locked():
+    provenance = EVAL.DEFAULT_PARENT.parent / EVAL.TRAINING_PROVENANCE_NAME
+    assert EVAL._sha256_file(EVAL.DEFAULT_PARENT) == EVAL.FROZEN_PARENT_SHA256
+    assert EVAL._sha256_file(provenance) == (
+        EVAL.FROZEN_PARENT_PROVENANCE_FILE_SHA256
+    )
+    net, record = EVAL.load_candidate(EVAL.DEFAULT_PARENT)
+    assert isinstance(net, QM.NumpyQuV2A)
+    training = EVAL.load_training_provenance(
+        provenance, EVAL.DEFAULT_PARENT, record["sha256"])
+    assert training["manifest_sha256"] == (
+        EVAL.FROZEN_PARENT_PROVENANCE_MANIFEST_SHA256
+    )
+
+
+def test_comparison_summary_keeps_fault_gate_and_conservative_interval():
+    class Result:
+        def __init__(self, tag, score, ci95, valid):
+            self.tag = tag
+            self.score = score
+            self.ci95 = ci95
+            self.gate_valid = valid
+
+    summary = EVAL._comparison_summary(
+        Result("candidate", 0.6, (0.5, 0.7), True),
+        Result("parent", 0.55, (0.45, 0.65), False),
+        "canary",
+    )
+    assert abs(summary["delta"] - 0.05) < 1e-12
+    np.testing.assert_allclose(
+        summary["conservative_delta_ci95"], [-0.15, 0.25])
+    assert summary["gate_valid"] is False
+
+
 def test_strict_qm_loader_accepts_export_and_rejects_nonfinite_weights():
     torch.manual_seed(3)
     weights = QM.export_numpy_weights(QM.TorchQuV2A(8, 12, 20, 16, 10))
@@ -230,6 +271,9 @@ if __name__ == "__main__":
     test_controller_uses_sequential_virtual_stop_and_preserves_empty_stop()
     test_controller_rejects_hidden_input_and_fails_soft_to_rules()
     test_controller_honors_panic_reserve_and_records_latency()
+    test_controller_can_pilot_the_frozen_parent_opponent_seat()
+    test_frozen_parent_artifacts_are_exactly_locked()
+    test_comparison_summary_keeps_fault_gate_and_conservative_interval()
     test_strict_qm_loader_accepts_export_and_rejects_nonfinite_weights()
     test_training_provenance_binds_weight_and_current_feature_sources()
     test_production_paths_and_existing_results_are_refused()
