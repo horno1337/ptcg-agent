@@ -571,14 +571,31 @@ Research log (each vs the then-champion, 100-200 game evals):
   24/30 roots. A pairwise-only same-data memorization diagnostic subsequently
   fit 115 confirmed pairs over 16 roots to 0.9948 game-balanced accuracy with
   the compact 9,329-parameter critic; the zero-hidden arm reached the same
-  score. The label protocol and compact-head capacity therefore pass, but
-  generalization and usable public-state decision quality remain unanswered.
-  No actor, Qu-v3, package, or promotion is authorized. NEXT: train
-  pairwise-only on a larger confirmed training cohort, select on a separate
-  confirmed validation cohort, and open a future sealed test cohort once.
-  Compare privileged and active public-only/shuffled-hidden controls with
-  game-balanced uncertainty. Qu-v3 becomes relevant only if a reliable public
-  teacher generalizes but the current actor cannot represent it. Locked
+  score. These are plumbing and tiny-set capacity sanity checks, not evidence
+  of learned strength or proximity to a deployable teacher. Generalization
+  and usable public-state decision quality—the two load-bearing gates—remain
+  unanswered.
+
+  On held-out generalization the control becomes the primary result. If an
+  active public-only/capacity-matched control generalizes alongside the
+  privileged critic, the signal is publicly inferable and may support a
+  deployable teacher. If privileged generalizes while public-only does not,
+  the experiment has merely rebuilt the exact-hidden oracle and actor
+  distillation cannot rescue it. The current zero-hidden ablation is not
+  capacity matched: parity is strong positive evidence, but a negative gap
+  must be confirmed with an active public-only or shuffled-hidden control.
+
+  No actor, Qu-v3, package, or promotion is authorized. NEXT: accumulate
+  fresh Qu-v2B ladder games, then lock confirmed-pair cohorts at 300/100/100
+  train/validation/sealed-test pairs, grouped and split by source game. At the
+  observed yield of about four confirmed pairs per resolved game, 120 fresh
+  resolved games is the mathematical floor; target about 150 for rejection,
+  balance, and yield margin. Preserve both live Qu-v2B slots while they collect
+  those replays. Frame pair accuracy against the directional-label chance
+  floor of 0.50, not against 1.0, and report game-cluster uncertainty. Only a
+  public-state generalization pass may proceed to a separate action-selection
+  gate against frozen Qu-v2B. Qu-v3 becomes relevant only if a reliable public
+  teacher passes both gates but the current actor cannot represent it. Locked
   development reports:
   `tools/checkpoints/qu-v2c-exact-panels-v1/label-reliability-development.json`,
   embedded SHA-256 `bfeaa038...a6a98`;
