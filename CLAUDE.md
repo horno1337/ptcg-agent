@@ -81,7 +81,9 @@ the ladder.
   manifest `d863f8a4...43113`: Qu-v2B passed all checks, including 59.4%
   (95-65) direct versus the canary parent and higher point estimates on every
   field. Exact weights `ec69a2db...a8447` are authorized for integration and
-  the user's single `Qu-v2B` submission; do not clone without a later request.
+  the user's single `Qu-v2B` submission. It was integrated at tag `Qu-v2B`
+  (`80542d9`) and uploaded once as Kaggle submission `54925546`, exact archive
+  `91adba63...2f88f`; do not clone without a later request.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
