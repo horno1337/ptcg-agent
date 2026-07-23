@@ -94,6 +94,17 @@ the ladder.
   Cinderace improved to 8-2 from Qu-v1's 8-17 historical bleed; Grimmsnarl
   was 7-6 and Dragapult only 1-2 (too sparse). Do not tune a matchup from this
   early sample; extend the same replay audit after more games.
+- The expanded 2026-07-23 Qu-v2B replay audit has 108 resolved games at 67-41
+  (original 41-22, clone 26-19); the 47 new games were 26-21. Matchups are
+  Alakazam 13-7, Cinderace 13-6, Lucario 9-4, Grimmsnarl 8-7, Dragapult 6-7,
+  Crustle 4-4 and Articuno 2-3. On 2,786 model/rules disagreement prompts,
+  2,705 matched B, zero rules, and 81 were numerical others. On 927 B/parent
+  disagreements, 879 matched B and zero parent. Losses are longer but not
+  attack-starved, and every END is forced. The corpus already has 13,650
+  unique games and 3,818 exact registered-Alakazam games (2,791 top-source
+  memberships), so do not run append-only top-50 BC. First audit label novelty
+  against B. Use current losses as counterfactual root states, never as hard
+  losing-action labels; dedupe repeated roots and require advantage evidence.
 - Qu-v2B multi-deck capability was screened locally on 2026-07-23 with 80
   games/arm for B, Qu-v2A parent, and Qu-v1 on identical mixed `pool:8`
   schedules. Scores were Grimmsnarl 83.8/85.0/51.9%,

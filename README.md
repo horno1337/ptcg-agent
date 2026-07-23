@@ -493,6 +493,39 @@ Research log (each vs the then-champion, 100-200 game evals):
   advantage targets rather than another hard-BC adapter. Locked summary:
   `tools/checkpoints/qu-v2b-deck-transfer-v1/summary.json`, SHA-256
   `9b259e0b...34fe22`.
+- **Expanded Qu-v2B replay audit changes the training-data decision
+  (2026-07-23, 108 resolved games)**: refreshing the exact Kaggle submission
+  feeds yielded 64 original and 46 clone episode listings. Two same-team
+  mirrors remain unresolved; the 108 resolved games are 67-41 (62.0%, CI
+  52.6-70.6%), with the original 41-22 and clone 26-19. The 47 games added
+  after the first audit were 26-21, confirming that the initial 67.2% estimate
+  was optimistic but still compatible with the expanded interval. Matchups
+  are Alakazam 13-7, Cinderace 13-6, Mega Lucario 9-4, Grimmsnarl 8-7,
+  Dragapult 6-7, Crustle 4-4, and Articuno 2-3. Losses remain longer (69.0
+  versus 55.6 decisions), but attacks are now essentially equal (5.22 versus
+  5.30/game) and all 182 END choices were forced; neither passivity nor model
+  fallback explains the losses.
+
+  Across 6,551 prompts, 2,705/2,786 model/rules disagreements matched Qu-v2B,
+  zero matched rules, and 81 were numerical others. Qu-v2B differed from its
+  Qu-v2A parent on 927 prompts (14.2%); logged actions matched B 879 times,
+  the parent zero times, and another numerical path 48 times. There are 452
+  B/parent disagreements inside losses, concentrated at MAIN (717/927 total)
+  and card-target prompts (205/927 total), but repeated prompts within a game
+  are not independent evidence of a bad action.
+
+  Raw data volume is not the next lever. The locked corpus already contains
+  13,650 unique games, including 3,818 games/4,218 acting seats with the exact
+  registered Alakazam deck, 2,791 of those games carrying top-source
+  membership. More top-50 data must first pass a Qu-v2B label-novelty audit;
+  blindly appending it repeats the v5 failure mode. Qu-v2B episodes should
+  supply learner-reached counterfactual states, especially the 41 losses, but
+  their logged losing actions must not become imitation labels. NEXT: dedupe
+  critical public roots, branch legal actions offline, learn/validate
+  advantage targets with a Qu-v2B trust region, and only then train Qu-v2C.
+  Locked refresh summary:
+  `tools/checkpoints/qu-v2b-ladder/refresh-summary.json`, SHA-256
+  `2f2f5e7c...fb131`.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
