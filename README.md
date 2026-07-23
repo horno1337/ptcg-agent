@@ -526,6 +526,66 @@ Research log (each vs the then-champion, 100-200 game evals):
   Locked refresh summary:
   `tools/checkpoints/qu-v2b-ladder/refresh-summary.json`, SHA-256
   `2f2f5e7c...fb131`.
+- **Qu-v2C isolated the next blocker as target reliability, not an immediate
+  need for Qu-v3 (2026-07-23, development only)**: the first factual-return
+  critic used 2,106 ladder roots from all 108 resolved Qu-v2B games. It fit
+  factual validation return better than the frozen B value head, but factual
+  return is not counterfactual action value: 2,095/2,106 targets came from
+  Qu-v2B's logged action. On 16 independently exact-paneled held-out roots, its
+  pairwise action concordance was 0.414, its selected terminal return was
+  -0.141 below Qu-v2B with a game-cluster 95% interval of
+  [-0.272, -0.009], and top-1 was 0.375 versus B's 0.500. This falsifies
+  factual-only action ranking.
+
+  A compact 9,329-trainable-parameter exact-panel critic then used 140 roots,
+  983 legal actions, and 5,344 actual terminal branches across 39 games. Its
+  five-game test result was also negative: privileged/control pairwise
+  concordance 0.497/0.490, identical -0.328 greedy advantage, and 0.313
+  top-1 versus Qu-v2B's 0.500. The control is a same-parameter zero-hidden
+  ablation, not capacity matched. A later audit also found that the original
+  trainer gave the mechanically fixed B anchor regression mass, supervised
+  unresolved pair signs, and pooled roots in headline metrics. Those defects
+  are corrected in source, but the historical result is not reinterpreted.
+
+  The decisive follow-up repeated 16-rollout panels on the same balanced 30
+  roots from 30 unique games: 15/15 wins/losses, 15/15 seats, 15/15 B/parent
+  agreement, exact 10/10/10 early/middle/late turns, option counts 2-12, and
+  16 opponent archetypes. Each run completed 30/30 roots, 209 actions and
+  3,344 terminal branches with zero rejects. The locked all-pair sign gate
+  failed at 0.668 versus 0.70 (root/game bootstrap 95% interval
+  [0.577, 0.757]); B-relative signs agreed only 0.619 and exact top-action
+  sets matched 10/30 roots. The runs were genuinely different on raw outcomes
+  in 26/30 roots.
+
+  The failure is concentrated in near ties: all 120/120 action pairs that were
+  statistically resolvable in both runs agreed on direction. Exploratory
+  discovery-to-confirmation checks (not the locked gate) replicated 157/167
+  A-selected significant pairs in B and 170/188 B-selected pairs in A. Dense
+  continuous regression is therefore blocked.
+
+  A second, zero-overlap 30-game cohort then tested the rule
+  `abs(delta) > 1.96 * paired_SE`, which was locked before either report was
+  opened. Discovery selected 127 pairs across 16 games, clearing the fixed
+  100-pair/15-game coverage floor; confirmation preserved 115/127 directions
+  (0.9055), above the fixed 0.85 gate, with different raw trajectories in
+  24/30 roots. A pairwise-only same-data memorization diagnostic subsequently
+  fit 115 confirmed pairs over 16 roots to 0.9948 game-balanced accuracy with
+  the compact 9,329-parameter critic; the zero-hidden arm reached the same
+  score. The label protocol and compact-head capacity therefore pass, but
+  generalization and usable public-state decision quality remain unanswered.
+  No actor, Qu-v3, package, or promotion is authorized. NEXT: train
+  pairwise-only on a larger confirmed training cohort, select on a separate
+  confirmed validation cohort, and open a future sealed test cohort once.
+  Compare privileged and active public-only/shuffled-hidden controls with
+  game-balanced uncertainty. Qu-v3 becomes relevant only if a reliable public
+  teacher generalizes but the current actor cannot represent it. Locked
+  development reports:
+  `tools/checkpoints/qu-v2c-exact-panels-v1/label-reliability-development.json`,
+  embedded SHA-256 `bfeaa038...a6a98`;
+  `tools/checkpoints/qu-v2c-exact-panels-v1/label-confidence-confirmation.json`,
+  embedded SHA-256 `c1407c20...d9020`; and
+  `tools/checkpoints/qu-v2c-panel-critic-v1/confirmed-pair-memorization.json`,
+  embedded SHA-256 `8ef756b5...eb97`.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -594,6 +654,19 @@ tools/
     train_qu_v2a.py        # bounded BC, per-game cache, exact epoch resume
     train_qu_v1_control.py # random-init same-corpus representation control
     eval_qu_v2a.py         # three-arm Qu-v2-family/parent/Qu-v1 evaluator
+    mine_qu_v2c_roots.py   # provenance-locked public/private ladder roots
+    validate_qu_v2c_roots.py # native exact-root reconstruction gate
+    qu_v2c_privileged_features.py # tooling-only exact-hidden encoder
+    prepare_qu_v2c_critic_data.py # game-grouped factual-return critic data
+    train_qu_v2c_critic.py # frozen-backbone factual critic diagnostic
+    label_qu_v2c_exact_panels.py # all-action exact terminal panels
+    prepare_qu_v2c_panel_critic_data.py # private, grouped advantage data
+    train_qu_v2c_panel_critic.py # compact privileged/zero-hidden critics
+    evaluate_qu_v2c_critic_panels.py # held-out terminal ranking gate
+    select_qu_v2c_reliability_roots.py # balanced 30-game noise audit
+    evaluate_qu_v2c_panel_reliability.py # independent-panel agreement gate
+    evaluate_qu_v2c_panel_confirmation.py # confidence-filter replication gate
+    memorize_qu_v2c_confirmed_pairs.py # same-data compact-head capacity test
   aggregate_qu_v2b_gate.py # locked multi-axis Qu-v2B promotion decision
   analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
   audit_submission_runtime.py # extracted-tar replay action identity gate
@@ -628,6 +701,11 @@ tests/test_qu_v1_control.py # matched same-corpus representation control
 tests/test_eval_qu_v2a.py # frozen-baseline and paired-evaluator guards
 tests/test_aggregate_qu_v2b_gate.py # promotion-matrix provenance/decision rules
 tests/test_qu_v2_deployment.py # exact research/production parity + fail-soft routing
+tests/test_qu_v2c_*.py   # root, privilege, critic, panel + split contracts
+tests/test_select_qu_v2c_reliability_roots.py # balanced derived-root gate
+tests/test_evaluate_qu_v2c_panel_reliability.py # repeatability threshold
+tests/test_evaluate_qu_v2c_panel_confirmation.py # disjoint confidence gate
+tests/test_memorize_qu_v2c_confirmed_pairs.py # pairwise capacity diagnostic
 ```
 
 ## Environments & data locations (this machine)
@@ -711,6 +789,47 @@ python tools/research/aggregate_qu_v2b_gate.py \
     --sentinel tools/checkpoints/qu-v2b-field-v1/gates/sentinel.json \
     --dragapult tools/checkpoints/qu-v2b-field-v1/gates/dragapult.json \
     --json-out tools/checkpoints/qu-v2b-field-v1/gates/promotion-gate.json
+
+# Qu-v2C development-only label reliability; neither result can train an actor.
+python tools/research/select_qu_v2c_reliability_roots.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/factual-critic-pilot \
+    --out-dir tools/checkpoints/qu-v2c-roots-v1/label-reliability-development-30
+python tools/research/label_qu_v2c_exact_panels.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-reliability-development-30 \
+    --json-out tools/checkpoints/qu-v2c-exact-panels-v1/reliability-run-a-r16.json \
+    --rollouts 16 --split all
+python tools/research/label_qu_v2c_exact_panels.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-reliability-development-30 \
+    --json-out tools/checkpoints/qu-v2c-exact-panels-v1/reliability-run-b-r16.json \
+    --rollouts 16 --split all
+python tools/research/evaluate_qu_v2c_panel_reliability.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-reliability-development-30 \
+    --first-report tools/checkpoints/qu-v2c-exact-panels-v1/reliability-run-a-r16.json \
+    --second-report tools/checkpoints/qu-v2c-exact-panels-v1/reliability-run-b-r16.json \
+    --json-out tools/checkpoints/qu-v2c-exact-panels-v1/label-reliability-development.json
+
+# After the dense-sign gate failed, the locked zero-overlap confidence gate:
+python tools/research/select_qu_v2c_reliability_roots.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/factual-critic-pilot \
+    --exclude-root-dir tools/checkpoints/qu-v2c-roots-v1/label-reliability-development-30 \
+    --out-dir tools/checkpoints/qu-v2c-roots-v1/label-confidence-confirmation-30
+python tools/research/label_qu_v2c_exact_panels.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-confidence-confirmation-30 \
+    --json-out tools/checkpoints/qu-v2c-exact-panels-v1/confidence-discovery-r16.json \
+    --rollouts 16 --split all
+python tools/research/label_qu_v2c_exact_panels.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-confidence-confirmation-30 \
+    --json-out tools/checkpoints/qu-v2c-exact-panels-v1/confidence-confirmation-r16.json \
+    --rollouts 16 --split all
+python tools/research/evaluate_qu_v2c_panel_confirmation.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-confidence-confirmation-30 \
+    --discovery-report tools/checkpoints/qu-v2c-exact-panels-v1/confidence-discovery-r16.json \
+    --confirmation-report tools/checkpoints/qu-v2c-exact-panels-v1/confidence-confirmation-r16.json \
+    --json-out tools/checkpoints/qu-v2c-exact-panels-v1/label-confidence-confirmation.json
+python tools/research/memorize_qu_v2c_confirmed_pairs.py \
+    --root-dir tools/checkpoints/qu-v2c-roots-v1/label-confidence-confirmation-30 \
+    --gate-report tools/checkpoints/qu-v2c-exact-panels-v1/label-confidence-confirmation.json \
+    --json-out tools/checkpoints/qu-v2c-panel-critic-v1/confirmed-pair-memorization.json
 
 # imitation + RL (in the training venv)
 python tools/train.py --bc ~/Desktop/ptcg_episodes --iters 0 \

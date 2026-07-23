@@ -280,6 +280,40 @@ the ladder.
   labels. Locked artifact:
   `tools/checkpoints/belief-counterfactual/calibration-field20-d389076.json`,
   SHA-256 `463bb34a103c3bd2a866b32336f595dd5168a13ecf3df2e18bc63f26bae6ce06`.
+- Qu-v2C exact-panel work is tooling-only and currently blocked on label
+  reliability. Factual logged return is not action value: its critic scored
+  0.414 held-out pairwise concordance and selected actions 0.141 terminal
+  return below Qu-v2B. The first compact exact-panel critic was also negative
+  (0.497 privileged pairwise concordance, -0.328 greedy advantage, 0.313
+  top-1 versus B's 0.500), and its zero-hidden arm is not a capacity-matched
+  public control.
+- The locked 30-game repeated-panel diagnostic (2026-07-23) failed its primary
+  all-pair sign gate: 0.668 versus 0.70, root/game bootstrap interval
+  [0.577, 0.757]. Both 16-rollout runs completed 30/30 roots, 209 actions and
+  3,344 terminal branches with zero rejects; 26/30 roots had different raw
+  trajectories. All 120 pairs statistically resolvable in both runs agreed,
+  so the failure is near-tie target noise, not evidence for a larger actor.
+  Do not train on continuous exact-panel advantages, distill an actor, start
+  Qu-v3, package, or promote from this development set.
+- The disjoint confidence-filtered Qu-v2C gate passed. Its discovery rule
+  `abs(delta) > 1.96 * paired_SE` selected 127 pairs across 16 new games;
+  independent confirmation preserved 115/127 signs (0.9055 versus the locked
+  0.85 minimum), and 24/30 roots had different raw trajectories. The
+  authorized pairwise-only memorization test then reached 0.9948
+  game-balanced accuracy on 115 confirmed pairs/16 roots with the compact
+  9,329-parameter critic; its zero-hidden arm reached the same score. This
+  establishes label-protocol repeatability and tiny-set capacity only.
+  Generalization, privileged signal, public teacher strength, and actor
+  transfer remain unanswered, so actor training, Qu-v3, packaging, and
+  promotion remain unauthorized.
+- The next Qu-v2C gate must be separately held out: a larger confirmed
+  pairwise-only training cohort, an independent validation cohort for all
+  selection, and a future sealed test cohort opened once. Compare privileged
+  against an active public-only or shuffled-hidden control; the current
+  zero-hidden arm is not capacity matched. Report games equally, retain
+  root-level cluster uncertainty, and never regress unresolved dense advantage
+  magnitudes. Count actual terminal branches as `options * panel repetitions`;
+  never call panel repetitions alone “rollouts” in compute accounting.
 
 ## Submission discipline
 
