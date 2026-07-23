@@ -343,6 +343,20 @@ Research log (each vs the then-champion, 100-200 game evals):
   model/rules disagreements. Weights remain byte-identical at
   `fe1e12fd...187a`. This is strong causal evidence, not Kaggle proof; only a
   user-named packaging-only canary and its first replay can close the incident.
+- **The packaging canary read-out is pre-registered before upload**: pass one
+  learner-seat-resolved replay file to `audit_submission_runtime.py` with
+  `--ladder-canary`. The model/rules disagreement subset must be non-empty,
+  at least one logged action must match the model, and model matches must be a
+  strict majority of that subset. `0/N` model matches is the known fallback
+  failure signature; no disagreements or a mixed/non-majority result is
+  inconclusive and fails closed. A same-team self-mirror whose candidate seat
+  cannot be identified is also inconclusive, so use the next resolved replay.
+  This answers only “did the net execute?” and explicitly supplies no strength
+  evidence. Do not spend a clone slot until it passes. After a clean canary,
+  strength submissions should be paired because byte-identical Qu-v1 runs
+  differed by 146 rating points. If the runtime is clean but Qu-v2 disappoints,
+  the revert artifact is `tools/baselines/qu-v1-weights.npz`, SHA-256
+  `4ce6522f...10ba033`.
 - **Qu-v2B objective-correction experiment (2026-07-23, training research
   only)**: keep the Qu-v2A architecture and locked v2 corpus, but make the BC
   supervision actor-specific and game-balanced.  The registered Alakazam deck
@@ -602,13 +616,20 @@ python tools/audit_submission_runtime.py \
     tools/checkpoints/qu-v2-ladder/original --team '増殖するG' \
     --archive submission.tar.gz --reference-weights agent/weights.npz \
     --json-out tools/checkpoints/qu-v2-ladder/package-audit.json
+
+# after upload: exactly one learner-seat-resolved replay; exit 3 fails closed
+python tools/audit_submission_runtime.py path/to/FIRST_REPLAY.json \
+    --team '増殖するG' --archive submission.tar.gz \
+    --reference-weights agent/weights.npz --ladder-canary \
+    --json-out tools/checkpoints/qu-v2-ladder/first-replay-canary.json
 ~/.venvs/kaggle/bin/kaggle competitions submit pokemon-tcg-ai-battle \
     -f submission.tar.gz -m "<name>"
 ```
 
 The package audit fails closed unless it can run the extracted archive as a
 non-owner UID using the exact active Python environment; `unshare`, `mount`,
-and `setpriv` are required.
+and `setpriv` are required. Canary exit code 3 means runtime provenance failed
+or remained inconclusive; it is never a model-strength result.
 
 ## Hard-won gotchas
 

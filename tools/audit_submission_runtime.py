@@ -5,6 +5,8 @@ compares the exact archive against the repository reference on every resolved
 learner prompt and reports whether historical ladder actions fingerprint the
 model or the rules fallback.  A hostile third-party ``tools`` package is put on
 ``PYTHONPATH`` so an omitted top-level package marker cannot pass locally.
+``--ladder-canary`` adds the pre-registered, one-replay model-live read-out and
+returns exit status 3 for a failed or inconclusive ladder fingerprint.
 """
 
 from __future__ import annotations
@@ -135,8 +137,22 @@ def _load_reference(path: Path) -> QM.NumpyQuV2A:
         raise AuditError(f"cannot load reference Qu-v2 weights: {error}") from error
 
 
+def _replay_paths(sources: Sequence[Path]) -> list[Path]:
+    paths: list[Path] = []
+    for source in sources:
+        if source.is_file():
+            if source.suffix.lower() != ".json":
+                raise AuditError(f"replay file must end in .json: {source}")
+            paths.append(source)
+        elif source.is_dir():
+            paths.extend(sorted(source.glob("*.json")))
+        else:
+            raise AuditError(f"replay input does not exist: {source}")
+    return paths
+
+
 def _collect_prompts(
-    directories: Sequence[Path], aliases: set[str], reference: QM.NumpyQuV2A,
+    sources: Sequence[Path], aliases: set[str], reference: QM.NumpyQuV2A,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     learner_deck = tuple(policy.load_deck())
     sorted_deck = tuple(sorted(learner_deck))
@@ -150,49 +166,91 @@ def _collect_prompts(
     }
     seen: set[Any] = set()
     safety._spent = 0.0
-    for directory in directories:
-        for path in sorted(directory.glob("*.json")):
-            counts["files"] += 1
+    for path in _replay_paths(sources):
+        counts["files"] += 1
+        try:
+            replay = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise AuditError(f"cannot read replay {path}: {error}") from error
+        episode_id = (replay.get("info") or {}).get("EpisodeId")
+        if episode_id in seen:
+            counts["duplicate_games"] += 1
+            continue
+        seen.add(episode_id)
+        seat, _ = LADDER.learner_seat(str(path), sorted_deck, aliases)
+        if seat is None:
+            counts["ambiguous_games"] += 1
+            continue
+        counts["resolved_games"] += 1
+        for view, logged in LADDER.action_rows(replay, seat):
             try:
-                replay = json.loads(path.read_text(encoding="utf-8"))
-            except (OSError, json.JSONDecodeError) as error:
-                raise AuditError(f"cannot read replay {path}: {error}") from error
-            episode_id = (replay.get("info") or {}).get("EpisodeId")
-            if episode_id in seen:
-                counts["duplicate_games"] += 1
+                sample = QF.encode_public_observation(view.obs, learner_deck)
+                logits, _ = reference.forward(sample)
+                model_action = QM.decode_sequential(
+                    logits,
+                    len(view.options),
+                    view.min_count,
+                    view.max_count,
+                )
+                rules_action = policy.decide_rules(view.obs)
+                final_action = safety.agent(view.obs)
+            except Exception:
+                counts["reference_errors"] += 1
                 continue
-            seen.add(episode_id)
-            seat, _ = LADDER.learner_seat(str(path), sorted_deck, aliases)
-            if seat is None:
-                counts["ambiguous_games"] += 1
-                continue
-            counts["resolved_games"] += 1
-            for view, logged in LADDER.action_rows(replay, seat):
-                try:
-                    sample = QF.encode_public_observation(view.obs, learner_deck)
-                    logits, _ = reference.forward(sample)
-                    model_action = QM.decode_sequential(
-                        logits,
-                        len(view.options),
-                        view.min_count,
-                        view.max_count,
-                    )
-                    rules_action = policy.decide_rules(view.obs)
-                    final_action = safety.agent(view.obs)
-                except Exception:
-                    counts["reference_errors"] += 1
-                    continue
-                rows.append({
-                    "episode_id": episode_id,
-                    "observation": view.obs,
-                    "logged_action": logged,
-                    "reference_model_action": model_action,
-                    "reference_rules_action": rules_action,
-                    "reference_final_action": final_action,
-                })
+            rows.append({
+                "episode_id": episode_id,
+                "observation": view.obs,
+                "logged_action": logged,
+                "reference_model_action": model_action,
+                "reference_rules_action": rules_action,
+                "reference_final_action": final_action,
+            })
     if not rows:
         raise AuditError("no resolved replay prompts were collected")
     return rows, counts
+
+
+def _ladder_action_readout(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    disagreements = [
+        row for row in rows
+        if row["reference_model_action"] != row["reference_rules_action"]
+    ]
+    total = len(disagreements)
+    model_matches = sum(
+        row["logged_action"] == row["reference_model_action"]
+        for row in disagreements
+    )
+    rules_matches = sum(
+        row["logged_action"] == row["reference_rules_action"]
+        for row in disagreements
+    )
+    other = total - model_matches - rules_matches
+    if total == 0:
+        classification = "inconclusive_no_disagreement_prompts"
+    elif model_matches == 0:
+        classification = "failed_zero_model_matches"
+    elif model_matches * 2 > total:
+        classification = "passed_model_live"
+    else:
+        classification = "inconclusive_mixed_actions"
+    return {
+        "question": "did the candidate net execute in the logged replay?",
+        "strength_question_answered": False,
+        "decision_rule": (
+            "one resolved replay; require at least one model/rules disagreement, "
+            "at least one logged model match, and a strict majority of logged "
+            "model matches on the disagreement subset"
+        ),
+        "classification": classification,
+        "canary_passed": classification == "passed_model_live",
+        "net_execution_observed": model_matches > 0,
+        "disagreement_prompts": total,
+        "logged_model_matches": model_matches,
+        "logged_rules_matches": rules_matches,
+        "logged_other_matches": other,
+        "model_match_rate": model_matches / total if total else None,
+        "rules_match_rate": rules_matches / total if total else None,
+    }
 
 
 _EXTRACTED_SCRIPT = r'''\
@@ -266,6 +324,7 @@ def audit(
     reference_weights: Path,
     directories: Sequence[Path],
     aliases: set[str],
+    ladder_canary: bool = False,
 ) -> dict[str, Any]:
     archive = archive.resolve()
     reference_weights = reference_weights.resolve()
@@ -275,6 +334,17 @@ def audit(
         raise AuditError(f"reference weights do not exist: {reference_weights}")
     reference = _load_reference(reference_weights)
     prompts, collection = _collect_prompts(directories, aliases, reference)
+    if ladder_canary and (
+        collection["files"] != 1
+        or collection["resolved_games"] != 1
+        or collection["ambiguous_games"]
+        or collection["duplicate_games"]
+    ):
+        raise AuditError(
+            "--ladder-canary requires exactly one input replay and exactly "
+            "one resolved learner game"
+        )
+    ladder_readout = _ladder_action_readout(prompts)
 
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
@@ -349,7 +419,8 @@ def audit(
         if runtime.get(key) != prompt_count:
             raise AuditError(
                 f"extracted {key}={runtime.get(key)}; expected {prompt_count}")
-    if not runtime.get("model_rules_disagreements"):
+    if (not runtime.get("model_rules_disagreements")
+            and not ladder_canary):
         raise AuditError("replay set cannot distinguish the model from rules")
 
     return {
@@ -367,22 +438,42 @@ def audit(
         "team_aliases": sorted(aliases),
         "collection": collection,
         "runtime": runtime,
+        "ladder_action_provenance": {
+            "readout_mode": (
+                "pre_registered_single_replay"
+                if ladder_canary else "historical_aggregate"
+            ),
+            **ladder_readout,
+        },
         "gate_passed": True,
     }
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("directories", nargs="+", type=Path)
+    parser.add_argument(
+        "directories", nargs="+", type=Path,
+        help="replay JSON files or directories containing replay JSON files",
+    )
     parser.add_argument("--archive", type=Path, default=ROOT / "submission.tar.gz")
     parser.add_argument(
         "--reference-weights", type=Path, default=ROOT / "agent/weights.npz")
     parser.add_argument("--team", action="append", default=[])
+    parser.add_argument(
+        "--ladder-canary", action="store_true",
+        help=("pre-register a one-replay model-live read-out; exit 3 unless "
+              "the model wins a strict majority of disagreement prompts"),
+    )
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args(argv)
     try:
         report = audit(
-            args.archive, args.reference_weights, args.directories, set(args.team))
+            args.archive,
+            args.reference_weights,
+            args.directories,
+            set(args.team),
+            ladder_canary=args.ladder_canary,
+        )
     except (AuditError, OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
@@ -392,6 +483,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(rendered + "\n", encoding="utf-8")
     print(rendered)
+    readout = report["ladder_action_provenance"]
+    if args.ladder_canary and not readout["canary_passed"]:
+        print(
+            "error: ladder runtime canary did not establish a live model: "
+            + readout["classification"],
+            file=sys.stderr,
+        )
+        return 3
     return 0
 
 

@@ -57,7 +57,16 @@ the ladder.
   2,800/2,800 prompts with zero missing model actions and 1,146 model/rules
   disagreements. This is not Kaggle proof: the next upload must be a user-named
   packaging-only canary with byte-identical weights/deck, and its first replay
-  must fingerprint the model. Independently, the user authorized
+  must fingerprint the model. The pre-registered `--ladder-canary` contract is
+  exactly one learner-seat-resolved replay, a non-empty model/rules disagreement
+  subset, at least one logged model match, and a strict-majority model-match
+  rate on that subset. `0/N` is the known fallback signature; no disagreements,
+  mixed/non-majority actions, or an unresolved same-team self-mirror are
+  inconclusive and fail closed with exit 3. This read-out cannot support a
+  strength claim. Do not allocate a clone until provenance passes; then use
+  paired submissions for strength. A clean-but-weak Qu-v2 reverts to frozen
+  Qu-v1 `tools/baselines/qu-v1-weights.npz` (`4ce6522f...10ba033`).
+  Independently, the user authorized
   the Qu-v2B objective-correction research run: same architecture and locked
   v2 corpus, actor-specific Alakazam BC/value emphasis, game normalization,
   top-source seasoning, and an independently normalized uniform-per-game
