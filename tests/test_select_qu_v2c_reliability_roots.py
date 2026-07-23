@@ -135,10 +135,11 @@ def test_derived_artifacts_preserve_privilege_and_parent_provenance(tmp_path):
     public, private = _records()
     selected, diagnostics = SELECT.select_roots(public, private)
     output = tmp_path / "reliability"
+    parent = _parent_manifest()
     manifest = SELECT.write_selection_artifacts(
         output,
         tmp_path / "parent",
-        _parent_manifest(),
+        parent,
         selected,
         diagnostics,
     )
@@ -155,6 +156,17 @@ def test_derived_artifacts_preserve_privilege_and_parent_provenance(tmp_path):
     assert stat.S_IMODE(
         (output / "privileged-roots.jsonl").stat().st_mode
     ) == 0o600
+    excluded, provenance = SELECT.load_excluded_games(
+        [output],
+        factual_parent_manifest_sha256="9" * 64,
+        factual_parent_weights=parent["weights"],
+        available_game_keys=frozenset(
+            candidate.game_key for candidate in selected),
+    )
+    assert excluded == frozenset(
+        candidate.game_key for candidate in selected)
+    assert provenance[0]["matched_by"] == (
+        "append-stable game identity and frozen weights")
 
 
 def test_next_cohort_excludes_every_previous_source_game():

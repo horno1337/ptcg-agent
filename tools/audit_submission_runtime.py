@@ -159,6 +159,7 @@ def _collect_prompts(
     rows: list[dict[str, Any]] = []
     counts = {
         "files": 0,
+        "non_replay_files": 0,
         "resolved_games": 0,
         "ambiguous_games": 0,
         "duplicate_games": 0,
@@ -172,6 +173,14 @@ def _collect_prompts(
             replay = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as error:
             raise AuditError(f"cannot read replay {path}: {error}") from error
+        if (
+            not isinstance(replay, dict)
+            or not isinstance(replay.get("steps"), list)
+            or not isinstance(replay.get("info"), dict)
+            or replay["info"].get("EpisodeId") is None
+        ):
+            counts["non_replay_files"] += 1
+            continue
         episode_id = (replay.get("info") or {}).get("EpisodeId")
         if episode_id in seen:
             counts["duplicate_games"] += 1

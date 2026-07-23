@@ -23,6 +23,9 @@ Usage:
   # mid-range band: 50 agents scoring 600-800, into a separate dir
   python tools/download_episodes.py --min-score 600 --max-score 800 --top 50 \
       --out ~/Desktop/ptcg_corpus_mid --skip-dir ~/Desktop/ptcg_episodes
+  # target one or more known live submissions without depending on rank
+  python tools/download_episodes.py --submission-id 54925546 --refresh \
+      --out tools/checkpoints/qu-v2b-ladder/original
   python tools/download_episodes.py --dry-run             # plan only, no replays
 """
 
@@ -156,6 +159,16 @@ def main():
     ap.add_argument("--top", type=int, default=50,
                     help="cap on agents to sample; the N highest-scoring that pass "
                          "the score filter (default 50)")
+    ap.add_argument(
+        "--submission-id",
+        action="append",
+        type=int,
+        default=[],
+        help=(
+            "target this exact submission instead of resolving leaderboard "
+            "ranks; repeat for multiple submissions"
+        ),
+    )
     ap.add_argument("--min-score", type=float, default=None,
                     help="only agents with leaderboard score >= this (e.g. 600)")
     ap.add_argument("--max-score", type=float, default=None,
@@ -184,15 +197,45 @@ def main():
     ap.add_argument("--dry-run", action="store_true",
                     help="resolve the plan and print counts, but download nothing")
     args = ap.parse_args()
+    if args.submission_id and (
+        args.min_score is not None
+        or args.max_score is not None
+        or args.spread
+    ):
+        ap.error(
+            "--submission-id cannot be combined with score filters or --spread"
+        )
+    if (
+        args.top < 1
+        or args.per_sub < 1
+        or args.workers < 1
+        or args.delay < 0
+        or args.abort_after < 1
+        or any(value < 1 for value in args.submission_id)
+        or len(set(args.submission_id)) != len(args.submission_id)
+    ):
+        ap.error("counts, submission IDs, and workers must be valid and positive")
 
     out_dir = os.path.expanduser(args.out)
     os.makedirs(out_dir, exist_ok=True)
 
     kg = Kaggle(args.competition)
-    board = kg.leaderboard(args.competition_id)
-    if not board:
-        sys.exit("empty leaderboard (bad competition-id or endpoint changed?)")
-    board.sort(key=lambda r: r.get("rank", 1 << 30))  # rank 1 (highest score) first
+    if args.submission_id:
+        board = [
+            {
+                "submissionId": submission_id,
+                "rank": "direct",
+                "displayScore": "?",
+            }
+            for submission_id in args.submission_id
+        ]
+    else:
+        board = kg.leaderboard(args.competition_id)
+        if not board:
+            sys.exit("empty leaderboard (bad competition-id or endpoint changed?)")
+        board.sort(
+            key=lambda r: r.get("rank", 1 << 30)
+        )  # rank 1 (highest score) first
 
     def score_of(r):
         try:
@@ -201,7 +244,10 @@ def main():
             return None
 
     sel = board
-    if args.min_score is not None or args.max_score is not None:
+    if args.submission_id:
+        top = board
+        print("targeting %d explicit submission(s)" % len(top))
+    elif args.min_score is not None or args.max_score is not None:
         lo = args.min_score if args.min_score is not None else float("-inf")
         hi = args.max_score if args.max_score is not None else float("inf")
         sel = [r for r in board
@@ -210,7 +256,9 @@ def main():
         print("leaderboard: %d teams; %d in score band %s (ranks %s..%s)"
               % (len(board), len(sel), band,
                  sel[0]["rank"] if sel else "-", sel[-1]["rank"] if sel else "-"))
-    if args.spread and len(sel) > args.top:
+    if args.submission_id:
+        pass
+    elif args.spread and len(sel) > args.top:
         step = len(sel) / args.top  # evenly spaced across the band by rank
         top = [sel[int(i * step)] for i in range(args.top)]
         print("spreading %d agents evenly across the band" % len(top))
