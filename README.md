@@ -41,6 +41,8 @@ think-time drains it directly), never crash.
 | Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 clone snapshot — current champion |
 | Qu-v2 | public-relational Qu-v2A, but packaged runtime silently fell through | 628.2 — **rules fallback, not a model-strength result** |
 | qu-v2.1 | packaging-only Qu-v2 repair, but Kaggle still fell through | first replay: **115/115 rules actions; model still unevaluated** |
+| qu-v2.2-runtime-canary | unchanged Qu-v2A with cross-UID runtime repair | 780.5 snapshot; model-live provenance confirmed |
+| Qu-v2B | actor-weighted/game-balanced Qu-v2 objective correction | submission `54925546` pending |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -390,7 +392,9 @@ Research log (each vs the then-champion, 100-200 game evals):
   `ec69a2db...a8447` artifact is therefore authorized for production
   integration and one user-approved ladder submission; its production path
   also completed a 200-game random smoke at 197-3 with zero errors. The ladder
-  still decides external strength.
+  still decides external strength. Tag `Qu-v2B` points to `80542d9`; exact
+  package SHA-256 is `91adba63...2f88f`, and the single authorized Kaggle
+  submission is `54925546` (`Qu-v2B`, pending at upload).
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
