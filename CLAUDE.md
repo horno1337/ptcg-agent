@@ -55,23 +55,29 @@ the ladder.
   runtime `tools` dependency. Its strict archive gate runs as UID/GID 1 with
   `sys.modules['tools']` poisoned and passes reference model/final parity on
   2,800/2,800 prompts with zero missing model actions and 1,146 model/rules
-  disagreements. This is not Kaggle proof: the next upload must be a user-named
-  packaging-only canary with byte-identical weights/deck, and its first replay
-  must fingerprint the model. The pre-registered `--ladder-canary` contract is
+  disagreements. The user-named byte-identical `qu-v2.2-runtime-canary`
+  subsequently passed Kaggle provenance on the first uniquely resolved replay:
+  35/36 disagreement prompts matched the model, 0/36 matched rules and 1/36
+  was numerically other. The pre-registered `--ladder-canary` contract is
   exactly one learner-seat-resolved replay, a non-empty model/rules disagreement
   subset, at least one logged model match, and a strict-majority model-match
   rate on that subset. `0/N` is the known fallback signature; no disagreements,
   mixed/non-majority actions, or an unresolved same-team self-mirror are
   inconclusive and fail closed with exit 3. This read-out cannot support a
-  strength claim. Do not allocate a clone until provenance passes; then use
-  paired submissions for strength. A clean-but-weak Qu-v2 reverts to frozen
+  strength claim. Runtime provenance is now closed; do not allocate a clone
+  until a separately trained candidate passes its engine gates. A
+  clean-but-weak Qu-v2 reverts to frozen
   Qu-v1 `tools/baselines/qu-v1-weights.npz` (`4ce6522f...10ba033`).
-  Independently, the user authorized
-  the Qu-v2B objective-correction research run: same architecture and locked
+  Qu-v2B training completed cleanly at weights `ec69a2db...a8447`: same
+  architecture and locked
   v2 corpus, actor-specific Alakazam BC/value emphasis, game normalization,
   top-source seasoning, and an independently normalized uniform-per-game
-  frozen-Qu-v1 KL anchor.  Training/evaluation may proceed, but no resulting
-  weights may be integrated or uploaded until the runtime blocker is fixed.
+  frozen-Qu-v1 KL anchor. Its loss is comparable only within that run. Promotion
+  requires the source-locked 2,720-game matrix in
+  `aggregate_qu_v2b_gate.py`: five three-arm field axes plus direct parent and
+  Qu-v1 mirrors, 160 games/arm, zero faults/fallbacks/repairs, primary strictly
+  above parent and not below Qu-v1, secondary fields not below either, and both
+  mirrors above 50%. Only an aggregate exit 0 permits integration/upload.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue
@@ -101,10 +107,10 @@ the ladder.
 - Random corpus validation/test loss is an interpolation diagnostic, not a
   ladder-transfer estimate: the v2 manifest has substantial agent and exact-deck
   identity overlap across splits. Qu-v2A strength must be measured in the
-  engine by `tools/research/eval_qu_v2a.py`, whose baseline is hard-locked to
-  frozen Qu-v1 SHA-256 `4ce6522f...10ba033`. Require valid, fault-free primary
-  pool:8, withheld pool:8:16, mirror, and threat-deck checks before considering
-  a separately reviewed deployment integration.
+  engine by `tools/research/eval_qu_v2a.py`, whose references are hard-locked
+  to frozen Qu-v1 SHA-256 `4ce6522f...10ba033` and the proven Qu-v2A canary
+  `fe1e12fd...187a`. Require the valid, fault-free matrix enforced by
+  `tools/research/aggregate_qu_v2b_gate.py` before deployment integration.
 - Every promoted runtime must be tested from the **exact extracted tarball**,
   not repository imports or a copied include list.  For Qu-v2, run
   `tools/audit_submission_runtime.py` under a non-owner UID with both a hostile

@@ -1,4 +1,4 @@
-"""Research-only Qu-v2A versus frozen Qu-v1 competition evaluator.
+"""Research-only Qu-v2A-family competition evaluator.
 
 The engine lifecycle, paired schedule, terminal taxonomy, score, confidence
 interval and field opponents come directly from :mod:`tools.eval_ab`.  The
@@ -53,13 +53,26 @@ from tools.research import qu_v2a_features as QF  # noqa: E402
 from tools.research import qu_v2a_model as QM  # noqa: E402
 
 
-SCHEMA = "ptcg-eval-qu-v2a-v1"
+SCHEMA = "ptcg-eval-qu-v2a-v2"
 TRAINING_SCHEMA = "ptcg.qu-v2a.training.v1"
 TRAINING_PROVENANCE_NAME = "candidate-qu-v2a-training-manifest.json"
 DEFAULT_BASE = (ROOT / "tools" / "baselines" / "qu-v1-weights.npz").resolve()
 DEFAULT_META = (ROOT / "agent" / "meta_decks.json").resolve()
 FROZEN_QU_V1_SHA256 = (
     "4ce6522f2b825165a56e4c3a086ef4f420cff53fab56d530dfa19cccd10ba033"
+)
+DEFAULT_PARENT = (
+    ROOT / "tools" / "checkpoints" / "qu-v2a-field-v1"
+    / "candidate-qu-v2a-weights.npz"
+).resolve()
+FROZEN_PARENT_SHA256 = (
+    "fe1e12fd912d1678ddc51fd07700588958b169d4bf435c568942e243b003187a"
+)
+FROZEN_PARENT_PROVENANCE_FILE_SHA256 = (
+    "06dfa7a94aa6bfaafdb19cff60002098bfe24a4bcdd0483df38b97b410823327"
+)
+FROZEN_PARENT_PROVENANCE_MANIFEST_SHA256 = (
+    "ab516dba3aea37030fc8a29d6d96047c5501fd0375ad94b7bbed712d0322a773"
 )
 PROTECTED_TREES = tuple((ROOT / name).resolve() for name in (
     "agent", "data", "decks",
@@ -428,6 +441,10 @@ class QuV2AController:
         self.latency_ms.append((time.monotonic() - started) * 1000.0)
         return action
 
+    def opponent_move(self, obs: dict, rng) -> list[int]:
+        del rng
+        return self.act(obs)
+
     def diagnostics(self) -> dict[str, Any]:
         latency = np.asarray(self.latency_ms, dtype=np.float64)
         return {
@@ -473,6 +490,29 @@ def _atomic_json(payload: Mapping[str, Any], destination: Path) -> None:
             temporary.unlink()
 
 
+def _comparison_summary(
+        candidate_result, reference_result, reference_label: str,
+) -> dict[str, Any]:
+    candidate_low, candidate_high = candidate_result.ci95
+    reference_low, reference_high = reference_result.ci95
+    delta = candidate_result.score - reference_result.score
+    return {
+        "candidate_tag": candidate_result.tag,
+        "reference_tag": reference_result.tag,
+        "reference_label": reference_label,
+        "candidate_score": candidate_result.score,
+        "reference_score": reference_result.score,
+        "delta": delta,
+        "conservative_delta_ci95": [
+            candidate_low - reference_high,
+            candidate_high - reference_low,
+        ],
+        "gate_valid": (
+            candidate_result.gate_valid and reference_result.gate_valid
+        ),
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("games", type=int,
@@ -481,6 +521,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--candidate-provenance",
         help=("training manifest; defaults to candidate sibling "
+              f"{TRAINING_PROVENANCE_NAME}"),
+    )
+    parser.add_argument(
+        "--parent",
+        help=(
+            "exact frozen Qu-v2A canary parent; when supplied, field runs add "
+            "a parent arm and mirror runs target this parent"
+        ),
+    )
+    parser.add_argument(
+        "--parent-provenance",
+        help=("parent training manifest; defaults to the parent sibling "
               f"{TRAINING_PROVENANCE_NAME}"),
     )
     parser.add_argument("--opp", default="mirror",
@@ -531,6 +583,47 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise EvaluationError(
                 "training provenance architecture does not match candidate"
             )
+        parent_path = None
+        parent_net = None
+        parent_record = None
+        parent_training_record = None
+        parent_provenance_path = None
+        if args.parent:
+            parent_path = _candidate_path(args.parent)
+            if _sha256_file(parent_path) != FROZEN_PARENT_SHA256:
+                raise EvaluationError(
+                    "--parent is not the frozen fe1e12fd Qu-v2A canary artifact"
+                )
+            parent_net, parent_record = load_candidate(parent_path)
+            parent_provenance_path = (
+                Path(args.parent_provenance).expanduser().resolve()
+                if args.parent_provenance
+                else parent_path.parent / TRAINING_PROVENANCE_NAME
+            )
+            if (_sha256_file(parent_provenance_path)
+                    != FROZEN_PARENT_PROVENANCE_FILE_SHA256):
+                raise EvaluationError(
+                    "--parent-provenance is not the frozen Qu-v2A manifest"
+                )
+            parent_training_record = load_training_provenance(
+                parent_provenance_path,
+                parent_path,
+                parent_record["sha256"],
+            )
+            if (parent_training_record["manifest_sha256"]
+                    != FROZEN_PARENT_PROVENANCE_MANIFEST_SHA256):
+                raise EvaluationError(
+                    "frozen parent provenance content checksum drifted"
+                )
+            parent_configuration = parent_training_record.get("configuration")
+            if (not isinstance(parent_configuration, dict)
+                    or parent_configuration.get("architecture")
+                    != parent_record["architecture"]):
+                raise EvaluationError(
+                    "parent training provenance architecture mismatch"
+                )
+            if parent_record["sha256"] == candidate_record["sha256"]:
+                raise EvaluationError("candidate and parent weights are identical")
         if _sha256_file(DEFAULT_BASE) != FROZEN_QU_V1_SHA256:
             raise EvaluationError(
                 "tools/baselines/qu-v1-weights.npz is not the frozen Qu-v1 "
@@ -543,10 +636,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "frozen Qu-v1 adapter does not match --learner-deck"
             )
         deck_specs = EVAL.resolve_decks(args.opp, learner_deck, args.meta)
+        protected_files = [candidate_path, provenance_path, DEFAULT_BASE]
+        if parent_path is not None and parent_provenance_path is not None:
+            protected_files.extend((parent_path, parent_provenance_path))
         output = (
             _output_path(
                 args.json_out,
-                protected_files=(candidate_path, provenance_path, DEFAULT_BASE),
+                protected_files=protected_files,
                 overwrite=args.overwrite_result,
             )
             if args.json_out else None
@@ -559,38 +655,80 @@ def main(argv: Sequence[str] | None = None) -> int:
     opponent_sets = []
     opponent_diagnostics = []
     environments = []
+    comparisons = []
     base_sha256 = _sha256_file(DEFAULT_BASE)
 
     if args.opp == "mirror":
-        base_controller = EVAL.DeployableReflex(
-            base_net, f"frozen-qu-v1:{base_sha256}", learner_deck,
-        )
+        if parent_net is not None and parent_record is not None:
+            reference_label = "frozen-qu-v2a-canary"
+            reference_sha256 = parent_record["sha256"]
+            reference_controller = QuV2AController(
+                parent_net,
+                f"{reference_label}:{reference_sha256}",
+                learner_deck,
+            )
+        else:
+            reference_label = "frozen-qu-v1"
+            reference_sha256 = base_sha256
+            reference_controller = EVAL.DeployableReflex(
+                base_net,
+                f"{reference_label}:{reference_sha256}",
+                learner_deck,
+            )
         opponents = [EVAL.OpponentSpec(
-            "mirror/frozen-qu-v1", tuple(learner_deck),
-            base_controller.opponent_move, policy_id=base_controller.name,
-            schedule_group="frozen-qu-v1",
+            f"mirror/{reference_label}",
+            tuple(learner_deck),
+            reference_controller.opponent_move,
+            policy_id=reference_controller.name,
+            schedule_group=reference_label,
         )]
         schedule = EVAL.build_paired_schedule(
             opponents, args.games, args.seed,
             args.shard_index, args.num_shards,
         )
         controller = QuV2AController(
-            candidate_net, f"qu-v2a:{candidate_record['sha256']}", learner_deck,
+            candidate_net,
+            f"candidate-qu-v2b:{candidate_record['sha256']}",
+            learner_deck,
         )
         result = EVAL.run_series(
-            "qu-v2a-vs-frozen-qu-v1", controller, learner_deck, opponents,
+            f"candidate-vs-{reference_label}",
+            controller,
+            learner_deck,
+            opponents,
             schedule, args.max_selects, args.time_bank, verbose=not args.quiet,
         )
         results.append(result)
         schedules.append(schedule)
         opponent_sets.append(opponents)
-        opponent_diagnostics.append(base_controller.diagnostics())
+        opponent_diagnostics.append(reference_controller.diagnostics())
         environments.append(EVAL.environment_manifest(
             learner_deck, opponents, args.meta))
+        comparisons.append({
+            "kind": "direct_mirror",
+            "candidate_tag": result.tag,
+            "reference_label": reference_label,
+            "reference_sha256": reference_sha256,
+            "candidate_score": result.score,
+            "candidate_score_ci95": list(result.ci95),
+            "delta_from_even": result.score - 0.5,
+            "gate_valid": result.gate_valid,
+        })
         EVAL.print_result(result)
+        print(
+            f"MIRROR candidate={100*result.score:.1f}% "
+            f"vs={reference_label} delta_even={100*(result.score-0.5):+.1f}pp "
+            f"gate_valid={result.gate_valid}",
+            flush=True,
+        )
     else:
         schedule_identity = None
-        for arm in ("qu-v2a", "frozen-qu-v1"):
+        arms: list[tuple[str, str]] = [("candidate-qu-v2b", "candidate")]
+        if parent_net is not None:
+            arms.append(("frozen-qu-v2a-canary", "parent"))
+        arms.append(("frozen-qu-v1", "qu-v1"))
+        arm_results = {}
+        for arm, controller_kind in arms:
             opponents, field_controller = EVAL.make_field(
                 deck_specs, args.opp_policy, base_net,
                 f"field-frozen-qu-v1:{base_sha256}",
@@ -604,9 +742,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 schedule_identity = identity
             elif identity != schedule_identity:
                 raise EvaluationError("candidate/base field schedules diverged")
-            if arm == "qu-v2a":
+            if controller_kind == "candidate":
                 controller = QuV2AController(
-                    candidate_net, f"qu-v2a:{candidate_record['sha256']}",
+                    candidate_net,
+                    f"candidate-qu-v2b:{candidate_record['sha256']}",
+                    learner_deck,
+                )
+            elif controller_kind == "parent":
+                if parent_net is None or parent_record is None:
+                    raise EvaluationError("parent arm lost its locked artifact")
+                controller = QuV2AController(
+                    parent_net,
+                    f"frozen-qu-v2a-canary:{parent_record['sha256']}",
                     learner_deck,
                 )
             else:
@@ -619,6 +766,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 verbose=not args.quiet,
             )
             results.append(result)
+            arm_results[controller_kind] = result
             schedules.append(schedule)
             opponent_sets.append(opponents)
             opponent_diagnostics.append(field_controller.diagnostics())
@@ -626,24 +774,38 @@ def main(argv: Sequence[str] | None = None) -> int:
                 learner_deck, opponents, args.meta))
             EVAL.print_result(result)
 
-        candidate_result, base_result = results
-        c_low, c_high = candidate_result.ci95
-        b_low, b_high = base_result.ci95
-        delta = candidate_result.score - base_result.score
-        delta_ci = (c_low - b_high, c_high - b_low)
-        valid = candidate_result.gate_valid and base_result.gate_valid
-        print(
-            f"DELTA qu-v2a={100*candidate_result.score:.1f}% "
-            f"qu-v1={100*base_result.score:.1f}% delta={100*delta:+.1f}pp "
-            f"conservative_ci95=[{100*delta_ci[0]:+.1f},"
-            f"{100*delta_ci[1]:+.1f}]pp gate_valid={valid}",
-            flush=True,
-        )
+        candidate_result = arm_results["candidate"]
+        for reference_kind, reference_label in (
+            ("parent", "frozen-qu-v2a-canary"),
+            ("qu-v1", "frozen-qu-v1"),
+        ):
+            if reference_kind not in arm_results:
+                continue
+            comparison = _comparison_summary(
+                candidate_result,
+                arm_results[reference_kind],
+                reference_label,
+            )
+            comparison["kind"] = "identical_schedule_field_arms"
+            comparisons.append(comparison)
+            delta_low, delta_high = comparison["conservative_delta_ci95"]
+            print(
+                f"DELTA candidate={100*comparison['candidate_score']:.1f}% "
+                f"{reference_label}={100*comparison['reference_score']:.1f}% "
+                f"delta={100*comparison['delta']:+.1f}pp "
+                f"conservative_ci95=[{100*delta_low:+.1f},"
+                f"{100*delta_high:+.1f}]pp "
+                f"gate_valid={comparison['gate_valid']}",
+                flush=True,
+            )
 
     payload = {
         "schema": SCHEMA,
         "research_only": True,
-        "baseline": "frozen Qu-v1 production artifact; never modified",
+        "baseline": (
+            "frozen Qu-v1 production artifact plus optional exact Qu-v2A "
+            "canary parent; neither is modified"
+        ),
         "args": vars(args),
         "metric": "(wins + 0.5 * official_draws) / scheduled_games",
         "invalid_policy": (
@@ -652,6 +814,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         "engine_rng_seedable": False,
         "candidate": candidate_record,
         "candidate_training_provenance": training_record,
+        "frozen_qu_v2a_parent": (
+            {
+                "weights": parent_record,
+                "training_provenance": parent_training_record,
+                "weights_lock_sha256": FROZEN_PARENT_SHA256,
+                "provenance_file_lock_sha256": (
+                    FROZEN_PARENT_PROVENANCE_FILE_SHA256
+                ),
+                "provenance_manifest_lock_sha256": (
+                    FROZEN_PARENT_PROVENANCE_MANIFEST_SHA256
+                ),
+            }
+            if parent_record is not None else None
+        ),
         "frozen_qu_v1": {
             "path": str(DEFAULT_BASE),
             "sha256": base_sha256,
@@ -668,6 +844,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "safety": _sha256_file(Path(safety.__file__).resolve()),
         },
         "git": EVAL.git_state(),
+        "comparisons": comparisons,
         "results": [
             {
                 "summary": result.summary(),
