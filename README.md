@@ -1,8 +1,9 @@
-# PTCG ABC — Search + RL Agent
+# PTCG ABC — Public-Policy + RL Research Agent
 
 Kaggle Simulation agent for the Pokémon TCG AI Battle Challenge. The agent
-plays a guarded three-layer decision stack, each layer falling back to the
-next on any failure:
+currently ships a **reflex-only public-observation policy** with a paranoid
+rules fallback. The repository also contains an opt-in planning layer, but it
+is research code and remains disabled in production:
 
 1. **Belief-aware turn search** (`agent/turn_search.py`) — opt-in only
    (`PTCG_TURN_SEARCH=1`) until it passes the full local and ladder gates.
@@ -13,18 +14,66 @@ next on any failure:
    an evidence and paired robust-margin gate defers uncertain decisions to reflex.
    The repaired unknown surrogate can veto an override but can never establish
    the known-particle evidence floor by itself.
-2. **Reflex policy net** (`agent/model.py` + `agent/weights.npz`) — a
-   pointer-style option scorer (card embeddings + state encoder + per-option
-   logits + value head), numpy-only at inference. Trained by behavior
-   cloning on leaderboard episodes, then anchored league PPO
-   (`tools/train.py`). Research checkpoints may append a tiny residual for one
-   exact registered 60-card deck; a deck mismatch takes the frozen parent path.
+2. **Public-relational policy net** (`agent/model.py`,
+   `agent/qu_v2_features.py`, and `agent/weights.npz`) — a pointer-style option
+   scorer over public board objects, semantic legal actions, the registered
+   learner deck, and a value head. Inference is NumPy-only. The current
+   Qu-v2B weights use full-corpus behavior cloning with actor/deck emphasis,
+   per-game normalization, top-source down-weighting, and a frozen-Qu-v1 KL
+   trust region.
 3. **Rule-based policy** (`agent/policy.py`) — the hand-written fallback;
    also the league opponent and eval baseline.
 
 `agent/safety.py` wraps everything: legality repair, per-game time budget
 (authoritative `remainingOverageTime`; `actTimeout=0` on this ladder, so
 think-time drains it directly), never crash.
+
+## Current status
+
+- **Last updated:** 2026-07-23.
+- **Production policy:** Qu-v2B, weights `ec69a2db...a8447`, tag
+  `Qu-v2B` (`80542d9`), archive `91adba63...2f88f`.
+- **Deployment provenance:** confirmed. The repaired package runs the neural
+  model on Kaggle; it no longer silently falls through to rules under a
+  different runtime UID.
+- **Local promotion:** passed the locked 2,720-game matrix with zero faults,
+  including 59.4% direct versus the Qu-v2A parent and higher point estimates
+  on all five field axes.
+- **Ladder:** submission `54925546` completed at a **934.3 public-rating
+  snapshot** on 2026-07-23, the project's highest observed snapshot so far.
+  Replay analysis is still pending, so this is evidence of progress rather
+  than a precise strength estimate.
+- **Historical control:** frozen Qu-v1 remains at
+  `tools/baselines/qu-v1-weights.npz` (`4ce6522f...10ba033`). Its two
+  byte-identical submissions separated by roughly 146 rating points during
+  their trajectories, so ladder snapshots are noisy.
+- **Runtime search:** disabled. No planner or distilled planner has beaten its
+  reflex parent robustly enough to ship.
+
+### Active next direction
+
+Qu-v2B tests how much better weighting can extract from the same observational
+demonstrations. The remaining bottleneck is **credit assignment**: a winning
+replay records what the player did, but not whether a different legal action
+would have been better.
+
+The next proposed experiment is an **asymmetric critic**:
+
+1. Generate a diverse local league with Qu-v2B, Qu-v2A, Qu-v1, rules, and
+   randomized past checkpoints.
+2. Train a tooling-only critic on complete simulator state, including hidden
+   information, to estimate outcomes and per-action advantage.
+3. Aggregate those estimates across hidden states compatible with the same
+   public observation.
+4. Train a deployable actor using only public features and conservative soft
+   advantage targets, anchored to Qu-v2B where the teacher is uncertain.
+5. Require the critic-guided policy to beat Qu-v2B before distillation, then
+   require the distilled candidate to pass the same multi-axis field matrix.
+
+Hidden state is training privilege only and must never enter `agent/`, the
+submission, or deployable features. More ladder data remains useful for
+coverage and failure diagnosis, but plain winner-action BC is no longer the
+primary improvement lever.
 
 ## Results so far (ladder = public score; local = head-to-head win rates)
 
@@ -38,11 +87,11 @@ think-time drains it directly), never crash.
 | cvkpaper-v4 | reflex-only kill switch (search retired) | ~655 — former champion |
 | cvkpaper-v5 | cycle3d weights on v4 code | 497 — reverted to ft3 (fa0fc1c) |
 | cvkpaper-v6 | ft10 band-foundation BC + anchored league PPO | ~641 — dev weights, not champion |
-| Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 clone snapshot — current champion |
+| Qu-v1 | semantic-v3 BC on the band/top/downloaded mix | 885.7 historical peak snapshot |
 | Qu-v2 | public-relational Qu-v2A, but packaged runtime silently fell through | 628.2 — **rules fallback, not a model-strength result** |
 | qu-v2.1 | packaging-only Qu-v2 repair, but Kaggle still fell through | first replay: **115/115 rules actions; model still unevaluated** |
 | qu-v2.2-runtime-canary | unchanged Qu-v2A with cross-UID runtime repair | 780.5 snapshot; model-live provenance confirmed |
-| Qu-v2B | actor-weighted/game-balanced Qu-v2 objective correction | submission `54925546` pending |
+| Qu-v2B | actor-weighted/game-balanced Qu-v2 objective correction | **934.3 snapshot; current project high** |
 
 Research log (each vs the then-champion, 100-200 game evals):
 
@@ -57,11 +106,11 @@ Research log (each vs the then-champion, 100-200 game evals):
   and slightly improves it. Mirror-only self-play collapses entropy.
 - **Search converts spare clock into strength**: same net, 1-ply = 56%,
   2-ply = 64% vs reflex. We use ~135s of the 600s budget.
-- **Flywheel (expert iteration), in progress**: the search agent self-plays
-  (`tools/selfplay_search.py`, episode-format output), and the net retrains
-  on its games — the data source now improves with the agent. Cycle 1
-  failed (mirror-only data: apprentice farms weak opponents, loses
-  head-to-heads); cycle 2 needs diverse generation opponents.
+- **Historical flywheel experiment (retired)**: the search agent self-played
+  (`tools/selfplay_search.py`, episode-format output) and the net retrained on
+  its games. Cycle 1 failed because mirror-only data let the apprentice farm
+  weak opponents while losing head-to-heads. The route was superseded by the
+  guarded teacher and counterfactual-label research below.
 - **Search inverts under determinization starvation** (the cvkpaper-v2
   post-mortem): on ladder CPUs one 2-ply det fills the whole budget, and
   acting on a single sampled world scored 31.6% vs reflex (n=320 repro via
@@ -112,16 +161,15 @@ Research log (each vs the then-champion, 100-200 game evals):
   ~600s/game across ~65 decisions = ~5-9s/decision available; the shipped agent
   uses ~1s per *game*. Top ladder agents spend ~0.2-0.3s/decision (measured from
   `remainingOverageTime` in replays) — they *plan*; we don't. See CLAUDE.md.
-- **Option C — planning via PUCT search (in progress, 2026-07-19)**: PIMC search
+- **Historical PUCT prototype (superseded, 2026-07-19)**: PIMC search
   beat reflex ~60% locally but lost on the ladder (strategy fusion, per the
   ISMCTS literature). `agent/ismcts.py` is the fix: AlphaGo-style **PUCT** over
   information sets — our net's softmax as the policy prior (focuses the search),
   deterministic leaf eval (not the off-distribution value head), determinization
   for hidden cards, no rollout. RL-engineer-endorsed ("AlphaGo style is
   reasonable if you can't search like crazy"). Prototype works: ~211
-  iters/decision @1.5s dev, 0 illegal actions. NEXT: A/B it vs reflex + the
-  multi-deck field at a realistic budget; if it wins, ship a ladder A/B (the
-  only real transfer test — local search wins have never transferred before).
+  iters/decision @1.5s dev, 0 illegal actions. The subsequent implementation
+  audit below invalidated this route before it could support a promotion.
 - **Option C implementation audit (2026-07-20)**: `ismcts.py` was actually an
   open-loop tree keyed only by our numeric action-index history. It merged
   different observations/actions, could send illegal one-index selections at
@@ -363,8 +411,8 @@ Research log (each vs the then-champion, 100-200 game evals):
   differed by 146 rating points. If the runtime is clean but Qu-v2 disappoints,
   the revert artifact is `tools/baselines/qu-v1-weights.npz`, SHA-256
   `4ce6522f...10ba033`.
-- **Qu-v2B objective-correction experiment (2026-07-23, trained candidate;
-  engine gates pending)**: keep the Qu-v2A architecture and locked v2 corpus,
+- **Qu-v2B objective correction passes promotion and reaches a new ladder high
+  (2026-07-23)**: keep the Qu-v2A architecture and locked v2 corpus,
   but make the BC
   supervision actor-specific and game-balanced.  The registered Alakazam deck
   receives a 2x BC/value multiplier, top-only games remain seasoning at 0.5x,
@@ -377,7 +425,7 @@ Research log (each vs the then-champion, 100-200 game evals):
   comparable with Qu-v2A's differently scaled objective. Candidate weights are
   `ec69a2db...a8447`, and its manifest/source/corpus/anchor locks validate.
   Promotion requires the locked 2,720-game engine matrix: 160 games/arm on
-  primary pool:8, holdout pool:8:16, threat meta:2, sentinel meta:3 and
+  primary pool:8, holdout pool:8:16, threat meta:2, sentinel meta:3, and
   Dragapult meta:6 for Qu-v2B/parent/Qu-v1, plus 160-game direct mirrors versus
   parent and Qu-v1. Every arm must be fault-free; primary must strictly beat
   parent and not trail Qu-v1, all secondary fields must not trail either
@@ -394,7 +442,11 @@ Research log (each vs the then-champion, 100-200 game evals):
   also completed a 200-game random smoke at 197-3 with zero errors. The ladder
   still decides external strength. Tag `Qu-v2B` points to `80542d9`; exact
   package SHA-256 is `91adba63...2f88f`, and the single authorized Kaggle
-  submission is `54925546` (`Qu-v2B`, pending at upload).
+  submission is `54925546` (`Qu-v2B`). It completed at a 934.3 public-rating
+  snapshot on 2026-07-23, above the previous 885.7 project peak. Treat that as
+  a strong directional result, not a calibrated effect size: replay-level
+  matchup and action analysis is still pending, and identical submissions have
+  previously followed widely separated rating trajectories.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -435,9 +487,10 @@ agent/
   ismcts.py                # superseded open-loop prototype, retained for research history
   search_policy.py         # retired PIMC + shared engine/belief helpers
   model.py                 # numpy inference net; shapes derive from weights.npz
+  qu_v2_features.py        # vendored public-relational production encoder
   features.py              # versioned semantic options, shared by training/inference
   obsview.py / cards.py    # read-only obs/option identity helpers / card DB lookups
-  weights.npz              # tracked Qu-v2 public-relational candidate
+  weights.npz              # tracked, promoted Qu-v2B production weights
   meta_decks.json          # decklists mined from episodes (opponent modeling)
 data/                      # card/attack dumps (tools/dump_cards.py — generated)
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
@@ -461,7 +514,8 @@ tools/
     qu_v2a_model.py        # matched-capacity Torch/NumPy candidate twins
     train_qu_v2a.py        # bounded BC, per-game cache, exact epoch resume
     train_qu_v1_control.py # random-init same-corpus representation control
-    eval_qu_v2a.py         # paired candidate versus frozen Qu-v1 evaluator
+    eval_qu_v2a.py         # three-arm Qu-v2-family/parent/Qu-v1 evaluator
+  aggregate_qu_v2b_gate.py # locked multi-axis Qu-v2B promotion decision
   analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
   audit_submission_runtime.py # extracted-tar replay action identity gate
   mine_meta_decks.py       # episodes -> agent/meta_decks.json
@@ -493,6 +547,7 @@ tests/test_qu_v2a.py      # public feature contract + Torch/NumPy parity
 tests/test_qu_v2a_training.py # streaming/cache/resume/output-lock semantics
 tests/test_qu_v1_control.py # matched same-corpus representation control
 tests/test_eval_qu_v2a.py # frozen-baseline and paired-evaluator guards
+tests/test_aggregate_qu_v2b_gate.py # promotion-matrix provenance/decision rules
 tests/test_qu_v2_deployment.py # exact research/production parity + fail-soft routing
 ```
 
@@ -551,19 +606,32 @@ python tools/research/analyze_corpus_index.py \
 # After interruption, repeat the identical command with --resume-latest;
 # scientific arguments, code/data contracts, runtime and cache are locked.
 
-# candidate-only paired field gates; none authorizes production integration
+# Qu-v2-family three-arm field gate against the canary parent and frozen Qu-v1
 python tools/research/eval_qu_v2a.py 160 \
-    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz \
+    --parent tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
     --opp pool:8 --opp-policy mixed \
-    --json-out tools/checkpoints/qu-v2a-field-v1/eval-pool8.json
+    --json-out tools/checkpoints/qu-v2b-field-v1/gates/primary.json
 python tools/research/eval_qu_v2a.py 160 \
-    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz \
+    --parent tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
     --opp pool:8:16 --opp-policy mixed \
-    --json-out tools/checkpoints/qu-v2a-field-v1/eval-holdout.json
+    --json-out tools/checkpoints/qu-v2b-field-v1/gates/holdout.json
 python tools/research/eval_qu_v2a.py 160 \
-    tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
-    --opp mirror \
-    --json-out tools/checkpoints/qu-v2a-field-v1/eval-mirror.json
+    tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz \
+    --parent tools/checkpoints/qu-v2a-field-v1/candidate-qu-v2a-weights.npz \
+    --opp mirror --json-out tools/checkpoints/qu-v2b-field-v1/gates/mirror-parent.json
+# The locked promotion additionally requires the Qu-v1 mirror and meta:2,
+# meta:3, and meta:6 arms. Only the strict aggregate may authorize integration:
+python tools/research/aggregate_qu_v2b_gate.py \
+    --primary tools/checkpoints/qu-v2b-field-v1/gates/primary.json \
+    --holdout tools/checkpoints/qu-v2b-field-v1/gates/holdout.json \
+    --mirror-v1 tools/checkpoints/qu-v2b-field-v1/gates/mirror-v1.json \
+    --mirror-parent tools/checkpoints/qu-v2b-field-v1/gates/mirror-parent.json \
+    --threat tools/checkpoints/qu-v2b-field-v1/gates/threat.json \
+    --sentinel tools/checkpoints/qu-v2b-field-v1/gates/sentinel.json \
+    --dragapult tools/checkpoints/qu-v2b-field-v1/gates/dragapult.json \
+    --json-out tools/checkpoints/qu-v2b-field-v1/gates/promotion-gate.json
 
 # imitation + RL (in the training venv)
 python tools/train.py --bc ~/Desktop/ptcg_episodes --iters 0 \
@@ -618,17 +686,15 @@ python tools/aggregate_counterfactual.py \
     --json-out tools/checkpoints/counterfactual-oracle/field-160.json
 
 # public-only belief terminal-Q: reduced panels are a crash/ABI smoke only.
-# Use explicit, separately frozen schedule/prior paths for scientific gates.
+# The locked 20-game calibration failed, so do not scale this to a field gate
+# or train from its labels without a newly pre-registered method.
 python tools/eval_belief_counterfactual.py 2 --opp mirror \
     --screen-worlds 4 --selection-worlds 8 \
     --confirmation-worlds 8 --stress-worlds 4 --bootstrap-samples 100 \
     --json-out tools/checkpoints/belief-counterfactual/smoke-2.json --quiet
-python tools/eval_belief_counterfactual.py 160 --opp pool:8 \
-    --opp-policy mixed --meta-path agent/meta_decks.json \
-    --belief-meta-path agent/meta_decks.json \
-    --json-out tools/checkpoints/belief-counterfactual/pool8-160.json --quiet
 
-# search-policy iteration: generate soft targets, then distill in the RL venv
+# historical search-policy iteration workflow; its first cycle failed.
+# Do not generate/distill another corpus until the teacher beats its parent.
 python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
     --opp pool:16 --opp-policy rules,reflex --budget 0.5 --particles 8
 ~/.venvs/ptcg-rl/bin/python tools/train_teacher.py /tmp/teacher-w1.jsonl \
