@@ -85,7 +85,15 @@ the ladder.
   (`80542d9`) and uploaded as Kaggle submission `54925546`, exact archive
   `91adba63...2f88f`. The user later explicitly requested the byte-identical
   second-slot trajectory `54928432` (`Qu-v2B-clone`); do not create any
-  additional clone without another request.
+  additional clone without another request. The first 61 resolved ladder games
+  were 41-20 overall (original 37-17, clone 4-3), with balanced seats and a
+  957.5 versus 777.7 snapshot split between the byte-identical trajectories.
+  Runtime provenance was clean: 1,585/1,636 model/rules disagreement prompts
+  matched Qu-v2B and zero matched rules. On the 561 Qu-v2B/parent
+  disagreements, logged play matched B 529 times and the parent zero times.
+  Cinderace improved to 8-2 from Qu-v1's 8-17 historical bleed; Grimmsnarl
+  was 7-6 and Dragapult only 1-2 (too sparse). Do not tune a matchup from this
+  early sample; extend the same replay audit after more games.
 - Belief-aware turn search remains an experimental route to such targets.
   The implementation audit falsified the old `ismcts.py` prototype: it was an
   open-loop action-index tree, merged distinct information states, could issue

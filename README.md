@@ -39,11 +39,11 @@ think-time drains it directly), never crash.
 - **Local promotion:** passed the locked 2,720-game matrix with zero faults,
   including 59.4% direct versus the Qu-v2A parent and higher point estimates
   on all five field axes.
-- **Ladder:** submission `54925546` completed at a **934.3 public-rating
-  snapshot** on 2026-07-23, the project's highest observed snapshot so far.
-  The byte-identical second trajectory, `54928432` (`Qu-v2B-clone`), was
-  submitted on 2026-07-23 and is pending. Replay analysis is still pending, so
-  this is evidence of progress rather than a precise strength estimate.
+- **Ladder:** submission `54925546` reached a **957.5 public-rating snapshot**
+  on 2026-07-23, the project's highest observed snapshot so far. The
+  byte-identical second trajectory, `54928432` (`Qu-v2B-clone`), was at 777.7
+  after only seven resolved games. The 180-point split is another warning that
+  early ladder ratings are trajectories, not precise strength estimates.
 - **Historical control:** frozen Qu-v1 remains at
   `tools/baselines/qu-v1-weights.npz` (`4ce6522f...10ba033`). Its two
   byte-identical submissions separated by roughly 146 rating points during
@@ -438,19 +438,44 @@ Research log (each vs the then-champion, 100-200 game evals):
   80.0/75.0/65.0%, threat 95.0/94.4/83.1%, sentinel 61.9/53.8/35.6%, and
   Dragapult 95.0/89.4/85.0%. Aggregate manifest
   `d863f8a4...43113` passed every pre-registered check. The exact
-  `ec69a2db...a8447` artifact is therefore authorized for production
-  integration and one user-approved ladder submission; its production path
+  `ec69a2db...a8447` artifact was therefore authorized for production
+  integration and the initial user-approved ladder submission; its production path
   also completed a 200-game random smoke at 197-3 with zero errors. The ladder
   still decides external strength. Tag `Qu-v2B` points to `80542d9`; exact
   package SHA-256 is `91adba63...2f88f`. Kaggle submission `54925546`
-  (`Qu-v2B`) completed at a 934.3 public-rating snapshot on 2026-07-23, above
+  (`Qu-v2B`) first reached a 934.3 public-rating snapshot on 2026-07-23, above
   the previous 885.7 project peak. At the user's later explicit request, the
   exact same archive was submitted in the second slot as `54928432`
   (`Qu-v2B-clone`) to measure trajectory repeatability and collect more
   replays. Treat either result as directional rather than a calibrated effect
-  size: replay-level matchup and action analysis is still pending, and
-  identical submissions have previously followed widely separated rating
-  trajectories.
+  size; the first replay-level audit follows, and identical submissions have
+  previously followed widely separated rating trajectories.
+- **First Qu-v2B ladder replay audit (2026-07-23, early sample)**: downloaded
+  55 original and 8 clone replays directly from submissions `54925546` and
+  `54928432`. Two same-team mirrors were unresolvable; the remaining 61
+  disjoint games scored 41-20 (67.2%, CI 54.7-77.7%). The original was 37-17
+  and the seven-game clone was 4-3; seats were balanced at 20-9 from seat 0
+  and 21-11 from seat 1. Runtime provenance is decisive across 3,719 prompts:
+  on 1,636 model/rules disagreements, 1,585 logged actions matched Qu-v2B,
+  zero matched rules, and 51 were numerical others. Qu-v2B differed from its
+  Qu-v2A parent on 561 prompts (15.1%); logged play selected Qu-v2B on 529,
+  the parent on zero, and a numerical other on 32. It differed from Qu-v1 on
+  1,070 prompts (28.8%). Thus both the rating and play belong to the new
+  objective, not fallback or the parent.
+
+  The early matchup distribution is broad: Alakazam 10-3, Grimmsnarl 7-6,
+  Cinderace 8-2, Mega Lucario 5-2, Crustle 3-2, Garchomp 2-2, and Dragapult
+  1-2. Cinderace was Qu-v1's concentrated 8-17 bleed, so its reversal is the
+  most encouraging behavioral result; Grimmsnarl is the only adequately
+  sampled current watch item, while three Dragapult games say little. Losses
+  remained longer than wins (68.5 versus 57.3 learner decisions) but the
+  attack gap narrowed to 5.00 versus 5.54 per game. All 99 END choices were
+  forced with no legal attack, so passivity is still not the diagnosis.
+  Qu-v2B changed the parent's choice mainly at MAIN prompts (438/561) and card
+  targets (120/561), often trading immediate attacks for setup/evolution
+  actions. This is observational and not causal; wait for a larger replay
+  sample before matchup-specific training. Locked local reports live under
+  `tools/checkpoints/qu-v2b-ladder/` and are gitignored.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
