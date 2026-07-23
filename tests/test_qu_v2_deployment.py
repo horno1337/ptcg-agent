@@ -106,6 +106,50 @@ def test_production_numpy_avoids_version_specific_clip_keywords():
     )
 
 
+def test_ladder_canary_readout_is_pre_registered_and_fail_closed():
+    def row(logged, model, rules):
+        return {
+            "logged_action": logged,
+            "reference_model_action": model,
+            "reference_rules_action": rules,
+        }
+
+    live = audit_submission_runtime._ladder_action_readout([
+        row([1], [1], [0]),
+        row([1], [1], [0]),
+        row([0], [1], [0]),
+    ])
+    assert live["classification"] == "passed_model_live"
+    assert live["canary_passed"] is True
+    assert live["net_execution_observed"] is True
+    assert live["model_match_rate"] == 2 / 3
+    assert live["strength_question_answered"] is False
+
+    fallback = audit_submission_runtime._ladder_action_readout([
+        row([0], [1], [0]),
+        row([0], [1], [0]),
+    ])
+    assert fallback["classification"] == "failed_zero_model_matches"
+    assert fallback["canary_passed"] is False
+    assert fallback["net_execution_observed"] is False
+
+    mixed = audit_submission_runtime._ladder_action_readout([
+        row([1], [1], [0]),
+        row([0], [1], [0]),
+    ])
+    assert mixed["classification"] == "inconclusive_mixed_actions"
+    assert mixed["canary_passed"] is False
+
+    no_signal = audit_submission_runtime._ladder_action_readout([
+        row([0], [0], [0]),
+    ])
+    assert no_signal["classification"] == (
+        "inconclusive_no_disagreement_prompts"
+    )
+    assert no_signal["canary_passed"] is False
+    assert no_signal["model_match_rate"] is None
+
+
 def test_extracted_runtime_wins_over_an_installed_tools_package():
     """Exercise the portable archive as a different UID with tools poisoned."""
     with tempfile.TemporaryDirectory() as temporary:
@@ -187,5 +231,6 @@ if __name__ == "__main__":
     test_vendored_encoder_is_exactly_the_evaluated_research_encoder()
     test_dispatcher_uses_qu_v2_and_fails_soft_on_privileged_input()
     test_production_numpy_avoids_version_specific_clip_keywords()
+    test_ladder_canary_readout_is_pre_registered_and_fail_closed()
     test_extracted_runtime_wins_over_an_installed_tools_package()
     print("all Qu-v2 deployment tests passed")
