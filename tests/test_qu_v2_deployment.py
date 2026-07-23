@@ -17,9 +17,9 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from agent import model, policy  # noqa: E402
+from agent import model, policy, qu_v2_features as PRODUCTION_QF  # noqa: E402
 from tests.test_qu_v2a import observation  # noqa: E402
-from tools import build_submission  # noqa: E402
+from tools import audit_submission_runtime, build_submission  # noqa: E402
 from tools.research import qu_v2a_features as QF  # noqa: E402
 from tools.research import qu_v2a_model as QM  # noqa: E402
 
@@ -37,14 +37,34 @@ def test_production_numpy_path_is_exactly_the_evaluated_twin():
             name: np.array(archive[name], copy=True) for name in archive.files
         })
 
-    sample = QF.encode_public_observation(observation(), policy.load_deck())
-    production_logits, production_value = production.forward(sample)
-    reference_logits, reference_value = reference.forward(sample)
+    obs = observation()
+    registered_deck = policy.load_deck()
+    production_sample = PRODUCTION_QF.encode_public_observation(
+        obs, registered_deck)
+    reference_sample = QF.encode_public_observation(obs, registered_deck)
+    production_logits, production_value = production.forward(production_sample)
+    reference_logits, reference_value = reference.forward(reference_sample)
     np.testing.assert_array_equal(production_logits, reference_logits)
     assert production_value == reference_value
     assert model.decode_qu_v2(production_logits, 3, 1, 1) == (
         QM.decode_sequential(reference_logits, 3, 1, 1)
     )
+
+
+def test_vendored_encoder_is_exactly_the_evaluated_research_encoder():
+    obs = observation()
+    registered_deck = policy.load_deck()
+    expected = QF.encode_public_observation(obs, registered_deck)
+    actual = PRODUCTION_QF.encode_public_observation(obs, registered_deck)
+    assert PRODUCTION_QF.SCHEMA == QF.SCHEMA
+    assert PRODUCTION_QF.FEATURE_DEPENDENCY_FINGERPRINT == (
+        QF.FEATURE_DEPENDENCY_FINGERPRINT
+    )
+    assert PRODUCTION_QF.assert_feature_dependency_lock() == (
+        QF.FEATURE_DEPENDENCY_FINGERPRINT
+    )
+    for name, expected_array in expected.arrays().items():
+        np.testing.assert_array_equal(actual.arrays()[name], expected_array)
 
 
 def test_dispatcher_uses_qu_v2_and_fails_soft_on_privileged_input():
@@ -55,7 +75,8 @@ def test_dispatcher_uses_qu_v2_and_fails_soft_on_privileged_input():
     model.load = lambda: production
     try:
         obs = observation()
-        sample = QF.encode_public_observation(obs, policy.load_deck())
+        sample = PRODUCTION_QF.encode_public_observation(
+            obs, policy.load_deck())
         logits, _ = production.forward(sample)
         expected = model.decode_qu_v2(logits, 3, 1, 1)
         assert policy._model_decide(policy.ObsView(obs)) == expected
@@ -86,9 +107,10 @@ def test_production_numpy_avoids_version_specific_clip_keywords():
 
 
 def test_extracted_runtime_wins_over_an_installed_tools_package():
-    """Exercise the exact package layout in a clean, hostile interpreter."""
+    """Exercise the portable archive as a different UID with tools poisoned."""
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
+        root.chmod(0o755)
         package = root / "submission"
         hostile = root / "site-packages"
         package.mkdir()
@@ -100,12 +122,16 @@ def test_extracted_runtime_wins_over_an_installed_tools_package():
         archive = root / "submission.tar.gz"
         build_submission.build(archive, cg_lib="skip")
         with tarfile.open(archive, "r:gz") as handle:
-            members = handle.getnames()
-            assert "tools/__init__.py" in members
-            assert "tools/research/qu_v2a_features.py" in members
-            assert not any("__pycache__" in name for name in members)
-            assert not any(name.endswith("qu_v2a_model.py") for name in members)
-            handle.extractall(package, filter="data")
+            members = handle.getmembers()
+            names = [member.name for member in members]
+            assert "agent/qu_v2_features.py" in names
+            assert not any(name == "tools" or name.startswith("tools/")
+                           for name in names)
+            assert not any("__pycache__" in name for name in names)
+            assert all(member.mode == (0o755 if member.isdir() else 0o644)
+                       for member in members
+                       if member.isdir() or member.isfile())
+        audit_submission_runtime._safe_extract(archive, package)
         sentinel = json.loads((
             ROOT / "tests/fixtures/qu_v2_runtime_sentinel.json"
         ).read_text(encoding="utf-8"))
@@ -113,6 +139,12 @@ def test_extracted_runtime_wins_over_an_installed_tools_package():
             json.dumps(sentinel["observation"]), encoding="utf-8")
         script = """
 import json
+import os
+import sys
+import types
+poisoned = types.ModuleType('tools')
+poisoned.__path__ = []
+sys.modules['tools'] = poisoned
 from agent import model, policy
 from agent.obsview import ObsView
 net = model.load()
@@ -128,12 +160,17 @@ rules = policy.decide_rules(obs)
 assert action == [1, 0], action
 assert rules == [0, 1], rules
 assert action != rules
-print('runtime-ok')
+print(f'runtime-ok:{os.geteuid()}:{os.getegid()}')
 """
         environment = dict(os.environ)
         environment["PYTHONPATH"] = str(hostile)
+        environment["PYTHONDONTWRITEBYTECODE"] = "1"
         completed = subprocess.run(
-            [sys.executable, "-c", script],
+            audit_submission_runtime._cross_uid_command(
+                script,
+                package / "observation.json",
+                root / "python-environment",
+            ),
             cwd=package,
             env=environment,
             text=True,
@@ -142,11 +179,12 @@ print('runtime-ok')
             check=False,
         )
         assert completed.returncode == 0, completed.stderr
-        assert completed.stdout.strip() == "runtime-ok"
+        assert completed.stdout.strip() == "runtime-ok:1:1"
 
 
 if __name__ == "__main__":
     test_production_numpy_path_is_exactly_the_evaluated_twin()
+    test_vendored_encoder_is_exactly_the_evaluated_research_encoder()
     test_dispatcher_uses_qu_v2_and_fails_soft_on_privileged_input()
     test_production_numpy_avoids_version_specific_clip_keywords()
     test_extracted_runtime_wins_over_an_installed_tools_package()

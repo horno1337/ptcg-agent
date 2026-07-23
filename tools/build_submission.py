@@ -16,17 +16,23 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 sys.path.insert(0, ROOT)
 INCLUDE = [
     "main.py", "agent", "data", "decks",
-    # Qu-v2 weights are content-bound to this exact public-only encoder.  The
-    # production model is Torch-free; only the encoder and package marker ship.
-    "tools/__init__.py",
-    "tools/research/__init__.py",
-    "tools/research/qu_v2a_features.py",
 ]
 CG_LIB = os.environ.get(
     "CG_LIB",
     os.path.expanduser("~/Desktop/sample_submission/sample_submission/cg/libcg.so"))
 
 out = os.path.join(ROOT, "submission.tar.gz")
+
+
+def _portable_member(ti):
+    """Exclude caches and make every archive member readable cross-UID."""
+    if "__pycache__" in ti.name:
+        return None
+    if ti.isdir():
+        ti.mode = 0o755
+    elif ti.isfile():
+        ti.mode = 0o644
+    return ti
 
 
 def validate_deck_adapter(weights_path=None, deck=None):
@@ -55,14 +61,14 @@ def build(output=None, cg_lib=None):
             p = os.path.join(ROOT, item)
             tar.add(
                 p, arcname=item,
-                filter=lambda ti: None if "__pycache__" in ti.name else ti,
+                filter=_portable_member,
             )
         if cg_lib != "skip":
             if not os.path.exists(cg_lib):
                 raise FileNotFoundError(
                     f"{cg_lib} missing - set CG_LIB to the official libcg.so "
                     "or CG_LIB=skip")
-            tar.add(cg_lib, arcname="cg/libcg.so")
+            tar.add(cg_lib, arcname="cg/libcg.so", filter=_portable_member)
             print(f"bundled cg/libcg.so from {cg_lib}")
     print("wrote", output, f"({os.path.getsize(output)/1024:.0f} KB)")
     return output

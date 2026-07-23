@@ -47,10 +47,17 @@ the ladder.
   the neural policy.  The packaging-only repair passed exact local archive
   parity, but its first Kaggle mirror replay still matched rules on 115/115
   actions and matched the model on zero of 36-38 model/rules disagreements.
-  The remaining Kaggle-only exception is hidden by the fail-soft dispatcher.
-  Before another promotion, move the complete Qu-v2 runtime under `agent/`,
-  test a closer Kaggle compatibility matrix, and require the first downloaded
-  ladder replays to fingerprint the model.  Independently, the user authorized
+  The leading root cause is the exact tar's mode-0600 `agent/weights.npz`: it
+  is unreadable when extraction and execution use different UIDs, and the
+  swallowed `np.load` exception explains deterministic fallback. The local
+  repair canonicalizes tar files/directories to 0644/0755, vendors the encoder
+  under `agent/`, removes production import-time provenance I/O, and has no
+  runtime `tools` dependency. Its strict archive gate runs as UID/GID 1 with
+  `sys.modules['tools']` poisoned and passes reference model/final parity on
+  2,800/2,800 prompts with zero missing model actions and 1,146 model/rules
+  disagreements. This is not Kaggle proof: the next upload must be a user-named
+  packaging-only canary with byte-identical weights/deck, and its first replay
+  must fingerprint the model. Independently, the user authorized
   the Qu-v2B objective-correction research run: same architecture and locked
   v2 corpus, actor-specific Alakazam BC/value emphasis, game normalization,
   top-source seasoning, and an independently normalized uniform-per-game
@@ -91,11 +98,12 @@ the ladder.
   a separately reviewed deployment integration.
 - Every promoted runtime must be tested from the **exact extracted tarball**,
   not repository imports or a copied include list.  For Qu-v2, run
-  `tools/audit_submission_runtime.py` under a hostile installed `tools` package
-  and require package/reference model and final-action parity on every saved
-  prompt, zero missing model actions, zero exceptions, and a non-empty
-  model-vs-rules disagreement set.  A legal random smoke cannot detect a
-  silently swallowed model exception because the rules fallback is also legal.
+  `tools/audit_submission_runtime.py` under a non-owner UID with both a hostile
+  installed `tools` package and pre-poisoned `sys.modules['tools']`; require
+  portable 0644/0755 archive modes, package/reference model and final-action
+  parity on every saved prompt, zero missing model actions, zero exceptions,
+  and a non-empty model-vs-rules disagreement set. A legal random smoke cannot
+  detect a silently swallowed model exception because rules fallback is legal.
 - Planner gates must additionally report root coverage, reflex disagreement,
   valid particles, fallback reasons, p50/p95/max latency, cumulative clock,
   errors, hashes and confidence intervals. Evaluate exact-known, withheld
@@ -264,6 +272,9 @@ python tools/build_submission.py          # package (injects cg/libcg.so; CG_LIB
 python tools/audit_submission_runtime.py tools/checkpoints/qu-v2-ladder/original \
   --team '増殖するG' --archive submission.tar.gz  # exact-tar identity gate
 ```
+
+The identity gate requires `unshare`, `mount`, and `setpriv`; inability to run
+the exact active Python environment as UID/GID 1 fails promotion closed.
 
 `[]` is a valid STOP action when `minCount == 0`; only `None` means policy
 failure. Dataset, training, inference, eval and search code must preserve that
