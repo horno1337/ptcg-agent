@@ -30,7 +30,7 @@ think-time drains it directly), never crash.
 
 ## Current status
 
-- **Last updated:** 2026-07-23.
+- **Last updated:** 2026-07-24.
 - **Production policy:** Qu-v2B, weights `ec69a2db...a8447`, tag
   `Qu-v2B` (`80542d9`), archive `91adba63...2f88f`.
 - **Deployment provenance:** confirmed. The repaired package runs the neural
@@ -603,6 +603,28 @@ Research log (each vs the then-champion, 100-200 game evals):
   embedded SHA-256 `c1407c20...d9020`; and
   `tools/checkpoints/qu-v2c-panel-critic-v1/confirmed-pair-memorization.json`,
   embedded SHA-256 `8ef756b5...eb97`.
+- **Qu-v2B harvest refresh (2026-07-24, 128 resolved games)**: exact-ID
+  refreshes of live submissions `54925546` and `54928432` added 20 resolved
+  replays. The combined trajectory is now 77-51 (60.2%); the new slice itself
+  is 10-10, so it does not support a strength update. The original added
+  3-6 and the clone 7-4, while seat 0 went 4-7 and seat 1 went 6-3—another
+  warning not to tune on a short rating trajectory. The exact submitted
+  archive passed the cross-UID audit on all 7,854 prompts with zero reference
+  errors or missing model actions. On 3,362 model/rules disagreements, 3,265
+  logged actions matched Qu-v2B, zero matched rules, and 97 were numerical
+  others: these are genuine model games, not packaging fallback.
+
+  The refresh adds 388 supported factual roots and 68 B/parent semantic
+  disagreements. Losses in the 20-game slice averaged 3.7 attacks/game versus
+  6.1 in wins, but matchup samples are too small to authorize targeted
+  training (Grimmsnarl 1-4 and Cinderace 0-2 are observations, not gates).
+  After excluding the 60 games already opened by the two development cohorts,
+  only 68 unique games remain eligible. A balanced 30-game reserve cohort was
+  selected without opening exact-panel labels, leaving 38 other eligible
+  games. We therefore remain at least 52 fresh resolved games short of the
+  120-game arithmetic floor, and roughly 82 short of the 150-game operational
+  target. Preserve the reserve and both live collection slots; do not train or
+  tune from this incremental 10-10 sample.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -751,6 +773,9 @@ python tools/download_episodes.py --top 50 --per-sub 100 \
 python tools/download_episodes.py --min-score 600 --max-score 800 --spread \
     --top 50 --per-sub 100 --out ~/Desktop/ptcg_corpus_mid \
     --skip-dir ~/Desktop/ptcg_episodes --skip-dir ~/Desktop/ptcg_corpus_top
+# exact live-submission refresh; repeat --submission-id when sharing one output
+python tools/download_episodes.py --submission-id 54925546 --refresh \
+    --per-sub 1000 --out tools/checkpoints/qu-v2b-ladder/original
 
 # content-lock the complete corpus; unrelated appended games do not move old splits
 python tools/index_corpus.py \

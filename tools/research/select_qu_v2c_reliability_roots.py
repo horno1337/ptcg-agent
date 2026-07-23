@@ -709,6 +709,8 @@ def load_excluded_games(
     paths: Sequence[str | Path],
     *,
     factual_parent_manifest_sha256: str,
+    factual_parent_weights: Mapping[str, Any],
+    available_game_keys: frozenset[str],
 ) -> tuple[frozenset[str], list[dict[str, Any]]]:
     excluded: set[str] = set()
     provenance: list[dict[str, Any]] = []
@@ -720,8 +722,8 @@ def load_excluded_games(
             manifest.get("selection_mode") != SELECTION_MODE
             or manifest.get("selection_policy") != SELECTION_POLICY
             or not isinstance(parent, Mapping)
-            or parent.get("manifest_sha256")
-            != factual_parent_manifest_sha256
+            or not _is_sha256(parent.get("manifest_sha256"))
+            or manifest.get("weights") != factual_parent_weights
         ):
             raise SelectionError(
                 f"exclusion is not a sibling reliability cohort: {path}")
@@ -731,6 +733,10 @@ def load_excluded_games(
             if candidate is None:
                 raise SelectionError(
                     f"exclusion contains an unstable root: {path}")
+            if candidate.game_key not in available_game_keys:
+                raise SelectionError(
+                    "excluded game is absent from the refreshed factual "
+                    f"parent: {path}")
             excluded.add(candidate.game_key)
         if len(excluded) - before != len(public):
             raise SelectionError(
@@ -738,6 +744,16 @@ def load_excluded_games(
         provenance.append({
             "root_dir": str(path),
             "manifest_sha256": manifest.get("manifest_sha256"),
+            "factual_parent_manifest_sha256":
+                parent.get("manifest_sha256"),
+            "current_factual_parent_manifest_sha256":
+                factual_parent_manifest_sha256,
+            "matched_by": (
+                "exact_parent_manifest"
+                if parent.get("manifest_sha256")
+                == factual_parent_manifest_sha256
+                else "append-stable game identity and frozen weights"
+            ),
             "games": len(public),
             "game_keys_sha256": _value_sha256(sorted(
                 _candidate(public_record, privileged_record).game_key
@@ -756,9 +772,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         manifest, public, privileged = VALIDATE.load_root_artifacts(parent_dir)
         _validate_parent_manifest(manifest)
+        current_candidates = [
+            candidate
+            for public_record, privileged_record in zip(public, privileged)
+            if (
+                candidate := _candidate(
+                    public_record, privileged_record)
+            ) is not None
+        ]
         excluded, exclusion_provenance = load_excluded_games(
             args.exclude_root_dir,
             factual_parent_manifest_sha256=manifest["manifest_sha256"],
+            factual_parent_weights=manifest["weights"],
+            available_game_keys=frozenset(
+                candidate.game_key for candidate in current_candidates),
         )
         selected, diagnostics = select_roots(
             public,

@@ -105,6 +105,18 @@ the ladder.
   memberships), so do not run append-only top-50 BC. First audit label novelty
   against B. Use current losses as counterfactual root states, never as hard
   losing-action labels; dedupe repeated roots and require advantage evidence.
+- The 2026-07-24 exact-submission refresh added 20 resolved games and brings
+  Qu-v2B to 128 resolved at 77-51. The incremental slice is only 10-10
+  (original 3-6, clone 7-4) and cannot authorize a strength or matchup update.
+  Cross-UID replay of the exact `91adba63...2f88f` archive passed all 7,854
+  prompts: on 3,362 model/rules disagreements, 3,265 logged actions matched B,
+  zero matched rules, and 97 were numerical others. Packaging fallback is
+  ruled out. The refreshed factual corpus has 2,494 supported roots and 408
+  B/parent semantic disagreements. After excluding the 60 already-opened
+  development games, 68 unique games remain eligible. A balanced 30-game
+  reserve was selected but its panels remain unopened; preserve it. We still
+  need at least 52 more fresh resolved games to reach the 120-game arithmetic
+  floor (roughly 82 to reach the 150-game operational target).
 - Qu-v2B multi-deck capability was screened locally on 2026-07-23 with 80
   games/arm for B, Qu-v2A parent, and Qu-v1 on identical mixed `pool:8`
   schedules. Scores were Grimmsnarl 83.8/85.0/51.9%,
