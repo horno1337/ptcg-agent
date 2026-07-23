@@ -41,8 +41,9 @@ think-time drains it directly), never crash.
   on all five field axes.
 - **Ladder:** submission `54925546` completed at a **934.3 public-rating
   snapshot** on 2026-07-23, the project's highest observed snapshot so far.
-  Replay analysis is still pending, so this is evidence of progress rather
-  than a precise strength estimate.
+  The byte-identical second trajectory, `54928432` (`Qu-v2B-clone`), was
+  submitted on 2026-07-23 and is pending. Replay analysis is still pending, so
+  this is evidence of progress rather than a precise strength estimate.
 - **Historical control:** frozen Qu-v1 remains at
   `tools/baselines/qu-v1-weights.npz` (`4ce6522f...10ba033`). Its two
   byte-identical submissions separated by roughly 146 rating points during
@@ -441,12 +442,15 @@ Research log (each vs the then-champion, 100-200 game evals):
   integration and one user-approved ladder submission; its production path
   also completed a 200-game random smoke at 197-3 with zero errors. The ladder
   still decides external strength. Tag `Qu-v2B` points to `80542d9`; exact
-  package SHA-256 is `91adba63...2f88f`, and the single authorized Kaggle
-  submission is `54925546` (`Qu-v2B`). It completed at a 934.3 public-rating
-  snapshot on 2026-07-23, above the previous 885.7 project peak. Treat that as
-  a strong directional result, not a calibrated effect size: replay-level
-  matchup and action analysis is still pending, and identical submissions have
-  previously followed widely separated rating trajectories.
+  package SHA-256 is `91adba63...2f88f`. Kaggle submission `54925546`
+  (`Qu-v2B`) completed at a 934.3 public-rating snapshot on 2026-07-23, above
+  the previous 885.7 project peak. At the user's later explicit request, the
+  exact same archive was submitted in the second slot as `54928432`
+  (`Qu-v2B-clone`) to measure trajectory repeatability and collect more
+  replays. Treat either result as directional rather than a calibrated effect
+  size: replay-level matchup and action analysis is still pending, and
+  identical submissions have previously followed widely separated rating
+  trajectories.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
