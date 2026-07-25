@@ -22,6 +22,7 @@ from tools.research import evaluate_qu_v2c_public_critic_v2_label_gate as LABEL 
 from tools.research import evaluate_qu_v2c_replication_confirmation_v4 as V4  # noqa: E402
 from tools.research import lock_qu_v2c_confirmed_pair_replication_v4 as HASH  # noqa: E402
 from tools.research import lock_qu_v2c_public_critic_v2_validation as LOCK  # noqa: E402
+from tools.research import lock_qu_v2c_public_critic_v2_final_validation_execution as EXECUTION  # noqa: E402
 from tools.research import train_qu_v2c_confirmed_pair_critic as BASE  # noqa: E402
 from tools.research import train_qu_v2c_critic as FROZEN  # noqa: E402
 from tools.research import train_qu_v2c_panel_critic as PANEL_TRAIN  # noqa: E402
@@ -34,6 +35,13 @@ SCHEMA = "ptcg.qu-v2c.public-critic-v2-validation.v1"
 
 class EvaluationError(RuntimeError):
     """The frozen public-critic-v2 validation failed closed."""
+
+
+def _load_lock(path: Path) -> dict[str, Any]:
+    raw = json.loads(path.read_text())
+    if raw.get("schema") == EXECUTION.SCHEMA:
+        return EXECUTION.load_lock(path)
+    return LOCK.load_lock(path)
 
 
 def _load_public_critic(
@@ -136,7 +144,7 @@ def evaluate(
     label_gate_path: Path,
     device: torch.device,
 ) -> dict[str, Any]:
-    lock = LOCK.load_lock(lock_path)
+    lock = _load_lock(lock_path)
     roots, label = _load_roots(lock, lock_path, label_gate_path)
     public_record = lock["public_training_report"]
     architecture = public_record["architecture"]
@@ -244,7 +252,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         lock_path = Path(args.lock).expanduser().resolve()
         label_path = Path(args.label_gate).expanduser().resolve()
         output = Path(args.json_out).expanduser().resolve()
-        lock = LOCK.load_lock(lock_path)
+        lock = _load_lock(lock_path)
         if (
             str(label_path) != lock["planned_label_gate"]
             or str(output) != lock["planned_model_evaluation"]
@@ -258,7 +266,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (
         OSError, ValueError, KeyError, json.JSONDecodeError,
         VALIDATE.ValidationError, BASE.TrainingError,
-        LOCK.ValidationLockError, LABEL.LabelGateError,
+        LOCK.ValidationLockError, EXECUTION.ExecutionLockError,
+        LABEL.LabelGateError,
         V4.ConfirmationError, EvaluationError,
     ) as exc:
         parser.error(str(exc))

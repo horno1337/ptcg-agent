@@ -18,12 +18,20 @@ if str(ROOT) not in sys.path:
 from tools.research import label_qu_v2c_exact_panels as PANELS  # noqa: E402
 from tools.research import lock_qu_v2c_confirmed_pair_replication_v4 as HASH  # noqa: E402
 from tools.research import lock_qu_v2c_public_critic_v2_validation as LOCK  # noqa: E402
+from tools.research import lock_qu_v2c_public_critic_v2_final_validation_execution as EXECUTION  # noqa: E402
 from tools.research import select_qu_v2c_reliability_roots as SELECT  # noqa: E402
 from tools.research import validate_qu_v2c_roots as VALIDATE  # noqa: E402
 
 
 class FinalizationError(RuntimeError):
     """The fresh validation cannot be finalized outcome-blindly."""
+
+
+def _load_lock(path: Path) -> dict[str, Any]:
+    raw = json.loads(path.read_text())
+    if raw.get("schema") == EXECUTION.SCHEMA:
+        return EXECUTION.load_lock(path)
+    return LOCK.load_lock(path)
 
 
 def _load_raw(
@@ -156,7 +164,7 @@ def finalize(
     lock_path: Path,
     raw_paths: Sequence[Path],
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    lock = LOCK.load_lock(lock_path)
+    lock = _load_lock(lock_path)
     if [str(path) for path in raw_paths] != lock["planned_raw_reports"]:
         raise FinalizationError("raw report paths drifted from lock")
     candidate = lock["candidate_pool"]
@@ -176,10 +184,12 @@ def finalize(
         root_id for root_id in ordered
         if all(root_id in panels for _, panels in raw_and_panels)
     ]
-    if len(common) < LOCK.MIN_COMMON_COMPLETE_GAMES:
+    minimum_common = int(
+        lock["panel_protocol"]["minimum_common_complete_games"])
+    if len(common) < minimum_common:
         raise FinalizationError(
             f"only {len(common)} common-complete roots; "
-            f"{LOCK.MIN_COMMON_COMPLETE_GAMES} required")
+            f"{minimum_common} required")
     by_id = {}
     for public_record, privileged_record in zip(public, privileged):
         row = SELECT._candidate(public_record, privileged_record)
@@ -229,7 +239,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         lock_path = Path(args.lock).expanduser().resolve()
         raw_paths = [
             Path(path).expanduser().resolve() for path in args.raw_report]
-        lock = LOCK.load_lock(lock_path)
+        lock = _load_lock(lock_path)
         manifest, reports = finalize(lock_path, raw_paths)
         outputs = [Path(path) for path in lock["planned_finalized_reports"]]
         if len(outputs) != 2 or any(path.exists() for path in outputs):
@@ -239,7 +249,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (
         OSError, ValueError, json.JSONDecodeError,
         VALIDATE.ValidationError, SELECT.SelectionError,
-        LOCK.ValidationLockError, FinalizationError,
+        LOCK.ValidationLockError, EXECUTION.ExecutionLockError,
+        FinalizationError,
     ) as exc:
         parser.error(str(exc))
     print(
