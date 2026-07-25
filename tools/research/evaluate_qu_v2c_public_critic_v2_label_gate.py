@@ -21,6 +21,7 @@ from tools.research import evaluate_qu_v2c_replication_confirmation_v4 as V4  # 
 from tools.research import label_qu_v2c_exact_panels as PANELS  # noqa: E402
 from tools.research import lock_qu_v2c_confirmed_pair_replication_v4 as HASH  # noqa: E402
 from tools.research import lock_qu_v2c_public_critic_v2_validation as LOCK  # noqa: E402
+from tools.research import lock_qu_v2c_public_critic_v2_final_validation_execution as EXECUTION  # noqa: E402
 from tools.research import train_qu_v2c_confirmed_pair_critic as BASE  # noqa: E402
 from tools.research import validate_qu_v2c_roots as VALIDATE  # noqa: E402
 
@@ -30,6 +31,13 @@ SCHEMA = "ptcg.qu-v2c.public-critic-v2-label-gate.v1"
 
 class LabelGateError(RuntimeError):
     """Fresh validation labels violated the pre-registered contract."""
+
+
+def _load_lock(path: Path) -> dict[str, Any]:
+    raw = json.loads(path.read_text())
+    if raw.get("schema") == EXECUTION.SCHEMA:
+        return EXECUTION.load_lock(path)
+    return LOCK.load_lock(path)
 
 
 def _load_report(
@@ -77,14 +85,14 @@ def _load_report(
 
 
 def evaluate(lock_path: Path) -> dict[str, Any]:
-    lock = LOCK.load_lock(lock_path)
+    lock = _load_lock(lock_path)
     root_dir = Path(lock["planned_finalized_root_dir"])
     manifest, public, _ = VALIDATE.load_root_artifacts(root_dir)
     count = len(public)
     finalization = manifest.get(
         "derivation", {}).get("replication_finalization")
     if (
-        count < LOCK.MIN_COMMON_COMPLETE_GAMES
+        count < int(lock["panel_protocol"]["minimum_common_complete_games"])
         or not isinstance(finalization, Mapping)
         or finalization.get("schema") != LOCK.SCHEMA
         or finalization.get("lock_sha256") != lock["lock_sha256"]
@@ -147,7 +155,9 @@ def evaluate(lock_path: Path) -> dict[str, Any]:
     )
     performance = (
         agreement is not None
-        and agreement >= LOCK.MIN_CONFIRMATION_AGREEMENT
+        and agreement
+        >= float(
+            lock["decision_rule"]["minimum_confirmation_sign_agreement"])
     )
     independence = raw_difference_roots > 0
     passed = coverage and performance and independence
@@ -226,13 +236,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         lock_path = Path(args.lock).expanduser().resolve()
         output = Path(args.json_out).expanduser().resolve()
-        lock = LOCK.load_lock(lock_path)
+        lock = _load_lock(lock_path)
         if str(output) != lock["planned_label_gate"]:
             raise LabelGateError("label gate path drifted from lock")
         payload = _atomic_json(output, evaluate(lock_path))
     except (
         OSError, ValueError, json.JSONDecodeError,
-        VALIDATE.ValidationError, LOCK.ValidationLockError, LabelGateError,
+        VALIDATE.ValidationError, LOCK.ValidationLockError,
+        EXECUTION.ExecutionLockError, LabelGateError,
         V4.ConfirmationError,
     ) as exc:
         parser.error(str(exc))

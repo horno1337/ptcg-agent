@@ -661,8 +661,20 @@ def validate_root_manifest_route(manifest: Mapping[str, Any]) -> str:
         == derivation.get("root_count")
         and derivation.get("exact_marginal_quotas") is False
         and isinstance(diagnostics, Mapping)
-        and diagnostics.get("all_remaining_fresh_games_selected") is True
-        and diagnostics.get("minimum_common_complete_games") == 50
+        and (
+            (
+                diagnostics.get("all_remaining_fresh_games_selected") is True
+                and diagnostics.get("minimum_common_complete_games") == 50
+            )
+            or (
+                diagnostics.get(
+                    "final_public_critic_v2_preregistered") is True
+                and diagnostics.get("target_candidate_games") == 70
+                and diagnostics.get("minimum_common_complete_games") == 65
+                and _is_sha256(
+                    diagnostics.get("preregistration_lock_sha256"))
+            )
+        )
         and _is_sha256(diagnostics.get("ordered_root_ids_sha256"))
         and isinstance(parent, Mapping)
         and parent.get("selection_mode") == "factual-critic"
