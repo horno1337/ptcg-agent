@@ -919,6 +919,25 @@ Research log (each vs the then-champion, 100-200 game evals):
   at their initial 600.0 placement score. These are the two fresh collection
   slots; preregistration v2 supersedes the pre-refresh harvest-6/7 source
   declaration and currently needs 61 additional eligible games.
+- **The pre-registered final public-critic-v2 gate failed noninferiority
+  (2026-07-25)**: harvest-8/9 supplied 99 unique replays with zero download
+  failures. The fixed trigger snapshot contained 12,612 supported roots from
+  635 resolved games and 105 eligible fresh games after exclusions. Exactly
+  70 diversity-priority games were bound before panel generation. Discovery
+  completed 67/70 and confirmation 68/70; their outcome-blind intersection
+  retained 67 games, above the locked 65-game mechanical floor.
+
+  Independent confirmation produced 205 pairs across 26 games at 89.86% sign
+  agreement, passing label coverage and stability. The frozen public critic
+  v2 ensemble scored 0.6648 with interval [0.5057, 0.8128], and all three
+  seeds scored 0.6488-0.7573, so public-above-chance passed. The unchanged
+  privileged ensemble scored 0.6966. Public-minus-privileged was -3.18 pp
+  with paired game-cluster interval [-16.31, +8.39] pp; the lower bound did
+  not clear the pre-registered -5 pp margin. The one final validation
+  therefore failed. No prior validation was pooled, no threshold moved, and
+  no post-result extension is allowed. The sealed reserve remains unopened;
+  Qu-v3 distillation and shipping are unauthorized. Report:
+  `tools/checkpoints/qu-v2c-public-critic-v2/final-validation.json`.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
