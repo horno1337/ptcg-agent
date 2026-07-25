@@ -625,6 +625,300 @@ Research log (each vs the then-champion, 100-200 game evals):
   120-game arithmetic floor, and roughly 82 short of the 150-game operational
   target. Preserve the reserve and both live collection slots; do not train or
   tune from this incremental 10-10 sample.
+- **Qu-v2C confirmed-pair training is running end to end, but validation is
+  still provisional (2026-07-24)**: a second exact-ID Kaggle refresh added 24
+  resolved games. The new slice was 9-15, split 2-11 for the original and 7-4
+  for the byte-identical clone; a cross-UID runtime audit covered 1,676 prompts
+  and found 743/765 model/rules disagreements matching Qu-v2B, zero matching
+  rules, so this was strength/trajectory evidence rather than fallback. One
+  timeout replay with terminal rewards `[null, 1]` is now recorded as
+  explicitly target-ineligible instead of aborting the complete root corpus or
+  fabricating a loss label. The refreshed factual corpus contains 3,058 exact
+  aligned roots from 151 terminal-valid games.
+
+  Two fresh, game-disjoint 30-root cohorts completed independent 16-rollout
+  discovery and confirmation panels with zero rejects. Their confirmation
+  agreement was 90.9% (198 selected/180 confirmed pairs across 12 games) and
+  92.8% (125 selected/116 confirmed pairs across 13 games). Before the latter
+  labels were generated, its games were hash-partitioned 10/20 into
+  train/validation roles. Combining only independently confirmed pair signs
+  produced 316 training pairs across 29 games, clearing the locked 300-pair/
+  15-game training floor. Three 9,329-trainable-parameter, three-seed critic
+  arms completed on CUDA with the frozen Qu-v2B backbone: privileged exact
+  hidden, historical zero-hidden, and a same-architecture active public-only
+  capacity control. Provisional validation game-balanced pair accuracy means
+  were 0.7301/0.6919/0.7250 respectively. The active public arm's near parity
+  with privileged is encouraging evidence that the signal may be publicly
+  inferable, while its lead over zero-hidden shows why the active control was
+  necessary.
+
+  Validation has only 95 confirmed pairs across 10 games, below the locked
+  100-pair/15-game floor, so all checkpoints remain research-only and the
+  report explicitly leaves actor training, Qu-v3, deployment, and promotion
+  unauthorized. The 30-game generalization reserve remains unopened. NEXT:
+  collect and label a fresh validation extension until at least five more
+  unique games with confirmed pairs are added, evaluate the already-frozen
+  public critics without retuning, then open the reserve exactly once for the
+  public action-selection gate against frozen Qu-v2B. Only a passed public
+  gate may start Qu-v3 distillation. Report:
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/training-report.json`.
+- **Qu-v2C frozen validation extension clears coverage and chance, but narrowly
+  fails public/privileged noninferiority (2026-07-24)**: two fresh Qu-v2B
+  harvest submissions supplied 116 placement episodes and 114 resolved games.
+  Their exact submitted archive passed the runtime audit on 7,034 prompts;
+  3,051/3,129 model/rules disagreements matched Qu-v2B, zero matched rules.
+  A refreshed factual corpus contains 5,215 aligned roots from 265
+  terminal-valid games. After excluding every development, training, prior
+  validation, and sealed-reserve source game, a new deterministic 30-game,
+  15-archetype held-out cohort completed two independent 16-rollout panels
+  with zero rejects. Discovery selected 96 pairs across nine games and
+  confirmation preserved 90 directions (93.75%).
+
+  The decision rule was locked before those panel reports completed: combined
+  validation must contain at least 100 confirmed pairs/15 games; the frozen
+  active-public ensemble's game-cluster 95% lower bound must exceed chance
+  0.50; all three public seeds must exceed chance; and the active-public minus
+  privileged game-cluster lower bound must exceed the fixed -5 pp
+  noninferiority margin. Combined validation reached 185 pairs across 18
+  games. Active-public ensemble accuracy was 0.7910 with game-cluster 95%
+  interval [0.6557, 0.9025], and every public seed scored 0.7692-0.7883, so
+  coverage and public-above-chance passed. Privileged scored 0.8079; the
+  active-public difference was -1.69 pp with interval [-5.76, +0.91] pp.
+  Noninferiority therefore failed narrowly but unambiguously under the locked
+  rule. Do not move the margin, open the sealed reserve, distill Qu-v3, or
+  promote. The next experiment must be independently specified rather than a
+  post-hoc extension chosen to cross the boundary. Report:
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/validation-extension-report.json`.
+- **The first independently locked Qu-v2C replication is invalidated by a
+  repeated mechanical panel failure, not by model performance
+  (2026-07-24)**: two new 30-game cohorts (60 unique games, disjoint from all
+  earlier cohorts and the sealed reserve) were self-hashed before labeling,
+  together with the unchanged frozen checkpoints, four planned report paths,
+  and the original 100-pair/15-game/chance/-5 pp decision rule. All four
+  16-rollout jobs ran; replication A discovery and both replication B reports
+  completed 30/30 roots with zero rejects. Replication A confirmation rejected
+  root `26763df...7306` because a native rollout exceeded the fixed hop cap.
+  One full-report overwrite recovery was declared before reopening outcomes;
+  it rejected the same root for the same reason. Per that declaration, no
+  further retry, root deletion/replacement, 29-root common-subset analysis, or
+  threshold change is allowed.
+
+  Replication B alone is diagnostic only: discovery selected 171 pairs across
+  11 games and confirmation preserved 94.74% of directions. It cannot replace
+  the locked combined 60-game replication or answer public-model
+  noninferiority. The replication therefore has no model pass/fail result.
+  Keep the sealed reserve closed and Qu-v3 unauthorized. A future replication
+  must be newly locked on fresh games and include an outcome-blind mechanical
+  eligibility/replacement rule before panel generation. Lock:
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/independent-replication-lock.json`;
+  diagnostic:
+  `tools/checkpoints/qu-v2c-exact-panels-v1/replication-b-gate-20260724.json`.
+- **The second locked replication proves that pre-label screening alone is
+  insufficient (2026-07-24)**: the new mechanical preflight selects
+  an ordered 35-game candidate pool, runs two complete 16-rollout probes per
+  root, discards all terminal action outcomes, and materializes the first 30
+  roots that completed both probes. The previously failing root
+  `26763df...7306` was replayed through this path and was rejected on probe one
+  for the same native hop-cap failure, proving that the screen catches the
+  known invalidator without reading a label direction.
+
+  Correcting the collection assumption, Kaggle permits only two active agents.
+  Refreshing every known feed found 59 previously undownloaded episodes on the
+  active `54957079`/`54957592` pair plus three on older feeds. Runtime identity
+  passed on 4,324 active-pair prompts: 1,874/1,931 model/rules disagreements
+  matched Qu-v2B and zero matched rules. Factual corpus v9 contains 7,057 roots
+  from 352 terminal-valid games.
+
+  Cohort A screened 35 strictly unused games:
+  32 completed both probes, three hit the hop cap, and the first 30 eligible
+  roots were materialized. Its report contains no action/outcome fields and is
+  bound to manifest `a03564e...3fed9`. All 35 screened games, including the
+  five non-selected alternates, were excluded from cohort B. B had 77 fresh
+  games available; all 35 screened candidates completed both probes and the
+  first 30 were materialized. The self-hashed v2 lock then bound both
+  preflights (70 disjoint candidates), both final cohorts (60 disjoint games),
+  the frozen checkpoints, four absent panel paths, and the unchanged
+  100-pair/15-game/chance/-5 pp thresholds.
+
+  Both B panels and A discovery completed 30/30 with zero rejects. A
+  confirmation nevertheless rejected new root `bc4d059f...c5bba6` because an
+  unseedable native rollout exceeded the same hop cap. The v2 lock authorizes
+  neither retry nor post-label replacement, so no label/model metrics are
+  opened and the replication again has no performance result. Keep the sealed
+  reserve closed and Qu-v3 unauthorized. The next protocol must retain ordered
+  alternates through *both* raw panel runs and predeclare selecting the first
+  30 roots mechanically complete in both reports; preflight alone cannot
+  guarantee later stochastic completion. Lock:
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/independent-replication-v2-lock.json`.
+- **The v3 replication protocol now carries redundancy through the real runs
+  (2026-07-24; awaiting 11 more fresh resolved games)**: detached probes are
+  retired. Each replication cohort is now an explicit ordered 40-game
+  candidate artifact. The v3 lock must exist before any panel output and binds
+  both candidate manifests, all four absent raw discovery/confirmation paths,
+  both absent finalized 30-game root directories, all four absent finalized
+  panel paths, the frozen critic checkpoints, and the unchanged
+  100-pair/15-game/chance/-5 pp decision rule. Both actual 16-rollout runs are
+  performed on all 40 candidates. Finalization reads only candidate order and
+  completed/rejected root identities, then mechanically retains the first 30
+  roots complete in both runs; it never reads terminal outcomes, label signs,
+  critic scores, or confirmation results.
+
+  A new exact-ID refresh of the two active slots (`54957079` and `54957592`)
+  downloaded 27 games (14 + 13). Factual corpus v10 contains 7,602 roots from
+  379 resolved games and 1,300 B/parent disagreements. A strict audit of every
+  historical 30-game artifact found 300 unique used games (two old directory
+  names duplicate the same 30); adding all candidates touched by the retired
+  v2 preflights gives 310 burned games. Only 69 fresh resolved games remain,
+  below the 80 required to create both v3 pools atomically. The selector
+  therefore failed closed and wrote no partial candidate pool. Keep harvesting
+  until at least 11 more fresh games resolve, then create both 40-game pools,
+  write the v3 lock, and run the four real panels. The sealed reserve remains
+  closed and Qu-v3 remains unauthorized.
+- **The first v3 real-run replication completed mechanically but failed the
+  label-evidence gate (2026-07-25)**: refreshing the two active submissions
+  downloaded 21 new episodes (5 from `54957079`, 16 from `54957592`), all of
+  which resolved. Factual corpus v11 contains 8,015 roots from 400 games and
+  1,360 B/parent disagreements. After the full 310-game burned union, 90 fresh
+  games remained. Two ordered, mutually disjoint 40-game candidate pools were
+  materialized and the v3 lock bound all four absent raw panel paths, both
+  absent finalized root directories, and all four absent finalized reports.
+
+  All four actual 16-rollout runs completed 40/40 with zero hop-cap rejects.
+  The outcome-blind finalizer therefore selected the first 30 roots in each
+  predeclared order and left ten alternates per pool unused. Cohort A discovery
+  selected 106 pairs across 12 games and confirmation preserved 91.51% of
+  their directions: stability passed, but the locked 15-game coverage floor
+  did not. Cohort B selected 87 pairs across 10 games with only 77.01%
+  confirmation agreement: both coverage and the locked 85% stability rule
+  failed. The downstream combined frozen-critic evaluation consequently
+  failed closed before scoring the models; no noninferiority result exists.
+  Do not pool the cohorts with older validation, lower the floors, or open the
+  sealed reserve. Qu-v3 remains unauthorized. Lock:
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/independent-replication-v3-lock.json`.
+- **Post-failure diagnosis found a candidate-order construction defect, not a
+  broad label collapse (2026-07-25)**: 18 of cohort B's 20 sign reversals came
+  from only two roots. One seven-action Grimmsnarl root moved the frozen
+  Qu-v2B play from +0.125 to -0.625 mean return; one eight-action Alakazam
+  root created 15 discovery pairs from four stochastic wins that moved among
+  play-card occurrences in confirmation. The other eight B roots preserved
+  62/64 selected directions. Replacing the paired SE with an unpaired SE does
+  not fix the result (83 pairs at 78.31%), so the failure is not primarily an
+  invalid common-random-number assumption.
+
+  More importantly, the 40-root selector performed its diversity-first greedy
+  traversal and then sorted the artifact by game key. The locked "first 30"
+  rule therefore took an arbitrary hash-ordered prefix rather than the
+  diversity-priority prefix. This materially changed B: all 40 predeclared
+  roots contain 213 pairs across 15 games at 90.14% agreement, while the
+  locked first 30 contain only 87/10 at 77.01%. These later ten roots cannot
+  be retroactively admitted. A new candidate-pool v2 schema now preserves
+  greedy traversal order and unit-tests that its first 30 roots exactly match
+  a standalone diversity-balanced 30-root selection; the final ten are true
+  ordered alternates. Across the locked A+B prefixes, 120 pairs in exactly 15
+  games were statistically resolved in both runs and all kept their sign.
+  That post-hoc diagnostic cannot pass v3, but supports prospectively testing
+  32-rollout discovery/confirmation and an independently resolved
+  confirmation contract without lowering the 100-pair/15-game/-5 pp floors.
+  The 80 v3 candidate games are now burned, leaving only ten fresh games in
+  corpus v11; another two-pool attempt requires at least 70 more resolved
+  fresh games.
+- **Two fresh identical Qu-v2B harvesters were launched for overnight replay
+  supply (2026-07-25)**: the frozen production archive
+  `91adba63224450fb31a55b6866d6fd2342a51e9d83cffb30508338587a52f88f`
+  was submitted without rebuilding from the dirty tree or changing the deck,
+  weights, or code. Harvest-6 is Kaggle submission `54964894`; harvest-7 is
+  `54964895`; both reached `COMPLETE`. Their first refresh already downloaded
+  two and one placement episodes respectively into
+  `tools/checkpoints/qu-v2b-ladder/harvest-6` and `harvest-7`. Corpus v12
+  contained only 14 fresh resolved games before these placements, leaving a
+  66-game resolved shortfall for the next two 40-game pools.
+- **The overnight harvest cleared the v4 supply gate (2026-07-25)**:
+  exact-ID refreshes downloaded 64 new harvest-6 episodes and 56 new
+  harvest-7 episodes with zero failures. The nine-feed factual corpus v13
+  contains 10,511 supported roots from 529 resolved games and 1,764 B/parent
+  disagreements. After excluding the complete 390-game burned union,
+  139 fresh eligible games remain. Two 40-game v4 pools can therefore be
+  locked with 59 fresh games still unused. No additional harvester or
+  collection delay is required.
+- **The corrected v4 replication confirms the labels but rejects the frozen
+  public critic (2026-07-25)**: two fresh, mutually disjoint 40-game candidate
+  pools used the corrected diversity-priority order. The one-shot v4 lock
+  bound four absent 32-rollout reports, outcome-blind common-completion
+  finalization, a combined label gate, and the unchanged 100-pair/15-game/
+  85%-agreement/chance/-5 pp thresholds. Pool A completed 40/40 roots in both
+  real runs. Pool B completed 38/40 discovery roots and 39/40 confirmation
+  roots; mechanical redundancy still yielded the first 30 common-clean roots
+  in the predeclared order for each cohort.
+
+  Across the finalized 60 games, discovery/confirmation sign agreement was
+  92.81%. Requiring significance independently in both runs retained 228
+  same-direction pairs across 25 games, so the label gate passed its locked
+  coverage and stability floors. The frozen critic evaluation then scored the
+  active public ensemble at 0.5820 and the privileged ensemble at 0.5948.
+  Public's game-cluster 95% interval was [0.4167, 0.7379], so its lower bound
+  did not exceed chance. The public-minus-privileged difference was -1.29 pp
+  with interval [-13.23, +10.49] pp, so the fixed -5 pp noninferiority rule
+  also failed. This is a model-evidence failure, not a panel-infrastructure
+  failure. The sealed reserve remains unopened and Qu-v3 remains
+  unauthorized; do not reinterpret the point estimate, lower the margin, pool
+  older cohorts, or run the reserve gate. Reports:
+  `tools/checkpoints/qu-v2c-exact-panels-v1/replication-v4-combined-gate-20260725.json`
+  and
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/independent-replication-v4-evaluation-20260725.json`.
+- **Public critic v2 is materially stronger but still misses the locked
+  noninferiority confidence gate (2026-07-25)**: after the v4 failure, its 228
+  independently confirmed pairs/25 games were irreversibly retired into
+  development and combined with the original 316 pairs/29 games. Three
+  predeclared public-head capacities were compared by swapping the two v4
+  cohorts as game-disjoint development folds. The wide 1,395,025-trainable-
+  parameter head won with 71.14% mean and 69.99% worst cross-cohort accuracy,
+  versus 68.87% mean for the old-sized head. Three final wide members were
+  frozen before fresh validation.
+
+  Every one of the 59 remaining fresh games was then locked into two real
+  32-rollout panels. Discovery completed 57/59 and confirmation 55/59; the
+  outcome-blind intersection retained all 54 common-clean games. Independent
+  confirmation produced 232 pairs across 25 games at 90.77% sign agreement.
+  The new public ensemble scored 0.7353 with game-cluster interval
+  [0.6277, 0.8296], and all three members scored 0.6998-0.7867, so coverage
+  and public-above-chance passed. The frozen privileged ensemble scored
+  0.7171. Public led by +1.82 pp, but the paired game-cluster interval was
+  [-9.78, +12.59] pp; its lower bound did not clear the fixed -5 pp
+  noninferiority margin. Therefore the sealed reserve remains closed and
+  Qu-v3, packaging, and shipping remain unauthorized despite the improved
+  point estimates. Training and validation reports:
+  `tools/checkpoints/qu-v2c-public-critic-v2/training-report.json` and
+  `tools/checkpoints/qu-v2c-public-critic-v2/fresh-validation-20260725.json`.
+- **The bounded post-v2 refresh is arithmetically insufficient for another
+  gate (2026-07-25)**: one exact-ID refresh—not an open-ended collection
+  loop—downloaded six new harvest-6 episodes and three new harvest-7 episodes,
+  with zero failures. Factual corpus v14 contains 10,735 supported roots from
+  538 resolved games. After excluding the full 529-game development,
+  validation, replication, preflight, and sealed-reserve union, exactly nine
+  fresh eligible games remain. A nine-game cohort cannot meet the unchanged
+  15-game validation floor even if every root confirms, so no panels were run
+  and those nine games remain unopened. The -5 pp margin, chance threshold,
+  per-seed rule, and no-pooling rule were not changed. Another critic gate is
+  impossible from the currently available replay supply.
+- **The final critic validation is pre-registered before future games exist
+  (2026-07-25)**: the frozen public critic v2 and privileged checkpoint hashes,
+  corpus v14's nine fresh-game baseline, every burned-game exclusion, and all
+  downstream paths are bound by a self-hashed lock. The first exact-ID
+  harvest-6/7-family snapshot with at least 70 fresh eligible games triggers
+  exactly one validation: select 70 outcome-blind diversity-priority roots,
+  run two independent 32-rollout panels, retain every common-complete root
+  only if at least 65 complete both, and apply the unchanged 100-pair/15-game/
+  85%-agreement/chance/-5 pp rules without pooling. Intermediate panels,
+  model scoring, retraining, margin movement, and another post-result
+  extension are forbidden. Lock:
+  `tools/checkpoints/qu-v2c-confirmed-pair-generalization-v1/public-critic-v2-final-validation-preregistration-v2.json`.
+
+  To restore placement-game throughput without changing the deck, model, or
+  archive, the exact frozen Qu-v2B package `91adba63...2f88f` was submitted as
+  harvest-8 (`54979135`) and harvest-9 (`54979137`). Both reached `COMPLETE`
+  at their initial 600.0 placement score. These are the two fresh collection
+  slots; preregistration v2 supersedes the pre-refresh harvest-6/7 source
+  declaration and currently needs 61 additional eligible games.
 - **Competition-environment RL baseline (2026-07-20, not promoted)**:
   20×96 anchored PPO games from ft10 completed without a truncation or engine
   fault (1,272W-648L against the scheduled 30/25/45 rules/random/frozen-reflex
@@ -705,6 +999,8 @@ tools/
     select_qu_v2c_reliability_roots.py # balanced 30-game noise audit
     evaluate_qu_v2c_panel_reliability.py # independent-panel agreement gate
     evaluate_qu_v2c_panel_confirmation.py # confidence-filter replication gate
+    preflight_qu_v2c_replication_cohort.py # outcome-scrubbed mechanical screen
+    lock_qu_v2c_confirmed_pair_replication.py # pre-label frozen replication lock
     memorize_qu_v2c_confirmed_pairs.py # same-data compact-head capacity test
   aggregate_qu_v2b_gate.py # locked multi-axis Qu-v2B promotion decision
   analyze_ladder_replays.py # deck-resolved ladder matchup/action post-mortem
