@@ -601,6 +601,9 @@ def validate_root_manifest_route(manifest: Mapping[str, Any]) -> str:
         return "critical"
     derivation = manifest.get("derivation")
     parent = manifest.get("parent")
+    diagnostics = (
+        derivation.get("diagnostics")
+        if isinstance(derivation, Mapping) else None)
     if (
         selection_mode == RELIABILITY.SELECTION_MODE
         and selection_policy == RELIABILITY.SELECTION_POLICY
@@ -619,9 +622,106 @@ def validate_root_manifest_route(manifest: Mapping[str, Any]) -> str:
         and _is_sha256(parent.get("manifest_sha256"))
     ):
         return "label-reliability-development"
+    if (
+        selection_mode == RELIABILITY.GENERALIZATION_SELECTION_MODE
+        and selection_policy
+        == RELIABILITY.GENERALIZATION_SELECTION_POLICY
+        and manifest.get("development_only") is True
+        and manifest.get("sealed_test") is False
+        and isinstance(derivation, Mapping)
+        and derivation.get("schema")
+        == RELIABILITY.GENERALIZATION_SCHEMA
+        and derivation.get("selection_seed")
+        == RELIABILITY.GENERALIZATION_SELECTION_SEED
+        and derivation.get("root_count") == RELIABILITY.ROOT_COUNT
+        and derivation.get("unique_game_requirement")
+        == RELIABILITY.ROOT_COUNT
+        and derivation.get("exact_marginal_quotas") is False
+        and isinstance(parent, Mapping)
+        and parent.get("selection_mode") == "factual-critic"
+        and parent.get("selection_policy")
+        == MINE.FACTUAL_CRITIC_SELECTION_POLICY
+        and _is_sha256(parent.get("manifest_sha256"))
+    ):
+        return "label-generalization-heldout"
+    if (
+        selection_mode == RELIABILITY.GENERALIZATION_SELECTION_MODE
+        and selection_policy
+        == RELIABILITY.GENERALIZATION_SELECTION_POLICY
+        and manifest.get("development_only") is True
+        and manifest.get("sealed_test") is False
+        and isinstance(derivation, Mapping)
+        and derivation.get("schema")
+        == RELIABILITY.GENERALIZATION_SCHEMA
+        and derivation.get("selection_seed")
+        == RELIABILITY.GENERALIZATION_SELECTION_SEED
+        and isinstance(derivation.get("root_count"), int)
+        and derivation.get("root_count") >= 50
+        and derivation.get("unique_game_requirement")
+        == derivation.get("root_count")
+        and derivation.get("exact_marginal_quotas") is False
+        and isinstance(diagnostics, Mapping)
+        and diagnostics.get("all_remaining_fresh_games_selected") is True
+        and diagnostics.get("minimum_common_complete_games") == 50
+        and _is_sha256(diagnostics.get("ordered_root_ids_sha256"))
+        and isinstance(parent, Mapping)
+        and parent.get("selection_mode") == "factual-critic"
+        and parent.get("selection_policy")
+        == MINE.FACTUAL_CRITIC_SELECTION_POLICY
+        and _is_sha256(parent.get("manifest_sha256"))
+    ):
+        return "label-generalization-heldout"
+    if (
+        selection_mode
+        == RELIABILITY.REPLICATION_CANDIDATE_SELECTION_MODE
+        and selection_policy
+        == RELIABILITY.REPLICATION_CANDIDATE_SELECTION_POLICY
+        and manifest.get("development_only") is True
+        and manifest.get("sealed_test") is False
+        and isinstance(derivation, Mapping)
+        and derivation.get("schema")
+        == RELIABILITY.REPLICATION_CANDIDATE_SCHEMA
+        and derivation.get("selection_seed")
+        == RELIABILITY.REPLICATION_CANDIDATE_SELECTION_SEED
+        and derivation.get("root_count")
+        == RELIABILITY.REPLICATION_CANDIDATE_ROOT_COUNT
+        and derivation.get("unique_game_requirement")
+        == RELIABILITY.REPLICATION_CANDIDATE_ROOT_COUNT
+        and derivation.get("exact_marginal_quotas") is False
+        and isinstance(parent, Mapping)
+        and parent.get("selection_mode") == "factual-critic"
+        and parent.get("selection_policy")
+        == MINE.FACTUAL_CRITIC_SELECTION_POLICY
+        and _is_sha256(parent.get("manifest_sha256"))
+    ):
+        return "label-generalization-replication-candidates"
+    if (
+        selection_mode
+        == RELIABILITY.REPLICATION_CANDIDATE_V2_SELECTION_MODE
+        and selection_policy
+        == RELIABILITY.REPLICATION_CANDIDATE_V2_SELECTION_POLICY
+        and manifest.get("development_only") is True
+        and manifest.get("sealed_test") is False
+        and isinstance(derivation, Mapping)
+        and derivation.get("schema")
+        == RELIABILITY.REPLICATION_CANDIDATE_V2_SCHEMA
+        and derivation.get("selection_seed")
+        == RELIABILITY.REPLICATION_CANDIDATE_SELECTION_SEED
+        and derivation.get("root_count")
+        == RELIABILITY.REPLICATION_CANDIDATE_ROOT_COUNT
+        and derivation.get("unique_game_requirement")
+        == RELIABILITY.REPLICATION_CANDIDATE_ROOT_COUNT
+        and derivation.get("exact_marginal_quotas") is False
+        and isinstance(parent, Mapping)
+        and parent.get("selection_mode") == "factual-critic"
+        and parent.get("selection_policy")
+        == MINE.FACTUAL_CRITIC_SELECTION_POLICY
+        and _is_sha256(parent.get("manifest_sha256"))
+    ):
+        return "label-generalization-replication-candidates-v2"
     raise PanelError(
         "exact-panel v1 accepts only pre-registered critical roots or the "
-        "locked label-reliability development subset")
+        "locked label-reliability/generalization subsets")
 
 
 def _atomic_json(path: Path, value: Mapping[str, Any]) -> None:

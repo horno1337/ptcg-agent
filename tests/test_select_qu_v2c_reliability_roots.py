@@ -131,6 +131,28 @@ def test_selection_is_balanced_unique_and_deterministic():
     assert diagnostics["selected_unique_games"] == 30
 
 
+def test_replication_candidate_pool_is_ordered_and_overprovisioned():
+    public, private = _records(copies=2)
+    primary, _ = SELECT.select_generalization_roots(
+        public,
+        private,
+        root_count=SELECT.ROOT_COUNT,
+        preserve_selection_order=True,
+    )
+    selected, diagnostics = SELECT.select_generalization_roots(
+        public,
+        private,
+        root_count=SELECT.REPLICATION_CANDIDATE_ROOT_COUNT,
+        preserve_selection_order=True,
+    )
+    assert len(selected) == 40
+    assert len({row.game_key for row in selected}) == 40
+    assert [row.root_id for row in selected[:30]] == [
+        row.root_id for row in primary
+    ]
+    assert diagnostics["selected_roots"] == 40
+
+
 def test_derived_artifacts_preserve_privilege_and_parent_provenance(tmp_path):
     public, private = _records()
     selected, diagnostics = SELECT.select_roots(public, private)
@@ -183,12 +205,77 @@ def test_next_cohort_excludes_every_previous_source_game():
     assert diagnostics["excluded_parent_games"] == 30
 
 
+def test_generalization_selection_is_unique_deterministic_and_quota_free():
+    public, private = _records(copies=2)
+    first, _ = SELECT.select_roots(public, private)
+    excluded = frozenset(row.game_key for row in first)
+    selected, diagnostics = SELECT.select_generalization_roots(
+        public, private, excluded_game_keys=excluded)
+    repeated, _ = SELECT.select_generalization_roots(
+        list(reversed(public)),
+        list(reversed(private)),
+        excluded_game_keys=excluded,
+    )
+    assert [row.root_id for row in selected] == [
+        row.root_id for row in repeated]
+    assert len(selected) == SELECT.ROOT_COUNT
+    assert len({row.game_key for row in selected}) == SELECT.ROOT_COUNT
+    assert not ({row.game_key for row in selected} & excluded)
+    assert diagnostics["selected_unique_games"] == SELECT.ROOT_COUNT
+
+
+def test_generalization_can_preselect_an_ordered_replacement_pool():
+    public, private = _records(copies=2)
+    selected, diagnostics = SELECT.select_generalization_roots(
+        public, private, root_count=35)
+    repeated, _ = SELECT.select_generalization_roots(
+        list(reversed(public)),
+        list(reversed(private)),
+        root_count=35,
+    )
+    assert len(selected) == 35
+    assert len({row.game_key for row in selected}) == 35
+    assert [row.root_id for row in selected] == [
+        row.root_id for row in repeated]
+    assert diagnostics["selected_unique_games"] == 35
+
+
+def test_generalization_artifact_is_accepted_as_future_game_exclusion(tmp_path):
+    public, private = _records()
+    selected, diagnostics = SELECT.select_generalization_roots(public, private)
+    output = tmp_path / "generalization"
+    parent = _parent_manifest()
+    SELECT.write_selection_artifacts(
+        output,
+        tmp_path / "parent",
+        parent,
+        selected,
+        diagnostics,
+        generalization=True,
+    )
+    excluded, _ = SELECT.load_excluded_games(
+        [output],
+        factual_parent_manifest_sha256="9" * 64,
+        factual_parent_weights=parent["weights"],
+        available_game_keys=frozenset(
+            candidate.game_key for candidate in selected),
+    )
+    assert excluded == frozenset(
+        candidate.game_key for candidate in selected)
+
+
 if __name__ == "__main__":
     test_selection_is_balanced_unique_and_deterministic()
+    test_replication_candidate_pool_is_ordered_and_overprovisioned()
     import tempfile
 
     with tempfile.TemporaryDirectory() as directory:
         test_derived_artifacts_preserve_privilege_and_parent_provenance(
             Path(directory))
     test_next_cohort_excludes_every_previous_source_game()
+    test_generalization_selection_is_unique_deterministic_and_quota_free()
+    test_generalization_can_preselect_an_ordered_replacement_pool()
+    with tempfile.TemporaryDirectory() as directory:
+        test_generalization_artifact_is_accepted_as_future_game_exclusion(
+            Path(directory))
     print("all Qu-v2C reliability-root selection tests passed")

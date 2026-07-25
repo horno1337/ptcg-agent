@@ -219,6 +219,25 @@ def _valid_reward(replay: Mapping[str, Any], seat: int) -> float:
     return float(rewards[seat])
 
 
+def _optional_valid_reward(
+    replay: Mapping[str, Any],
+    seat: int,
+) -> float | None:
+    """Return a usable terminal reward, or ``None`` for incomplete episodes.
+
+    Kaggle can retain a replay after one agent times out while leaving that
+    seat's reward as ``null``.  Such a game is useful for ladder diagnostics
+    but cannot supply a factual terminal-return target.  Keep the strict
+    validator above and make the corpus-level exclusion explicit here.
+    """
+    try:
+        return _valid_reward(replay, seat)
+    except MiningError as exc:
+        if str(exc) != "replay has invalid terminal rewards":
+            raise
+        return None
+
+
 def action_rows(replay: Mapping[str, Any], seat: int) -> Iterable[ActionRow]:
     """Yield the exact Kaggle ``observation[t] -> action[t+1]`` pairing."""
     steps = replay.get("steps")
@@ -566,7 +585,14 @@ def mine(
             counters["unresolved_games"] += 1
             unresolved_reasons[resolution] = unresolved_reasons.get(resolution, 0) + 1
             continue
-        reward = _valid_reward(replay, seat)
+        reward = _optional_valid_reward(replay, seat)
+        if reward is None:
+            counters["unresolved_games"] += 1
+            reason = "invalid_terminal_reward"
+            unresolved_reasons[reason] = unresolved_reasons.get(reason, 0) + 1
+            replay_inputs[-1]["terminal_reward_valid"] = False
+            continue
+        replay_inputs[-1]["terminal_reward_valid"] = True
         counters["resolved_games"] += 1
         if reward < 0:
             counters["resolved_losses"] += 1

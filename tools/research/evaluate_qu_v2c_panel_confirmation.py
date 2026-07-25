@@ -32,6 +32,7 @@ if str(ROOT) not in sys.path:
 
 from tools.research import evaluate_qu_v2c_panel_reliability as BASE  # noqa: E402
 from tools.research import label_qu_v2c_exact_panels as PANELS  # noqa: E402
+from tools.research import select_qu_v2c_reliability_roots as SELECT  # noqa: E402
 from tools.research import validate_qu_v2c_roots as VALIDATE  # noqa: E402
 
 
@@ -52,6 +53,31 @@ DEFAULT_OUT = (
 
 class ConfirmationError(RuntimeError):
     """The discovery/confirmation reports violated the locked protocol."""
+
+
+def _root_route(manifest: Mapping[str, Any]) -> str:
+    """Recognize finalized replication roots without reopening the labeler."""
+    try:
+        return PANELS.validate_root_manifest_route(manifest)
+    except PANELS.PanelError:
+        derivation = manifest.get("derivation")
+        finalization = (
+            derivation.get("replication_finalization")
+            if isinstance(derivation, Mapping) else None)
+        if (
+            manifest.get("selection_mode")
+            == SELECT.REPLICATION_FINAL_SELECTION_MODE
+            and manifest.get("selection_policy")
+            == SELECT.REPLICATION_FINAL_SELECTION_POLICY
+            and isinstance(derivation, Mapping)
+            and derivation.get("schema") == SELECT.REPLICATION_FINAL_SCHEMA
+            and derivation.get("root_count") == SELECT.ROOT_COUNT
+            and isinstance(finalization, Mapping)
+            and finalization.get(
+                "selection_uses_only_order_and_common_completion") is True
+        ):
+            return "label-generalization-replication-finalized"
+        raise
 
 
 def _sign(value: float) -> int:
@@ -250,13 +276,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         root_dir = Path(args.root_dir).expanduser().resolve()
         root_manifest, public, _ = VALIDATE.load_root_artifacts(root_dir)
+        route = _root_route(root_manifest)
         if (
-            PANELS.validate_root_manifest_route(root_manifest)
-            != "label-reliability-development"
+            route not in (
+                "label-reliability-development",
+                "label-generalization-heldout",
+                "label-generalization-replication-finalized",
+            )
             or len(public) != BASE.REQUIRED_ROOTS
         ):
             raise ConfirmationError(
-                "root directory is not a locked 30-game reliability cohort")
+                "root directory is not a locked 30-game reliability or "
+                "held-out generalization cohort")
         discovery_path = Path(
             args.discovery_report).expanduser().resolve()
         confirmation_path = Path(
@@ -295,6 +326,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "qu_v3_authorized": False,
             "deployment_eligible": False,
             "root_manifest_sha256": root_manifest["manifest_sha256"],
+            "root_manifest_route": route,
             "reports": {
                 "discovery": {
                     "path": str(discovery_path),

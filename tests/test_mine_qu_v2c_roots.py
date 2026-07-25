@@ -86,6 +86,11 @@ def test_action_rows_uses_next_step_action_and_preserves_real_empty_stop():
     assert rows[0].logged_action == ()
 
 
+def test_incomplete_terminal_reward_is_explicitly_ineligible():
+    assert MINE._optional_valid_reward({"rewards": [-1, 1]}, 0) == -1.0
+    assert MINE._optional_valid_reward({"rewards": [None, 1]}, 0) is None
+
+
 def test_exact_alignment_requires_one_strict_public_projection():
     obs = _observation()
     index, payload = MINE.align_exact_payload(
@@ -135,6 +140,7 @@ def test_public_forbidden_key_scan_is_recursive():
 
 if __name__ == "__main__":
     test_action_rows_uses_next_step_action_and_preserves_real_empty_stop()
+    test_incomplete_terminal_reward_is_explicitly_ineligible()
     test_exact_alignment_requires_one_strict_public_projection()
     test_public_sanitizer_drops_transport_without_changing_qu_v2_features()
     test_supported_root_fails_closed_on_face_up_prize_and_bad_width()

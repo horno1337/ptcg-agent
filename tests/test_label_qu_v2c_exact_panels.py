@@ -327,6 +327,34 @@ def test_manifest_route_accepts_only_locked_critical_or_reliability_data():
         LABEL.validate_root_manifest_route(reliability)
         == "label-reliability-development"
     )
+    generalization = copy.deepcopy(reliability)
+    generalization.update({
+        "selection_mode": RELIABILITY.GENERALIZATION_SELECTION_MODE,
+        "selection_policy": RELIABILITY.GENERALIZATION_SELECTION_POLICY,
+    })
+    generalization["derivation"].update({
+        "schema": RELIABILITY.GENERALIZATION_SCHEMA,
+        "selection_seed": RELIABILITY.GENERALIZATION_SELECTION_SEED,
+        "exact_marginal_quotas": False,
+    })
+    assert (
+        LABEL.validate_root_manifest_route(generalization)
+        == "label-generalization-heldout"
+    )
+    expanded = copy.deepcopy(generalization)
+    expanded["derivation"].update({
+        "root_count": 59,
+        "unique_game_requirement": 59,
+        "diagnostics": {
+            "all_remaining_fresh_games_selected": True,
+            "minimum_common_complete_games": 50,
+            "ordered_root_ids_sha256": "b" * 64,
+        },
+    })
+    assert (
+        LABEL.validate_root_manifest_route(expanded)
+        == "label-generalization-heldout"
+    )
     for field in ("development_only", "sealed_test", "parent"):
         drifted = copy.deepcopy(reliability)
         if field == "development_only":

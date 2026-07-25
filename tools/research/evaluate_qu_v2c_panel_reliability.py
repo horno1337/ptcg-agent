@@ -133,7 +133,11 @@ def _validate_report(
         report.get("research_only") is not True
         or report.get("derived_from_privileged_exact_hidden_state") is not True
         or report.get("direct_actor_distillation_eligible") is not False
-        or report.get("root_route") != "label-reliability-development"
+        or report.get("root_route") not in (
+            "label-reliability-development",
+            "label-generalization-heldout",
+            "label-generalization-replication-finalized",
+        )
         or report.get("root_manifest_sha256")
         != root_manifest.get("manifest_sha256")
         or report.get("source_files_sha256") != PANELS._source_hashes()
