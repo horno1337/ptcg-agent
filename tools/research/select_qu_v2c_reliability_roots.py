@@ -55,6 +55,52 @@ SELECTION_POLICY = (
     "maximize new/balanced opponent archetype, turn bucket, option count, "
     "and exact turn with sha256(seed,root_id) tie-break"
 )
+GENERALIZATION_SCHEMA = "ptcg.qu-v2c.generalization-root-selection.v1"
+GENERALIZATION_SELECTION_MODE = "label-generalization-heldout"
+GENERALIZATION_SELECTION_SEED = 240724
+GENERALIZATION_SELECTION_POLICY = (
+    "held-out deterministic diversity-first selection of exactly one "
+    "frozen-Qu-v2B stable-margin root from each of 30 unique factual-critic "
+    "games after explicit game-level cohort exclusions; balance outcome, "
+    "learner seat, B-parent relation, opponent archetype, turn bucket, option "
+    "count, and exact turn without claiming infeasible exact marginal quotas"
+)
+REPLICATION_CANDIDATE_SCHEMA = (
+    "ptcg.qu-v2c.replication-candidate-root-selection.v1")
+REPLICATION_CANDIDATE_SELECTION_MODE = (
+    "label-generalization-replication-candidates")
+REPLICATION_CANDIDATE_SELECTION_SEED = GENERALIZATION_SELECTION_SEED
+REPLICATION_CANDIDATE_ROOT_COUNT = 40
+REPLICATION_CANDIDATE_SELECTION_POLICY = (
+    "predeclared ordered pool of exactly 40 fresh frozen-Qu-v2B "
+    "stable-margin roots from unique factual-critic games after explicit "
+    "game-level cohort exclusions; run both actual 16-rollout panels on all "
+    "40 and mechanically retain the first 30 in this artifact order that "
+    "complete cleanly in both, without consulting outcomes or label signs"
+)
+REPLICATION_CANDIDATE_V2_SCHEMA = (
+    "ptcg.qu-v2c.replication-candidate-root-selection.v2")
+REPLICATION_CANDIDATE_V2_SELECTION_MODE = (
+    "label-generalization-replication-candidates-v2")
+REPLICATION_CANDIDATE_V2_SELECTION_POLICY = (
+    "predeclared diversity-priority pool of exactly 40 fresh frozen-Qu-v2B "
+    "stable-margin roots from unique factual-critic games after explicit "
+    "game-level exclusions; preserve deterministic greedy traversal so the "
+    "first 30 roots exactly equal the standalone diversity-balanced 30-root "
+    "selection, followed by ten ordered alternates; run both actual panels "
+    "on all 40 and mechanically retain the first 30 in this artifact order "
+    "that complete both, without consulting outcomes or label signs"
+)
+REPLICATION_FINAL_SCHEMA = (
+    "ptcg.qu-v2c.replication-final-root-selection.v1")
+REPLICATION_FINAL_SELECTION_MODE = (
+    "label-generalization-replication-finalized")
+REPLICATION_FINAL_SELECTION_POLICY = (
+    "from one predeclared ordered 40-root replication candidate pool, retain "
+    "the first 30 root identities mechanically complete in both actual "
+    "discovery and confirmation runs; selection uses no terminal outcomes, "
+    "action values, label signs, critic scores, or confirmation results"
+)
 
 # These eight fixed cells make every requested binary marginal exactly 15/15.
 # ``False`` means B and its parent agree; ``True`` means they disagree.
@@ -389,6 +435,11 @@ def _tie_rank(root_id: str) -> int:
     return int.from_bytes(hashlib.sha256(material).digest()[:8], "big")
 
 
+def _generalization_tie_rank(root_id: str) -> int:
+    material = f"{GENERALIZATION_SELECTION_SEED}:{root_id}".encode("ascii")
+    return int.from_bytes(hashlib.sha256(material).digest()[:8], "big")
+
+
 def _diversity_score(
     candidate: Candidate,
     archetypes: Counter[str],
@@ -545,6 +596,135 @@ def select_roots(
     return selected, diagnostics
 
 
+def select_generalization_roots(
+    public_records: Sequence[Mapping[str, Any]],
+    privileged_records: Sequence[Mapping[str, Any]],
+    *,
+    excluded_game_keys: frozenset[str] = frozenset(),
+    root_count: int = ROOT_COUNT,
+    preserve_selection_order: bool = False,
+) -> tuple[list[Candidate], dict[str, Any]]:
+    """Select a disjoint held-out panel when exact development quotas are spent."""
+    if len(public_records) != len(privileged_records):
+        raise SelectionError("parent public/private root counts diverged")
+    if (
+        not isinstance(root_count, int)
+        or isinstance(root_count, bool)
+        or root_count < ROOT_COUNT
+    ):
+        raise SelectionError(
+            f"held-out generalization requires at least {ROOT_COUNT} roots")
+    eligible: list[Candidate] = []
+    unstable = 0
+    for public, privileged in zip(public_records, privileged_records):
+        candidate = _candidate(public, privileged)
+        if candidate is None:
+            unstable += 1
+        elif candidate.game_key not in excluded_game_keys:
+            eligible.append(candidate)
+    if len({candidate.root_id for candidate in eligible}) != len(eligible):
+        raise SelectionError("eligible parent roots are duplicated")
+    eligible_games = {candidate.game_key for candidate in eligible}
+    if len(eligible_games) < root_count:
+        raise SelectionError(
+            f"fewer than {root_count} unused stable-margin games remain for "
+            "held-out generalization"
+        )
+
+    selected: list[Candidate] = []
+    used_games: set[str] = set()
+    outcomes: Counter[str] = Counter()
+    seats: Counter[int] = Counter()
+    relations: Counter[bool] = Counter()
+    strata: Counter[tuple[str, int, bool]] = Counter()
+    archetypes: Counter[str] = Counter()
+    turn_buckets: Counter[str] = Counter()
+    option_counts: Counter[int] = Counter()
+    exact_turns: Counter[int] = Counter()
+
+    while len(selected) < root_count:
+        available = [
+            candidate for candidate in eligible
+            if candidate.game_key not in used_games
+        ]
+        if not available:
+            raise SelectionError(
+                "held-out generalization selection became incomplete")
+
+        def score(candidate: Candidate) -> tuple[int, ...]:
+            return (
+                int(not strata[candidate.stratum]),
+                int(not archetypes[candidate.archetype]),
+                int(not turn_buckets[candidate.turn_bucket]),
+                int(not option_counts[candidate.option_count]),
+                int(not exact_turns[candidate.turn]),
+                -outcomes[candidate.outcome],
+                -seats[candidate.seat],
+                -relations[candidate.disagreement],
+                -strata[candidate.stratum],
+                -archetypes[candidate.archetype],
+                -turn_buckets[candidate.turn_bucket],
+                -option_counts[candidate.option_count],
+                -exact_turns[candidate.turn],
+                candidate.option_count,
+                int(min(candidate.margin, 1_000.0) * 1_000_000),
+                -_generalization_tie_rank(candidate.root_id),
+            )
+
+        chosen = max(available, key=score)
+        selected.append(chosen)
+        used_games.add(chosen.game_key)
+        outcomes[chosen.outcome] += 1
+        seats[chosen.seat] += 1
+        relations[chosen.disagreement] += 1
+        strata[chosen.stratum] += 1
+        archetypes[chosen.archetype] += 1
+        turn_buckets[chosen.turn_bucket] += 1
+        option_counts[chosen.option_count] += 1
+        exact_turns[chosen.turn] += 1
+
+    if not preserve_selection_order:
+        selected.sort(key=lambda candidate: (
+            candidate.game_key, candidate.root_id))
+    diagnostics = {
+        "parent_records": len(public_records),
+        "excluded_parent_games": len(excluded_game_keys),
+        "eligible_stable_margin_roots": len(eligible),
+        "rejected_unstable_margin_roots": unstable,
+        "eligible_unique_games": len(eligible_games),
+        "selected_roots": len(selected),
+        "selected_unique_games": len(used_games),
+        "outcomes": dict(sorted(outcomes.items())),
+        "learner_seats": {
+            str(key): value for key, value in sorted(seats.items())
+        },
+        "b_parent_relation": {
+            ("disagree" if key else "agree"): value
+            for key, value in sorted(relations.items())
+        },
+        "strata": {
+            f"{outcome}/seat-{seat}/"
+            f"{'disagree' if disagreement else 'agree'}": count
+            for (outcome, seat, disagreement), count in sorted(strata.items())
+        },
+        "opponent_archetypes": dict(sorted(archetypes.items())),
+        "turn_buckets": dict(sorted(turn_buckets.items())),
+        "exact_turns": {
+            str(key): value for key, value in sorted(exact_turns.items())
+        },
+        "option_counts": {
+            str(key): value for key, value in sorted(option_counts.items())
+        },
+        "selected_root_ids_sha256": _value_sha256([
+            candidate.root_id for candidate in selected
+        ]),
+        "selected_game_keys_sha256": _value_sha256([
+            candidate.game_key for candidate in selected
+        ]),
+    }
+    return selected, diagnostics
+
+
 def _prepare_output(path: Path) -> None:
     resolved = path.resolve()
     protected = tuple(
@@ -569,9 +749,30 @@ def write_selection_artifacts(
     diagnostics: Mapping[str, Any],
     *,
     exclusions: Sequence[Mapping[str, Any]] = (),
+    generalization: bool = False,
+    mechanical_preflight: Mapping[str, Any] | None = None,
+    replication_candidate_pool: bool = False,
+    replication_candidate_pool_v2: bool = False,
+    replication_finalization: Mapping[str, Any] | None = None,
+    expected_root_count: int | None = None,
 ) -> dict[str, Any]:
     """Write a privilege-separated derived root corpus and return its manifest."""
-    if len(selected) != ROOT_COUNT:
+    if sum((
+        bool(generalization),
+        bool(replication_candidate_pool),
+        bool(replication_candidate_pool_v2),
+    )) > 1:
+        raise SelectionError(
+            "selection route flags are mutually exclusive")
+    if expected_root_count is None:
+        expected_root_count = (
+            REPLICATION_CANDIDATE_ROOT_COUNT
+            if replication_candidate_pool or replication_candidate_pool_v2
+            else ROOT_COUNT
+        )
+    if expected_root_count < 1:
+        raise SelectionError("expected root count must be positive")
+    if len(selected) != expected_root_count:
         raise SelectionError("refusing to write a partial reliability selection")
     _prepare_output(output)
     public = [candidate.public for candidate in selected]
@@ -608,6 +809,31 @@ def write_selection_artifacts(
         "root_miner": _sha256_file(Path(MINE.__file__).resolve()),
         "root_validator": _sha256_file(Path(VALIDATE.__file__).resolve()),
     })
+    if replication_candidate_pool_v2:
+        selection_mode = REPLICATION_CANDIDATE_V2_SELECTION_MODE
+        selection_policy = REPLICATION_CANDIDATE_V2_SELECTION_POLICY
+        derivation_schema = REPLICATION_CANDIDATE_V2_SCHEMA
+        selection_seed = REPLICATION_CANDIDATE_SELECTION_SEED
+    elif replication_candidate_pool:
+        selection_mode = REPLICATION_CANDIDATE_SELECTION_MODE
+        selection_policy = REPLICATION_CANDIDATE_SELECTION_POLICY
+        derivation_schema = REPLICATION_CANDIDATE_SCHEMA
+        selection_seed = REPLICATION_CANDIDATE_SELECTION_SEED
+    elif generalization and replication_finalization is not None:
+        selection_mode = REPLICATION_FINAL_SELECTION_MODE
+        selection_policy = REPLICATION_FINAL_SELECTION_POLICY
+        derivation_schema = REPLICATION_FINAL_SCHEMA
+        selection_seed = REPLICATION_CANDIDATE_SELECTION_SEED
+    elif generalization:
+        selection_mode = GENERALIZATION_SELECTION_MODE
+        selection_policy = GENERALIZATION_SELECTION_POLICY
+        derivation_schema = GENERALIZATION_SCHEMA
+        selection_seed = GENERALIZATION_SELECTION_SEED
+    else:
+        selection_mode = SELECTION_MODE
+        selection_policy = SELECTION_POLICY
+        derivation_schema = SCHEMA
+        selection_seed = SELECTION_SEED
     manifest: dict[str, Any] = {
         # Keep the root-corpus envelope compatible with the strict shared
         # loader.  ``derivation.schema`` identifies this derived experiment.
@@ -620,8 +846,8 @@ def write_selection_artifacts(
         "teacher_actor_authorization": False,
         "contains_privileged_exact_hidden_state": True,
         "privileged_artifact_must_never_enter_actor_training": True,
-        "selection_mode": SELECTION_MODE,
-        "selection_policy": SELECTION_POLICY,
+        "selection_mode": selection_mode,
+        "selection_policy": selection_policy,
         "semantic_identity": parent_manifest.get("semantic_identity"),
         "engine_rng_seedable": parent_manifest.get("engine_rng_seedable"),
         "native_branch_validation": (
@@ -660,20 +886,40 @@ def write_selection_artifacts(
             "selection_policy": parent_manifest.get("selection_policy"),
         },
         "derivation": {
-            "schema": SCHEMA,
-            "selection_seed": SELECTION_SEED,
-            "selection_policy": SELECTION_POLICY,
-            "root_count": ROOT_COUNT,
-            "unique_game_requirement": ROOT_COUNT,
+            "schema": derivation_schema,
+            "selection_seed": selection_seed,
+            "selection_policy": selection_policy,
+            "root_count": expected_root_count,
+            "unique_game_requirement": expected_root_count,
             "minimum_stable_qu_v2b_margin": MIN_STABLE_REFLEX_MARGIN,
-            "stratum_targets": {
-                f"{outcome}/seat-{seat}/"
-                f"{'disagree' if disagreement else 'agree'}": target
-                for (outcome, seat, disagreement), target
-                in STRATUM_TARGETS.items()
-            },
+            "exact_marginal_quotas": (
+                not generalization
+                and not replication_candidate_pool
+                and not replication_candidate_pool_v2),
+            "stratum_targets": (
+                None
+                if (
+                    generalization
+                    or replication_candidate_pool
+                    or replication_candidate_pool_v2
+                )
+                else {
+                    f"{outcome}/seat-{seat}/"
+                    f"{'disagree' if disagreement else 'agree'}": target
+                    for (outcome, seat, disagreement), target
+                    in STRATUM_TARGETS.items()
+                }
+            ),
             "diagnostics": copy.deepcopy(dict(diagnostics)),
             "exclusions": copy.deepcopy(list(exclusions)),
+            "mechanical_preflight": (
+                None if mechanical_preflight is None
+                else copy.deepcopy(dict(mechanical_preflight))
+            ),
+            "replication_finalization": (
+                None if replication_finalization is None
+                else copy.deepcopy(dict(replication_finalization))
+            ),
         },
         "source_files_sha256": source_hashes,
     }
@@ -702,6 +948,14 @@ def build_parser() -> argparse.ArgumentParser:
             "must be excluded; repeat for multiple locked cohorts"
         ),
     )
+    parser.add_argument(
+        "--heldout-generalization",
+        action="store_true",
+        help=(
+            "select a disjoint diversity-balanced held-out cohort without "
+            "claiming the development selector's exact marginal quotas"
+        ),
+    )
     return parser
 
 
@@ -711,6 +965,7 @@ def load_excluded_games(
     factual_parent_manifest_sha256: str,
     factual_parent_weights: Mapping[str, Any],
     available_game_keys: frozenset[str],
+    allow_overlap: bool = False,
 ) -> tuple[frozenset[str], list[dict[str, Any]]]:
     excluded: set[str] = set()
     provenance: list[dict[str, Any]] = []
@@ -718,9 +973,38 @@ def load_excluded_games(
         path = Path(raw).expanduser().resolve()
         manifest, public, privileged = VALIDATE.load_root_artifacts(path)
         parent = manifest.get("parent")
+        valid_selection_route = (
+            (
+                manifest.get("selection_mode") == SELECTION_MODE
+                and manifest.get("selection_policy") == SELECTION_POLICY
+            )
+            or (
+                manifest.get("selection_mode")
+                == GENERALIZATION_SELECTION_MODE
+                and manifest.get("selection_policy")
+                == GENERALIZATION_SELECTION_POLICY
+            )
+            or (
+                manifest.get("selection_mode")
+                == REPLICATION_CANDIDATE_SELECTION_MODE
+                and manifest.get("selection_policy")
+                == REPLICATION_CANDIDATE_SELECTION_POLICY
+            )
+            or (
+                manifest.get("selection_mode")
+                == REPLICATION_CANDIDATE_V2_SELECTION_MODE
+                and manifest.get("selection_policy")
+                == REPLICATION_CANDIDATE_V2_SELECTION_POLICY
+            )
+            or (
+                manifest.get("selection_mode")
+                == REPLICATION_FINAL_SELECTION_MODE
+                and manifest.get("selection_policy")
+                == REPLICATION_FINAL_SELECTION_POLICY
+            )
+        )
         if (
-            manifest.get("selection_mode") != SELECTION_MODE
-            or manifest.get("selection_policy") != SELECTION_POLICY
+            not valid_selection_route
             or not isinstance(parent, Mapping)
             or not _is_sha256(parent.get("manifest_sha256"))
             or manifest.get("weights") != factual_parent_weights
@@ -738,7 +1022,7 @@ def load_excluded_games(
                     "excluded game is absent from the refreshed factual "
                     f"parent: {path}")
             excluded.add(candidate.game_key)
-        if len(excluded) - before != len(public):
+        if not allow_overlap and len(excluded) - before != len(public):
             raise SelectionError(
                 f"exclusion cohorts overlap or duplicate games: {path}")
         provenance.append({
@@ -755,6 +1039,7 @@ def load_excluded_games(
                 else "append-stable game identity and frozen weights"
             ),
             "games": len(public),
+            "new_unique_games": len(excluded) - before,
             "game_keys_sha256": _value_sha256(sorted(
                 _candidate(public_record, privileged_record).game_key
                 for public_record, privileged_record
@@ -787,11 +1072,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             available_game_keys=frozenset(
                 candidate.game_key for candidate in current_candidates),
         )
-        selected, diagnostics = select_roots(
-            public,
-            privileged,
-            excluded_game_keys=excluded,
+        select = (
+            select_generalization_roots
+            if args.heldout_generalization else select_roots
         )
+        selected, diagnostics = select(
+            public, privileged, excluded_game_keys=excluded)
         derived = write_selection_artifacts(
             output,
             parent_dir,
@@ -799,11 +1085,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             selected,
             diagnostics,
             exclusions=exclusion_provenance,
+            generalization=args.heldout_generalization,
         )
     except (OSError, ValueError, VALIDATE.ValidationError, SelectionError) as exc:
         parser.error(str(exc))
     print(
-        "Qu-v2C label-reliability roots: "
+        "Qu-v2C "
+        f"{'held-out generalization' if args.heldout_generalization else 'label-reliability'} "
+        "roots: "
         f"{diagnostics['selected_roots']} roots from "
         f"{diagnostics['selected_unique_games']} games; "
         f"{len(diagnostics['opponent_archetypes'])} archetypes",
