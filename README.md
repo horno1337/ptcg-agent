@@ -30,7 +30,7 @@ think-time drains it directly), never crash.
 
 ## Current status
 
-- **Last updated:** 2026-07-24.
+- **Last updated:** 2026-07-27.
 - **Production policy:** Qu-v2B, weights `ec69a2db...a8447`, tag
   `Qu-v2B` (`80542d9`), archive `91adba63...2f88f`.
 - **Deployment provenance:** confirmed. The repaired package runs the neural
@@ -50,31 +50,117 @@ think-time drains it directly), never crash.
   their trajectories, so ladder snapshots are noisy.
 - **Runtime search:** disabled. No planner or distilled planner has beaten its
   reflex parent robustly enough to ship.
+- **MD-v1 Grimmsnarl canary:** the exact-deck ST_MAIN overlay beat frozen
+  Qu-v2B 373-264-3 in a 640-game Grimmsnarl mirror and was submitted as two
+  byte-identical collectors: `md-v1.1` (`54995024`) and `md-v1.2`
+  (`54995031`). Both packages reached `COMPLETE`; their first Kaggle mirror
+  replays matched the intended packaged policy on every audited prompt
+  (98/98 and 106/106, including 44/44 and 41/41 model/rules disagreement
+  prompts). The overlay is fail-closed to the exact Grimmsnarl registration
+  and ST_MAIN; frozen Qu-v2B handles every other prompt. A live control using
+  the identical deck but no overlay was submitted as frozen
+  `Qu-v2B/Grimmsnarl` (`54996058`, archive
+  `782a1efb...c56a`). Its cross-UID archive audit matched frozen Qu-v2B on
+  422/422 model and final actions. The comparison with `md-v1.2` is locked to
+  the first 40 clean post-launch games per arm in
+  `tools/checkpoints/md-v1/live-qu-control-preregistration.json`.
+- **MD-v1's first full deck gate is strongly positive overall but fails the
+  locked breadth checks (2026-07-26):** on pre-registered 160-game arms with
+  zero faults, MD/Grim scored 114-46 (71.2%) on `pool:8`, ahead of frozen
+  Qu/Grim at 110-50 (68.8%) and the predeclared frozen Qu/Alakazam reference
+  at 100-60 (62.5%). It also went 112-48 (70.0%) directly into frozen
+  Qu/Alakazam. All three primary point-estimate checks passed. The overall
+  gate nevertheless failed exactly as locked: MD stayed within 10 pp of
+  Alakazam on only 5/8 matchup strata rather than 6/8, with regressions on
+  meta2 (-15 pp), meta5 (-40 pp), and meta7 (-25 pp); the -40 pp meta5 result
+  also failed the maximum single-stratum regression rule. Do not promote the
+  deck from this gate or move the breadth thresholds. Treat the overall lead
+  and direct result as a promising MD-v1 baseline, and target the identified
+  matchup holes in a separately trained MD iteration. Lock/result:
+  `tools/checkpoints/md-v1-deck-gate-v1/lock.json` and
+  `tools/checkpoints/md-v1-deck-gate-v1/result.json`.
+- **The deck gate's field prior was stale, and that explains most of the
+  breadth failure (2026-07-27):** `mine_meta_decks.py` ordered
+  `agent/meta_decks.json` by cumulative count over all history, so `pool:8`
+  lagged the live meta. Two of its eight strata (meta2, meta7) were Mega
+  Lucario ex, and two of the three failing strata were therefore the same
+  extinct archetype; live Mewtwo and Garchomp were absent from the field
+  entirely. Measured share of Mega Lucario ex on the current ladder: 7 of
+  4,547 games on the July 25 clean day (0.15%), and 10 of 12,548 exact-deck
+  Grimmsnarl opponents across 22,801 accumulated episodes (0.080%). The
+  v6-era ~31% figure is stale by roughly 400x. The prior is now built from a
+  declared recent window. This does **not** re-score the failed gate;
+  dropping failing strata after seeing results is not permitted.
+- **MD-v1's Lucario weakness is a deck property, not a policy defect
+  (2026-07-27):** on the same Grimmsnarl registration against current
+  Lucario, MD-v1 scored 45.0% (72-88) and frozen Qu-v2B scored 46.25%
+  (74-86) — indistinguishable, with overlapping intervals. The often-quoted
+  "45.0% versus 60.6%" compares MD/**Grimmsnarl** against Qu/**Alakazam** and
+  is deck-and-policy confounded. Note also that `alakazam-lucario.json` runs
+  identical weights in both arms and scored 60.6% versus 53.1%, so a single
+  160-game matchup number carries roughly ±7 pp of noise.
+- **The MD-v2 residual route is closed after two failed gates (2026-07-27):**
+  the first cohort selected disagreement roots on action identity alone and
+  reached 32.8% cross-panel sign agreement with 77 of 200 required confirmed
+  roots. The redo added a pre-registered `|MD-Qu| > 1.96 x paired SE`
+  magnitude screen and targeted the Lucario matchup: only 43 of 443 completed
+  roots were statistically resolvable at 32 rollouts, split 19 better / 24
+  worse, making 200 confirmed roots arithmetically impossible; confirmation
+  was not run. Both failures have the same cause — at equal policy strength
+  there is no action-level deficit to mine. Do not reopen this route with
+  more data alone.
+- **The corrected recent-frequency field gate selects MD-v1/Grimmsnarl
+  (2026-07-27):** a prospectively locked gate weighted strata by measured
+  recent registration share (Grimmsnarl 43.4%, Alakazam 22.6%, Mewtwo 12.7%,
+  Garchomp 7.3%, Crustle 6.9%, Dragapult 3.2%, remaining included 3.9%),
+  excluding a declared sub-0.5% tail before results were seen. Over 640 valid
+  games covering 98.98% of 45,602 recent registrations, MD-v1/Grimmsnarl
+  scored 65.8% [60.4-70.8] against frozen Qu-v2B/Alakazam at 45.8%
+  [40.4-51.3]: **+20.0 pp, pre-registered 95% CI [+12.5, +27.5]**. This is a
+  new, correctly specified gate, not a re-scoring of the one that failed on
+  breadth. Its widest stratum is also its narrowest margin: the Grimmsnarl
+  mirror is 43.4% of the field at 55.4% (77-62-1).
+- **The ladder has not yet corroborated the deck claim.** At comparable game
+  counts the policy claim holds — MD-v1/Grimmsnarl (817.6, 63 games) leads
+  the frozen Qu-v2B/Grimmsnarl control (719.9, 51 games) by ~98 points — but
+  MD-v1/Grimmsnarl sits 17-55 points *below* every Qu-v2B/Alakazam package
+  (834.8, 860.7, 872.4). Precedent: ft10 gated `pool:8` at +14.4 pp over the
+  champion and landed a dead tie (641 vs 655). Local gates propose; the
+  ladder disposes. Do not change `decks/deck.csv` until the pre-registered
+  live read resolves.
 
 ### Active next direction
 
-Qu-v2B tests how much better weighting can extract from the same observational
-demonstrations. The remaining bottleneck is **credit assignment**: a winning
-replay records what the player did, but not whether a different legal action
-would have been better.
+The **asymmetric critic** route described here previously has been run to
+completion and closed. Its final pre-registered noninferiority gate failed at
+-3.18 pp with a game-cluster interval that did not clear the fixed -5 pp
+margin, and the MD-v2 residual variant then failed twice more for a different
+reason: at equal policy strength there is no action-level deficit to mine.
+Both are recorded below. Do not reopen either with more data alone; a further
+attempt needs a structurally different idea, not a larger cohort.
 
-The next proposed experiment is an **asymmetric critic**:
+The open question is now a **deck** question, not a credit-assignment one.
+The corrected recent-frequency field gate selects MD-v1/Grimmsnarl over frozen
+Qu-v2B/Alakazam by +20.0 pp, but the ladder has not corroborated it and the
+project has a documented precedent for a large local gate landing as a tie.
+The immediate sequence is:
 
-1. Generate a diverse local league with Qu-v2B, Qu-v2A, Qu-v1, rules, and
-   randomized past checkpoints.
-2. Train a tooling-only critic on complete simulator state, including hidden
-   information, to estimate outcomes and per-action advantage.
-3. Aggregate those estimates across hidden states compatible with the same
-   public observation.
-4. Train a deployable actor using only public features and conservative soft
-   advantage targets, anchored to Qu-v2B where the teacher is uncertain.
-5. Require the critic-guided policy to beat Qu-v2B before distillation, then
-   require the distilled candidate to pass the same multi-axis field matrix.
+1. Resolve the pre-registered live read between MD-v1/Grimmsnarl and frozen
+   Qu-v2B/Alakazam. Both live slots should point at that open question rather
+   than at the same-deck comparison, which is already settled by ~98 points.
+2. Only if the ladder confirms, change `decks/deck.csv` — as its own commit,
+   never mixed with an agent change.
+3. The highest-value model work is the **Grimmsnarl mirror**: 43.4% of the
+   weighted field at a 55.4% win rate, so a few points there outweigh large
+   gains in any other stratum. Second is extending deck-matched coverage
+   beyond ST_MAIN, since roughly 56% of decisions still execute
+   Alakazam-conditioned Qu-v2B while piloting Grimmsnarl.
+4. The Qu-v2 corpus is deck-conditioned on Alakazam. If the deck changes, its
+   training foundation must be re-based on Grimmsnarl games, not extended.
 
-Hidden state is training privilege only and must never enter `agent/`, the
-submission, or deployable features. More ladder data remains useful for
-coverage and failure diagnosis, but plain winner-action BC is no longer the
-primary improvement lever.
+Hidden state remains training privilege only and must never enter `agent/`,
+the submission, or deployable features. Plain winner-action BC remains a
+documented dead end.
 
 ## Results so far (ladder = public score; local = head-to-head win rates)
 
@@ -1258,7 +1344,10 @@ python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
     --ckpt-dir /tmp/teacher-run
 
 # refresh opponent-model library after new episode downloads
-python tools/mine_meta_decks.py
+# Current-field order and belief weights. The explicit recent-window source,
+# not cumulative historical popularity, determines meta:<i> and pool:<n>.
+python tools/mine_meta_decks.py ~/Desktop/ptcg_episodes \
+    --recent-dir ~/Desktop/ptcg_official_recent
 
 # package + ship (clean tree, tag first; tag name chosen by the maintainer)
 git tag <name> && python tools/build_submission.py
