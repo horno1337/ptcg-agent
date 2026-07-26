@@ -153,8 +153,20 @@ def _replay_paths(sources: Sequence[Path]) -> list[Path]:
 
 def _collect_prompts(
     sources: Sequence[Path], aliases: set[str], reference: QM.NumpyQuV2A,
+    policy_reference: bool = False,
+    reference_deck: Sequence[int] | None = None,
+    forced_seat: int | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    learner_deck = tuple(policy.load_deck())
+    learner_deck = tuple(
+        policy.load_deck() if reference_deck is None else reference_deck)
+    if (
+        len(learner_deck) != 60
+        or any(
+            isinstance(card, bool) or not isinstance(card, int) or card <= 0
+            for card in learner_deck
+        )
+    ):
+        raise AuditError("reference deck must contain 60 positive integer card IDs")
     sorted_deck = tuple(sorted(learner_deck))
     rows: list[dict[str, Any]] = []
     counts = {
@@ -166,54 +178,85 @@ def _collect_prompts(
         "reference_errors": 0,
     }
     seen: set[Any] = set()
+    original_load_deck = policy.load_deck
+    if reference_deck is not None:
+        policy.load_deck = lambda: list(learner_deck)
     safety._spent = 0.0
-    for path in _replay_paths(sources):
-        counts["files"] += 1
-        try:
-            replay = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as error:
-            raise AuditError(f"cannot read replay {path}: {error}") from error
-        if (
-            not isinstance(replay, dict)
-            or not isinstance(replay.get("steps"), list)
-            or not isinstance(replay.get("info"), dict)
-            or replay["info"].get("EpisodeId") is None
-        ):
-            counts["non_replay_files"] += 1
-            continue
-        episode_id = (replay.get("info") or {}).get("EpisodeId")
-        if episode_id in seen:
-            counts["duplicate_games"] += 1
-            continue
-        seen.add(episode_id)
-        seat, _ = LADDER.learner_seat(str(path), sorted_deck, aliases)
-        if seat is None:
-            counts["ambiguous_games"] += 1
-            continue
-        counts["resolved_games"] += 1
-        for view, logged in LADDER.action_rows(replay, seat):
+    try:
+        for path in _replay_paths(sources):
+            counts["files"] += 1
             try:
-                sample = QF.encode_public_observation(view.obs, learner_deck)
-                logits, _ = reference.forward(sample)
-                model_action = QM.decode_sequential(
-                    logits,
-                    len(view.options),
-                    view.min_count,
-                    view.max_count,
-                )
-                rules_action = policy.decide_rules(view.obs)
-                final_action = safety.agent(view.obs)
-            except Exception:
-                counts["reference_errors"] += 1
+                replay = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as error:
+                raise AuditError(f"cannot read replay {path}: {error}") from error
+            if (
+                not isinstance(replay, dict)
+                or not isinstance(replay.get("steps"), list)
+                or not isinstance(replay.get("info"), dict)
+                or replay["info"].get("EpisodeId") is None
+            ):
+                counts["non_replay_files"] += 1
                 continue
-            rows.append({
-                "episode_id": episode_id,
-                "observation": view.obs,
-                "logged_action": logged,
-                "reference_model_action": model_action,
-                "reference_rules_action": rules_action,
-                "reference_final_action": final_action,
-            })
+            episode_id = (replay.get("info") or {}).get("EpisodeId")
+            if episode_id in seen:
+                counts["duplicate_games"] += 1
+                continue
+            seen.add(episode_id)
+            if forced_seat is None:
+                seat, _ = LADDER.learner_seat(str(path), sorted_deck, aliases)
+            else:
+                registered = LADDER.il_dataset.decks(str(path))
+                seat = (
+                    forced_seat
+                    if tuple(sorted(registered.get(forced_seat, ())))
+                    == sorted_deck
+                    else None
+                )
+            if seat is None:
+                counts["ambiguous_games"] += 1
+                continue
+            counts["resolved_games"] += 1
+            for view, logged in LADDER.action_rows(replay, seat):
+                try:
+                    sample = QF.encode_public_observation(view.obs, learner_deck)
+                    logits, _ = reference.forward(sample)
+                    model_action = (
+                        policy._model_decide(view)
+                        if policy_reference
+                        else QM.decode_sequential(
+                            logits,
+                            len(view.options),
+                            view.min_count,
+                            view.max_count,
+                        )
+                    )
+                    rules_action = policy.decide_rules(view.obs)
+                    if policy_reference:
+                        final_action = safety.agent(view.obs)
+                    else:
+                        # A frozen-weight audit must keep optional repository
+                        # overlays out of the final-action reference too.  The
+                        # extracted control archive may deliberately omit an
+                        # exact-deck overlay that is present in the worktree.
+                        original_model_decide = policy._model_decide
+                        policy._model_decide = lambda _view: model_action
+                        try:
+                            final_action = safety.agent(view.obs)
+                        finally:
+                            policy._model_decide = original_model_decide
+                except Exception:
+                    counts["reference_errors"] += 1
+                    continue
+                rows.append({
+                    "episode_id": episode_id,
+                    "observation": view.obs,
+                    "logged_action": logged,
+                    "reference_model_action": model_action,
+                    "reference_rules_action": rules_action,
+                    "reference_final_action": final_action,
+                })
+    finally:
+        policy.load_deck = original_load_deck
     if not rows:
         raise AuditError("no resolved replay prompts were collected")
     return rows, counts
@@ -334,6 +377,9 @@ def audit(
     directories: Sequence[Path],
     aliases: set[str],
     ladder_canary: bool = False,
+    policy_reference: bool = False,
+    reference_deck: Sequence[int] | None = None,
+    forced_seat: int | None = None,
 ) -> dict[str, Any]:
     archive = archive.resolve()
     reference_weights = reference_weights.resolve()
@@ -342,7 +388,12 @@ def audit(
     if not reference_weights.is_file():
         raise AuditError(f"reference weights do not exist: {reference_weights}")
     reference = _load_reference(reference_weights)
-    prompts, collection = _collect_prompts(directories, aliases, reference)
+    prompts, collection = _collect_prompts(
+        directories, aliases, reference,
+        policy_reference=policy_reference,
+        reference_deck=reference_deck,
+        forced_seat=forced_seat,
+    )
     if ladder_canary and (
         collection["files"] != 1
         or collection["resolved_games"] != 1
@@ -443,9 +494,15 @@ def audit(
             "path": str(reference_weights),
             "sha256": sha256_file(reference_weights),
         },
+        "reference_deck": (
+            list(reference_deck) if reference_deck is not None else None),
+        "forced_seat": forced_seat,
         "directories": [str(path.resolve()) for path in directories],
         "team_aliases": sorted(aliases),
         "collection": collection,
+        "model_reference": (
+            "repository_policy" if policy_reference else "frozen_weights"
+        ),
         "runtime": runtime,
         "ladder_action_provenance": {
             "readout_mode": (
@@ -473,15 +530,41 @@ def main(argv: Sequence[str] | None = None) -> int:
         help=("pre-register a one-replay model-live read-out; exit 3 unless "
               "the model wins a strict majority of disagreement prompts"),
     )
+    parser.add_argument(
+        "--policy-reference", action="store_true",
+        help=("compare the extracted model path with the repository policy; "
+              "required for guarded policy layers above frozen weights"),
+    )
+    parser.add_argument(
+        "--reference-deck", type=Path,
+        help=("60-line deck registration used by the repository reference; "
+              "the extracted archive still reads its packaged decks/deck.csv"),
+    )
+    parser.add_argument(
+        "--learner-seat", type=int, choices=(0, 1),
+        help=("explicit learner seat for an exact-deck mirror replay; the "
+              "registered deck at that seat must match --reference-deck"),
+    )
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args(argv)
     try:
+        reference_deck = None
+        if args.reference_deck is not None:
+            reference_deck = [
+                int(line)
+                for line in args.reference_deck.read_text(
+                    encoding="utf-8").splitlines()
+                if line.strip()
+            ]
         report = audit(
             args.archive,
             args.reference_weights,
             args.directories,
             set(args.team),
             ladder_canary=args.ladder_canary,
+            policy_reference=args.policy_reference,
+            reference_deck=reference_deck,
+            forced_seat=args.learner_seat,
         )
     except (AuditError, OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
