@@ -101,6 +101,17 @@ REPLICATION_FINAL_SELECTION_POLICY = (
     "discovery and confirmation runs; selection uses no terminal outcomes, "
     "action values, label signs, critic scores, or confirmation results"
 )
+CANARY_OVERRIDE_SCHEMA = "ptcg.qu-v2c.canary-override-root-selection.v1"
+CANARY_OVERRIDE_SELECTION_MODE = "qu-v2c-canary-override-candidates"
+CANARY_OVERRIDE_SELECTION_SEED = 260726
+CANARY_OVERRIDE_ROOT_COUNT = 45
+CANARY_OVERRIDE_SELECTION_POLICY = (
+    "development-only ordered pool of exactly 45 public-only guarded "
+    "Qu-v2C overrides from unique factual-corpus games; membership may use "
+    "the frozen canary decision but never terminal outcomes, rollout values, "
+    "label signs, or confirmation results; run both actual discovery and "
+    "independent confirmation panels on all roots"
+)
 
 # These eight fixed cells make every requested binary marginal exactly 15/15.
 # ``False`` means B and its parent agree; ``True`` means they disagree.
@@ -753,6 +764,7 @@ def write_selection_artifacts(
     mechanical_preflight: Mapping[str, Any] | None = None,
     replication_candidate_pool: bool = False,
     replication_candidate_pool_v2: bool = False,
+    canary_override_pool: bool = False,
     replication_finalization: Mapping[str, Any] | None = None,
     expected_root_count: int | None = None,
 ) -> dict[str, Any]:
@@ -761,13 +773,19 @@ def write_selection_artifacts(
         bool(generalization),
         bool(replication_candidate_pool),
         bool(replication_candidate_pool_v2),
+        bool(canary_override_pool),
     )) > 1:
         raise SelectionError(
             "selection route flags are mutually exclusive")
     if expected_root_count is None:
         expected_root_count = (
             REPLICATION_CANDIDATE_ROOT_COUNT
-            if replication_candidate_pool or replication_candidate_pool_v2
+            if (
+                replication_candidate_pool
+                or replication_candidate_pool_v2
+            )
+            else CANARY_OVERRIDE_ROOT_COUNT
+            if canary_override_pool
             else ROOT_COUNT
         )
     if expected_root_count < 1:
@@ -809,7 +827,12 @@ def write_selection_artifacts(
         "root_miner": _sha256_file(Path(MINE.__file__).resolve()),
         "root_validator": _sha256_file(Path(VALIDATE.__file__).resolve()),
     })
-    if replication_candidate_pool_v2:
+    if canary_override_pool:
+        selection_mode = CANARY_OVERRIDE_SELECTION_MODE
+        selection_policy = CANARY_OVERRIDE_SELECTION_POLICY
+        derivation_schema = CANARY_OVERRIDE_SCHEMA
+        selection_seed = CANARY_OVERRIDE_SELECTION_SEED
+    elif replication_candidate_pool_v2:
         selection_mode = REPLICATION_CANDIDATE_V2_SELECTION_MODE
         selection_policy = REPLICATION_CANDIDATE_V2_SELECTION_POLICY
         derivation_schema = REPLICATION_CANDIDATE_V2_SCHEMA
@@ -895,13 +918,15 @@ def write_selection_artifacts(
             "exact_marginal_quotas": (
                 not generalization
                 and not replication_candidate_pool
-                and not replication_candidate_pool_v2),
+                and not replication_candidate_pool_v2
+                and not canary_override_pool),
             "stratum_targets": (
                 None
                 if (
                     generalization
                     or replication_candidate_pool
                     or replication_candidate_pool_v2
+                    or canary_override_pool
                 )
                 else {
                     f"{outcome}/seat-{seat}/"
