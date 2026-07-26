@@ -387,8 +387,23 @@ def _model_decide(view: ObsView) -> list[int] | None:
             sample = _qu_v2_features.encode_public_observation(
                 view.obs, load_deck())
             logits, _ = net.forward(sample)
-            return _model.decode_qu_v2(
+            base = _model.decode_qu_v2(
                 logits, len(view.options), view.min_count, view.max_count)
+            if (
+                view.select_type == ST_MAIN
+                and view.min_count == 1
+                and view.max_count == 1
+                and len(base) == 1
+            ):
+                try:
+                    from . import qu_v2c_canary as _qu_v2c_canary
+                    override = _qu_v2c_canary.decide(
+                        sample, net, int(base[0]), len(view.options))
+                    if override is not None:
+                        return override
+                except Exception:
+                    pass
+            return base
         # The retired/planner paths do not yet carry a registered deck through
         # every simulated seat.  Never silently mix their base-policy priors
         # with a deck-adapted root policy.
