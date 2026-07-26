@@ -100,6 +100,10 @@ class TrainingConfig:
     cache_dir: Path | None = None
     resume_latest: bool = False
     qu_v1_anchor_path: Path | None = None
+    initial_checkpoint_path: Path | None = None
+    target_deck_sha256: str | None = None
+    target_select_type: int | None = None
+    freeze_public_backbone: bool = False
     kl_coefficient: float = 0.0
     kl_weighting: str = "sample"
     min_available_bytes: int = 6 * training_preflight.GIB
@@ -514,6 +518,23 @@ def _validate_config(config: TrainingConfig) -> None:
         if not math.isfinite(value) or value < 0.0:
             raise TrainingError(
                 f"deck weight for {deck_sha256!r} must be non-negative")
+    if (
+        config.target_deck_sha256 is not None
+        and not _is_sha256(config.target_deck_sha256)
+    ):
+        raise TrainingError("target deck must be a lowercase SHA-256")
+    if (
+        config.target_select_type is not None
+        and (
+            isinstance(config.target_select_type, bool)
+            or not isinstance(config.target_select_type, int)
+            or not 0 <= config.target_select_type < 11
+        )
+    ):
+        raise TrainingError("target select type must be an integer from 0 to 10")
+    if config.freeze_public_backbone and config.initial_checkpoint_path is None:
+        raise TrainingError(
+            "--freeze-public-backbone requires --initial-checkpoint")
     if config.kl_weighting not in KL_WEIGHTING_POLICIES:
         raise TrainingError(
             "kl_weighting must be one of "
@@ -1338,6 +1359,17 @@ def iter_game_samples(
     source_weight = _source_weight(config, game)
     normalizer = float(game.decision_count) if config.game_normalized else 1.0
     for encoded in _encoded_game_samples(game, anchor, cache):
+        if (
+            config.target_deck_sha256 is not None
+            and game.registered_deck_sha256s[encoded.acting_seat]
+            != config.target_deck_sha256
+        ):
+            continue
+        if (
+            config.target_select_type is not None
+            and encoded.features.prompt_features[config.target_select_type] != 1.0
+        ):
+            continue
         weight = (
             source_weight
             * _outcome_weight(config, encoded.reward)
@@ -1584,6 +1616,38 @@ def _load_anchor(path: Path | None) -> QuV1Net | None:
         raise TrainingError(f"cannot load Qu-v1 KL anchor {resolved}: {error}") from error
 
 
+def _load_initial_checkpoint(
+    path: Path,
+    net: QM.TorchQuV2A,
+    *,
+    feature_contract_fingerprint: str,
+    model_implementation_sha256: str,
+    architecture: tuple[int, int, int, int, int],
+) -> str:
+    resolved = path.expanduser().resolve()
+    try:
+        payload = torch.load(resolved, map_location="cpu", weights_only=True)
+    except TypeError:
+        payload = torch.load(resolved, map_location="cpu")
+    if (
+        not isinstance(payload, Mapping)
+        or payload.get("schema") != TRAINING_SCHEMA
+        or payload.get("feature_schema") != QF.SCHEMA
+        or payload.get("feature_dependency_fingerprint")
+        != feature_contract_fingerprint
+        or payload.get("model_schema") != QM.MODEL_SCHEMA
+        or payload.get("model_implementation_sha256")
+        != model_implementation_sha256
+        or tuple(payload.get("architecture", ())) != architecture
+        or not isinstance(payload.get("state_dict"), Mapping)
+        or payload.get("state_dict_sha256")
+        != _state_dict_sha256(payload["state_dict"])
+    ):
+        raise TrainingError("initial Qu-v2 checkpoint contract mismatch")
+    net.load_state_dict(payload["state_dict"], strict=True)
+    return _sha256_file(resolved)
+
+
 def _choose_device(config: TrainingConfig) -> torch.device:
     if config.device == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -1704,6 +1768,9 @@ def _file_provenance(config: TrainingConfig) -> dict[str, str]:
     }
     if config.qu_v1_anchor_path is not None:
         paths["qu_v1_anchor"] = config.qu_v1_anchor_path.expanduser().resolve()
+    if config.initial_checkpoint_path is not None:
+        paths["initial_checkpoint"] = (
+            config.initial_checkpoint_path.expanduser().resolve())
     return {name: _sha256_file(path) for name, path in paths.items()}
 
 
@@ -1743,6 +1810,17 @@ def _config_manifest(config: TrainingConfig, device: torch.device) -> dict[str, 
             str(config.qu_v1_anchor_path.expanduser().resolve())
             if config.qu_v1_anchor_path is not None else None
         ),
+        "initial_checkpoint_path": (
+            str(config.initial_checkpoint_path.expanduser().resolve())
+            if config.initial_checkpoint_path is not None else None
+        ),
+        "initial_checkpoint_sha256": (
+            _sha256_file(config.initial_checkpoint_path.expanduser().resolve())
+            if config.initial_checkpoint_path is not None else None
+        ),
+        "target_deck_sha256": config.target_deck_sha256,
+        "target_select_type": config.target_select_type,
+        "freeze_public_backbone": config.freeze_public_backbone,
     }
 
 
@@ -1811,6 +1889,10 @@ def _resume_lock(
         "cache_namespace_header": (
             dict(cache.namespace_header) if cache is not None else None),
         "qu_v1_anchor_sha256": anchor_sha256,
+        "initial_checkpoint_sha256": (
+            _sha256_file(config.initial_checkpoint_path.expanduser().resolve())
+            if config.initial_checkpoint_path is not None else None
+        ),
         "source_sha256": {
             "trainer": _sha256_file(Path(__file__).resolve()),
             "dataset_loader": _sha256_file(Path(il_dataset.__file__).resolve()),
@@ -1837,6 +1919,9 @@ def _resume_lock(
             "deck_weights": dict(sorted(config.deck_weights.items())),
             "deck_weight_policy": DECK_WEIGHT_POLICY,
             "game_normalized": config.game_normalized,
+            "target_deck_sha256": config.target_deck_sha256,
+            "target_select_type": config.target_select_type,
+            "freeze_public_backbone": config.freeze_public_backbone,
             "kl_coefficient": config.kl_coefficient,
             "kl_weighting": config.kl_weighting,
             "kl_weighting_policy": KL_WEIGHTING_POLICIES[config.kl_weighting],
@@ -2103,6 +2188,12 @@ def _run_training_locked(
         raise TrainingError(
             "deck weights do not match selected acting-seat decks: "
             + ", ".join(unknown_deck_weights))
+    if (
+        config.target_deck_sha256 is not None
+        and config.target_deck_sha256 not in known_decks
+    ):
+        raise TrainingError(
+            "target deck does not occur in the selected corpus")
     _seed_everything(config.seed)
     anchor = _load_anchor(config.qu_v1_anchor_path)
     anchor_sha256 = (
@@ -2112,8 +2203,24 @@ def _run_training_locked(
     cache = create_encoded_game_cache(
         config, feature_contract_fingerprint, anchor_sha256)
     net = QM.TorchQuV2A(*config.architecture).to(device)
+    initial_checkpoint_sha256 = None
+    if config.initial_checkpoint_path is not None:
+        initial_checkpoint_sha256 = _load_initial_checkpoint(
+            config.initial_checkpoint_path,
+            net,
+            feature_contract_fingerprint=feature_contract_fingerprint,
+            model_implementation_sha256=model_implementation_sha256,
+            architecture=config.architecture,
+        )
+    if config.freeze_public_backbone:
+        trainable_prefixes = ("option1.", "context1.", "policy.")
+        for name, parameter in net.named_parameters():
+            parameter.requires_grad = name.startswith(trainable_prefixes)
     optimizer = torch.optim.AdamW(
-        net.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
+        [parameter for parameter in net.parameters() if parameter.requires_grad],
+        lr=config.learning_rate,
+        weight_decay=config.weight_decay,
+    )
     paths["checkpoint"].parent.mkdir(parents=True, exist_ok=True)
     resume_lock = _resume_lock(
         config,
@@ -2137,6 +2244,16 @@ def _run_training_locked(
     best_epoch: int | None = None
     best_objective = math.inf
     start_epoch = 1
+    if initial_checkpoint_sha256 is not None:
+        emit(
+            "initial_checkpoint_loaded",
+            sha256=initial_checkpoint_sha256,
+            freeze_public_backbone=config.freeze_public_backbone,
+            trainable_parameters=sum(
+                parameter.numel() for parameter in net.parameters()
+                if parameter.requires_grad
+            ),
+        )
     if config.resume_latest:
         start_epoch, history, best_epoch, best_objective = _load_latest_checkpoint(
             paths["latest"],
@@ -2316,6 +2433,10 @@ def _run_training_locked(
             "qu_v1_anchor_sha256"]:
         if config.qu_v1_anchor_path is not None:
             raise TrainingError("Qu-v1 anchor changed during training")
+    if source_files_sha256.get("initial_checkpoint") != resume_lock.get(
+            "initial_checkpoint_sha256"):
+        if config.initial_checkpoint_path is not None:
+            raise TrainingError("initial Qu-v2 checkpoint changed during training")
     payload: dict[str, Any] = {
         "schema": TRAINING_SCHEMA,
         "candidate_only": True,
@@ -2486,6 +2607,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="divide each decision weight by its indexed game decision count",
     )
     parser.add_argument("--qu-v1-anchor", type=Path)
+    parser.add_argument(
+        "--initial-checkpoint",
+        type=Path,
+        help="initialize from a contract-matched Qu-v2 training checkpoint",
+    )
+    parser.add_argument(
+        "--target-deck-sha256",
+        help="train and evaluate only decisions made by this exact deck",
+    )
+    parser.add_argument(
+        "--target-select-type",
+        type=int,
+        help="train and evaluate only this prompt type (ST_MAIN is 0)",
+    )
+    parser.add_argument(
+        "--freeze-public-backbone",
+        action="store_true",
+        help="train only option1/context1/policy after Qu-v2 initialization",
+    )
     parser.add_argument("--kl-coefficient", type=_nonnegative_float, default=0.0)
     parser.add_argument(
         "--kl-weighting",
@@ -2544,6 +2684,10 @@ def main(argv: Iterable[str] | None = None) -> int:
             deck_weights=_deck_weights(args.deck_weight),
             game_normalized=args.game_normalized,
             qu_v1_anchor_path=args.qu_v1_anchor,
+            initial_checkpoint_path=args.initial_checkpoint,
+            target_deck_sha256=args.target_deck_sha256,
+            target_select_type=args.target_select_type,
+            freeze_public_backbone=args.freeze_public_backbone,
             kl_coefficient=args.kl_coefficient,
             kl_weighting=args.kl_weighting,
             min_available_bytes=args.min_available_gib,
