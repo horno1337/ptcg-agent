@@ -47,8 +47,10 @@ sys.path.insert(0, TOOLS_DIR)
 from agent import features as FE  # noqa: E402
 from agent import model  # noqa: E402
 from agent import policy  # noqa: E402
+from agent import qu_v2_features as QF  # noqa: E402
+from agent import qu_v2c_canary as QU_V2C  # noqa: E402
 from agent import safety  # noqa: E402
-from agent.obsview import ObsView  # noqa: E402
+from agent.obsview import ObsView, ST_MAIN  # noqa: E402
 from rl_env import (  # noqa: E402
     OpponentSpec,
     PTCGRLEnv,
@@ -94,28 +96,54 @@ def git_state() -> dict[str, Any]:
 
 
 def load_net(path: str) -> model.Net:
-    try:
-        with np.load(path) as weights:
-            version = int(weights.get("feat_version", -1))
-            if not 1 <= version <= FE.FEAT_VERSION:
-                raise ValueError(f"incompatible feat_version {version}")
-            return model.Net(weights)
-    except Exception as exc:
-        raise ValueError(f"cannot load weights {path!r}: {exc}") from exc
+    loaded = model.load(path)
+    if loaded is None:
+        raise ValueError(f"cannot load weights {path!r}")
+    return loaded
 
 
 class DeployableReflex:
     """Frozen reflex with the same rules/safety fail-soft behavior as shipping."""
 
     def __init__(self, net: model.Net, name: str,
-                 deck: Sequence[int] | None = None):
+                 deck: Sequence[int] | None = None,
+                 qu_v2c_canary: bool = False,
+                 fallback_net: model.Net | None = None,
+                 candidate_select_type: int | None = None):
         self.net = net
         self.name = name
         self.deck = tuple(deck) if deck is not None else None
+        self.qu_v2c_canary = bool(qu_v2c_canary)
+        self.fallback_net = fallback_net
+        self.candidate_select_type = candidate_select_type
+        if self.qu_v2c_canary and not getattr(net, "is_qu_v2", False):
+            raise ValueError("Qu-v2C canary requires a Qu-v2 backbone")
+        if self.qu_v2c_canary and QU_V2C._load() is None:
+            raise ValueError("Qu-v2C canary artifact failed to load")
+        if (
+            self.candidate_select_type is not None
+            and (
+                isinstance(self.candidate_select_type, bool)
+                or not isinstance(self.candidate_select_type, int)
+                or not 0 <= self.candidate_select_type < 11
+            )
+        ):
+            raise ValueError("candidate select type must be an integer from 0 to 10")
+        if self.candidate_select_type is not None and self.fallback_net is None:
+            raise ValueError("candidate select type requires a fallback network")
+        if self.fallback_net is not None and (
+            not getattr(net, "is_qu_v2", False)
+            or not getattr(self.fallback_net, "is_qu_v2", False)
+        ):
+            raise ValueError("select-type routing requires two Qu-v2 networks")
         self.calls = 0
+        self.candidate_routes = 0
+        self.base_routes = 0
         self.adapter_hits = 0
         self.adapter_misses = 0
         self.fallbacks = 0
+        self.qu_v2c_eligible = 0
+        self.qu_v2c_overrides = 0
         self.exceptions = Counter()
         self.latency_ms: list[float] = []
 
@@ -132,21 +160,55 @@ class DeployableReflex:
                     self.fallbacks += 1
                     action = policy.decide_rules(obs)
                 else:
-                    state = FE.encode_state(view)
-                    option_ids, option_features = FE.encode_options_for_net(
-                        view, self.net)
-                    registration = self.deck if deck is None else deck
-                    if getattr(self.net, "has_deck_adapter", False):
-                        if self.net.supports_deck(registration):
-                            self.adapter_hits += 1
+                    active_net = self.net
+                    if self.fallback_net is not None:
+                        if view.select_type == self.candidate_select_type:
+                            self.candidate_routes += 1
                         else:
-                            self.adapter_misses += 1
-                    logits, _ = model.forward_registered(
-                        self.net, state, option_ids, option_features,
-                        registration)
-                    action = model.select_indices(
-                        logits, len(view.options), view.min_count, view.max_count,
-                    )
+                            active_net = self.fallback_net
+                            self.base_routes += 1
+                    if getattr(active_net, "is_qu_v2", False):
+                        registration = self.deck if deck is None else tuple(deck)
+                        if registration is None:
+                            raise ValueError("Qu-v2 requires a registered deck")
+                        sample = QF.encode_public_observation(obs, registration)
+                        logits, _ = active_net.forward(sample)
+                        action = model.decode_qu_v2(
+                            logits, len(view.options),
+                            view.min_count, view.max_count)
+                        if (
+                            self.qu_v2c_canary
+                            and active_net is self.net
+                            and view.select_type == ST_MAIN
+                            and view.min_count == 1
+                            and view.max_count == 1
+                            and len(view.options) >= 2
+                            and len(action) == 1
+                        ):
+                            self.qu_v2c_eligible += 1
+                            override = QU_V2C.decide(
+                                sample, active_net, int(action[0]),
+                                len(view.options))
+                            if override is not None:
+                                self.qu_v2c_overrides += 1
+                                action = override
+                    else:
+                        state = FE.encode_state(view)
+                        option_ids, option_features = FE.encode_options_for_net(
+                            view, active_net)
+                        registration = self.deck if deck is None else deck
+                        if getattr(active_net, "has_deck_adapter", False):
+                            if active_net.supports_deck(registration):
+                                self.adapter_hits += 1
+                            else:
+                                self.adapter_misses += 1
+                        logits, _ = model.forward_registered(
+                            active_net, state, option_ids, option_features,
+                            registration)
+                        action = model.select_indices(
+                            logits, len(view.options),
+                            view.min_count, view.max_count,
+                        )
         except Exception as exc:
             self.fallbacks += 1
             self.exceptions[type(exc).__name__] += 1
@@ -174,6 +236,12 @@ class DeployableReflex:
             "name": self.name,
             "calls": self.calls,
             "fallbacks": self.fallbacks,
+            "candidate_select_type": self.candidate_select_type,
+            "candidate_routes": self.candidate_routes,
+            "base_routes": self.base_routes,
+            "qu_v2c_canary": self.qu_v2c_canary,
+            "qu_v2c_eligible": self.qu_v2c_eligible,
+            "qu_v2c_overrides": self.qu_v2c_overrides,
             "adapter_hits": self.adapter_hits,
             "adapter_misses": self.adapter_misses,
             "exceptions": dict(self.exceptions),
@@ -371,11 +439,12 @@ def make_field(deck_specs: Sequence[tuple[str, Sequence[int]]], policy_mode: str
 def run_series(tag: str, controller: DeployableReflex,
                learner_deck: Sequence[int], opponents: Sequence[OpponentSpec],
                schedule, max_selects: int, time_bank_s: float,
-               verbose: bool = True) -> SeriesResult:
+               verbose: bool = True, replay_dir: str | None = None) -> SeriesResult:
     series = SeriesResult(tag)
     env = PTCGRLEnv(
         learner_deck, opponents, max_selects=max_selects,
         time_bank_s=time_bank_s, fault_mode="ladder",
+        capture_replay=replay_dir is not None,
     )
     try:
         for local_index, episode in enumerate(schedule):
@@ -439,6 +508,20 @@ def run_series(tag: str, controller: DeployableReflex,
                     infrastructure_error=infrastructure_error,
                 )
             series.records.append(record)
+            if replay_dir is not None and record.infrastructure_error is None:
+                replay = env.render()
+                if replay is None:
+                    raise RuntimeError("capture_replay produced no replay")
+                directory = os.path.abspath(os.path.expanduser(replay_dir))
+                os.makedirs(directory, exist_ok=True)
+                replay_path = os.path.join(
+                    directory, f"{tag}-episode-{episode.episode_id:06d}.json")
+                temporary = replay_path + ".partial"
+                with open(temporary, "w", encoding="utf-8") as handle:
+                    handle.write(replay)
+                    if not replay.endswith("\n"):
+                        handle.write("\n")
+                os.replace(temporary, replay_path)
             if verbose:
                 print(
                     f"{tag} g{episode.episode_id:04d} local={local_index:04d} "
@@ -469,6 +552,18 @@ def main(argv: Sequence[str] | None = None):
                         help="global scheduled games per arm; positive and even")
     parser.add_argument("candidate")
     parser.add_argument("--base", default=DEFAULT_BASE)
+    parser.add_argument(
+        "--candidate-policy",
+        choices=("weights", "qu-v2c-canary"),
+        default="weights",
+        help=("candidate execution mode; qu-v2c-canary layers the exact "
+              "shipped unanimous guard over the candidate Qu-v2 weights"),
+    )
+    parser.add_argument(
+        "--candidate-select-type", type=int, choices=range(11),
+        help=("route only this prompt type through the candidate and use "
+              "--base for every other prompt (ST_MAIN is 0)"),
+    )
     parser.add_argument("--opp", default="mirror",
                         help="mirror, meta:<i>, pool:<n>, or pool:<start>:<stop>")
     parser.add_argument("--opp-policy", choices=("rules", "reflex", "mixed"),
@@ -483,6 +578,10 @@ def main(argv: Sequence[str] | None = None):
     parser.add_argument("--max-selects", type=int, default=5000)
     parser.add_argument("--time-bank", type=float, default=600.0)
     parser.add_argument("--json-out", default=None)
+    parser.add_argument(
+        "--replay-dir",
+        help="optional directory for exact local engine replays from every arm",
+    )
     parser.add_argument("--quiet", action="store_true",
                         help="suppress per-game lines; keep gate summaries")
     args = parser.parse_args(argv)
@@ -524,11 +623,19 @@ def main(argv: Sequence[str] | None = None):
         candidate_controller = DeployableReflex(
             candidate_net, f"candidate:{file_sha256(args.candidate)}",
             learner_deck,
+            qu_v2c_canary=args.candidate_policy == "qu-v2c-canary",
+            fallback_net=(
+                base_net if args.candidate_select_type is not None else None),
+            candidate_select_type=args.candidate_select_type,
         )
         result = run_series(
             "candidate-vs-base", candidate_controller, learner_deck,
             opponents, schedule, args.max_selects, args.time_bank,
             verbose=not args.quiet,
+            replay_dir=(
+                os.path.join(args.replay_dir, "candidate-vs-base")
+                if args.replay_dir else None
+            ),
         )
         results.append(result)
         schedules.append(schedule)
@@ -548,11 +655,28 @@ def main(argv: Sequence[str] | None = None):
                 args.shard_index, args.num_shards,
             )
             controller = DeployableReflex(
-                net, f"{arm}:{file_sha256(path)}", learner_deck)
+                net, f"{arm}:{file_sha256(path)}", learner_deck,
+                qu_v2c_canary=(
+                    arm == "candidate"
+                    and args.candidate_policy == "qu-v2c-canary"
+                ),
+                fallback_net=(
+                    base_net
+                    if arm == "candidate"
+                    and args.candidate_select_type is not None else None
+                ),
+                candidate_select_type=(
+                    args.candidate_select_type if arm == "candidate" else None
+                ),
+            )
             result = run_series(
                 f"{arm}-field", controller, learner_deck, opponents,
                 schedule, args.max_selects, args.time_bank,
                 verbose=not args.quiet,
+                replay_dir=(
+                    os.path.join(args.replay_dir, f"{arm}-field")
+                    if args.replay_dir else None
+                ),
             )
             results.append(result)
             schedules.append(schedule)
@@ -588,6 +712,10 @@ def main(argv: Sequence[str] | None = None):
         "metric": "(wins + 0.5 * official_draws) / scheduled_games",
         "invalid_policy": "truncations/infrastructure failures invalidate gate; never draws",
         "candidate_sha256": file_sha256(args.candidate),
+        "qu_v2c_canary_sha256": (
+            file_sha256(getattr(QU_V2C, "_PATH", None))
+            if args.candidate_policy == "qu-v2c-canary" else None
+        ),
         "base_sha256": file_sha256(args.base),
         "eval_ab_sha256": file_sha256(__file__),
         "safety_sha256": file_sha256(getattr(safety, "__file__", None)),
