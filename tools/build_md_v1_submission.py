@@ -1,0 +1,157 @@
+"""Build the exact deck-locked MD-v1 Kaggle canary archive.
+
+This builder stages the ordinary production package without mutating the
+repository's Alakazam ``decks/deck.csv``.  The staged package receives the
+locked Grimmsnarl registration, frozen Qu-v2B base weights, and the separately
+hashed MD-v1 MAIN-policy overlay.  Unrelated experimental canary artifacts are
+excluded explicitly.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import os
+from pathlib import Path
+import shutil
+import tarfile
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CG_LIB = Path(os.environ.get(
+    "CG_LIB",
+    os.path.expanduser(
+        "~/Desktop/sample_submission/sample_submission/cg/libcg.so"),
+))
+BASE_WEIGHTS_SHA256 = (
+    "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+)
+MD_WEIGHTS_SHA256 = (
+    "5784b7ea693d2adc3a8cf0b7422b6940481042181051ef2941b982094dabe78c"
+)
+TARGET_DECK_SHA256 = (
+    "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af"
+)
+EXCLUDED_AGENT_FILES = frozenset({
+    "qu_v2c_canary.py",
+    "qu_v2c_canary_weights.npz",
+})
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def deck_sha256(path: Path) -> str:
+    cards = [int(line) for line in path.read_text(encoding="utf-8").splitlines()
+             if line.strip()]
+    if len(cards) != 60 or any(card <= 0 for card in cards):
+        raise ValueError("MD-v1 deck must contain exactly 60 positive card IDs")
+    canonical = ",".join(map(str, sorted(cards))).encode("ascii")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _ignore_agent(_directory: str, names: list[str]) -> set[str]:
+    return {
+        name for name in names
+        if name == "__pycache__"
+        or name.endswith((".pyc", ".pyo"))
+        or name in EXCLUDED_AGENT_FILES
+    }
+
+
+def _portable_member(member: tarfile.TarInfo) -> tarfile.TarInfo | None:
+    if "__pycache__" in member.name or member.name.endswith((".pyc", ".pyo")):
+        return None
+    if member.isdir():
+        member.mode = 0o755
+    elif member.isfile():
+        member.mode = 0o644
+    return member
+
+
+def build(output: Path, cg_lib: Path | None = DEFAULT_CG_LIB) -> Path:
+    output = output.expanduser().resolve()
+    if output.suffixes[-2:] != [".tar", ".gz"]:
+        raise ValueError("MD-v1 submission output must end in .tar.gz")
+    source_base = ROOT / "agent/weights.npz"
+    source_md = ROOT / "agent/md_v1_weights.npz"
+    source_deck = ROOT / "decks/md_v1_grimmsnarl.csv"
+    expected = (
+        (source_base, BASE_WEIGHTS_SHA256, "frozen Qu-v2B"),
+        (source_md, MD_WEIGHTS_SHA256, "MD-v1"),
+    )
+    for path, digest, label in expected:
+        if not path.is_file() or sha256_file(path) != digest:
+            raise ValueError(f"{label} weights do not match the locked SHA-256")
+    if deck_sha256(source_deck) != TARGET_DECK_SHA256:
+        raise ValueError("Grimmsnarl deck does not match the MD-v1 target")
+    if cg_lib is not None:
+        cg_lib = cg_lib.expanduser().resolve()
+        if not cg_lib.is_file():
+            raise FileNotFoundError(f"official cg/libcg.so is missing: {cg_lib}")
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary_output = output.with_name(f".{output.name}.partial-{os.getpid()}")
+    try:
+        with tempfile.TemporaryDirectory(prefix="md-v1-package-") as temporary:
+            stage = Path(temporary) / "submission"
+            stage.mkdir()
+            shutil.copy2(ROOT / "main.py", stage / "main.py")
+            shutil.copytree(
+                ROOT / "agent", stage / "agent", ignore=_ignore_agent)
+            shutil.copytree(
+                ROOT / "data", stage / "data",
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+            (stage / "decks").mkdir()
+            shutil.copy2(source_deck, stage / "decks/deck.csv")
+
+            if sha256_file(stage / "agent/weights.npz") != BASE_WEIGHTS_SHA256:
+                raise ValueError("staged Qu-v2B weights drifted")
+            if sha256_file(
+                    stage / "agent/md_v1_weights.npz") != MD_WEIGHTS_SHA256:
+                raise ValueError("staged MD-v1 weights drifted")
+            if deck_sha256(stage / "decks/deck.csv") != TARGET_DECK_SHA256:
+                raise ValueError("staged Grimmsnarl registration drifted")
+            for excluded in EXCLUDED_AGENT_FILES:
+                if (stage / "agent" / excluded).exists():
+                    raise ValueError(f"excluded canary leaked into stage: {excluded}")
+
+            with tarfile.open(temporary_output, "w:gz") as archive:
+                for name in ("main.py", "agent", "data", "decks"):
+                    archive.add(
+                        stage / name, arcname=name, filter=_portable_member)
+                if cg_lib is not None:
+                    archive.add(
+                        cg_lib, arcname="cg/libcg.so",
+                        filter=_portable_member)
+        os.replace(temporary_output, output)
+    finally:
+        if temporary_output.exists():
+            temporary_output.unlink()
+    return output
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument(
+        "--cg-lib", type=Path, default=DEFAULT_CG_LIB,
+        help="official libcg.so path",
+    )
+    args = parser.parse_args()
+    output = build(args.out, args.cg_lib)
+    print(
+        f"wrote {output} ({output.stat().st_size / 1024:.0f} KB) "
+        f"sha256={sha256_file(output)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
