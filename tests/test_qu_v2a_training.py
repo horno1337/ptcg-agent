@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from contextlib import contextmanager
 from unittest import mock
@@ -432,6 +433,55 @@ def _check_actor_deck_weight_and_kl_weighting_are_independent():
         "actor_registered_deck_sha256_multiplier_v1"
 
 
+def _check_exact_deck_and_prompt_filters_are_actor_scoped():
+    deck_hashes = ("c" * 64, "d" * 64)
+    game = TRAIN.LockedGame(
+        game_uid="a" * 64,
+        episode_id=1,
+        split="train",
+        split_rank=1,
+        content_sha256="b" * 64,
+        source_membership=("synthetic",),
+        source="synthetic",
+        path=Path("unused.json"),
+        decision_count=3,
+        rewards=(1.0, -1.0),
+        registered_decks=((1,) * 60, (2,) * 60),
+        registered_deck_sha256s=deck_hashes,
+    )
+
+    def encoded(seat: int, select_type: int) -> TRAIN.EncodedSample:
+        prompt = np.zeros(74, dtype=np.float32)
+        prompt[select_type] = 1.0
+        return TRAIN.EncodedSample(
+            features=SimpleNamespace(prompt_features=prompt),
+            picks=(0,),
+            n_opts=1,
+            n_min=1,
+            n_max=1,
+            reward=game.rewards[seat],
+            parent_logits=None,
+            acting_seat=seat,
+        )
+
+    rows = (encoded(0, 0), encoded(0, 1), encoded(1, 0))
+    config = TRAIN.TrainingConfig(
+        manifest_path=Path("unused.json"),
+        out_dir=Path("unused-candidate"),
+        target_deck_sha256=deck_hashes[0],
+        target_select_type=0,
+        test_skip_resource_preflight=True,
+    )
+    with mock.patch.object(
+            TRAIN, "_encoded_game_samples", return_value=rows):
+        samples = list(TRAIN.iter_game_samples(game, config, None))
+    assert len(samples) == 1
+    assert samples[0].acting_seat == 0
+
+    with _raises(TRAIN.TrainingError, "target select type"):
+        TRAIN._validate_config(replace(config, target_select_type=11))
+
+
 def _check_kl_uses_an_independent_denominator():
     parameter = torch.tensor(1.0, requires_grad=True)
     policy_nll = parameter * torch.zeros(2)
@@ -737,6 +787,9 @@ class QuV2ATrainingTests(unittest.TestCase):
 
     def test_actor_deck_weight_and_kl_weighting_are_independent(self):
         _check_actor_deck_weight_and_kl_weighting_are_independent()
+
+    def test_exact_deck_and_prompt_filters_are_actor_scoped(self):
+        _check_exact_deck_and_prompt_filters_are_actor_scoped()
 
     def test_kl_uses_an_independent_denominator(self):
         _check_kl_uses_an_independent_denominator()
