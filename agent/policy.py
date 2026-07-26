@@ -384,8 +384,21 @@ def _model_decide(view: ObsView) -> list[int] | None:
             # encoder.  Keep it outside the legacy feature/version adapter so
             # Qu-v1 archives retain their byte-compatible path.
             from . import qu_v2_features as _qu_v2_features
+            registration = load_deck()
             sample = _qu_v2_features.encode_public_observation(
-                view.obs, load_deck())
+                view.obs, registration)
+            # MD-v1 is a separately hashed, exact-deck ST_MAIN overlay.  Its
+            # module and artifact are absent from ordinary Qu-v2B packages;
+            # every load/scope failure falls through to the frozen base.
+            if view.select_type == ST_MAIN:
+                try:
+                    from . import md_v1 as _md_v1
+                    md_action = _md_v1.decide(
+                        sample, view, registration)
+                    if md_action is not None:
+                        return md_action
+                except Exception:
+                    pass
             logits, _ = net.forward(sample)
             base = _model.decode_qu_v2(
                 logits, len(view.options), view.min_count, view.max_count)
