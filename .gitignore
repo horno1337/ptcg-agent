@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 venv/
 submission.tar.gz
+submission-*.tar.gz
 replay*.html
 replay*.json
 replays/
