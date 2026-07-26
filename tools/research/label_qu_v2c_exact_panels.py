@@ -731,6 +731,33 @@ def validate_root_manifest_route(manifest: Mapping[str, Any]) -> str:
         and _is_sha256(parent.get("manifest_sha256"))
     ):
         return "label-generalization-replication-candidates-v2"
+    if (
+        selection_mode == RELIABILITY.CANARY_OVERRIDE_SELECTION_MODE
+        and selection_policy
+        == RELIABILITY.CANARY_OVERRIDE_SELECTION_POLICY
+        and manifest.get("development_only") is True
+        and manifest.get("sealed_test") is False
+        and isinstance(derivation, Mapping)
+        and derivation.get("schema") == RELIABILITY.CANARY_OVERRIDE_SCHEMA
+        and derivation.get("selection_seed")
+        == RELIABILITY.CANARY_OVERRIDE_SELECTION_SEED
+        and derivation.get("root_count")
+        == RELIABILITY.CANARY_OVERRIDE_ROOT_COUNT
+        and derivation.get("unique_game_requirement")
+        == RELIABILITY.CANARY_OVERRIDE_ROOT_COUNT
+        and derivation.get("exact_marginal_quotas") is False
+        and isinstance(diagnostics, Mapping)
+        and diagnostics.get("selection_uses_terminal_outcomes") is False
+        and diagnostics.get("selection_uses_rollout_or_confirmation") is False
+        and _is_sha256(diagnostics.get("attribution_report_sha256"))
+        and _is_sha256(diagnostics.get("ordered_root_ids_sha256"))
+        and isinstance(parent, Mapping)
+        and parent.get("selection_mode") == "factual-critic"
+        and parent.get("selection_policy")
+        == MINE.FACTUAL_CRITIC_SELECTION_POLICY
+        and _is_sha256(parent.get("manifest_sha256"))
+    ):
+        return "qu-v2c-canary-override-candidates"
     raise PanelError(
         "exact-panel v1 accepts only pre-registered critical roots or the "
         "locked label-reliability/generalization subsets")
