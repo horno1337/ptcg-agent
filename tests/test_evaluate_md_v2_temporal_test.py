@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from tools.research import evaluate_md_v2_temporal_test as EVAL  # noqa: E402
+from tools.research import train_qu_v2a as TRAIN  # noqa: E402
 
 
 HASH = "a" * 64
@@ -143,3 +144,42 @@ def test_attempt_marker_rejects_a_skipped_resource_preflight(tmp_path):
     with pytest.raises(EVAL.TemporalTestEvaluationError, match="real resource"):
         EVAL.write_attempt_marker(tmp_path / "attempt.json", prepared)
     assert not (tmp_path / "attempt.json").exists()
+
+
+def test_evaluation_config_binds_initial_checkpoint_and_validates(tmp_path):
+    initial = tmp_path / "initial.pt"
+    initial.write_bytes(b"locked initial checkpoint")
+    initial_hash = EVAL.SELECT.file_sha256(initial)
+    provenance = {
+        "configuration": {
+            "architecture": [16, 48, 160, 112, 80],
+            "epochs": 10,
+            "batch_size": 128,
+            "shuffle_buffer": 4096,
+            "learning_rate": 0.00005,
+            "weight_decay": 0.00001,
+            "gradient_clip": 1.0,
+            "seed": 20260726,
+            "initial_checkpoint_path": str(initial),
+            "initial_checkpoint_sha256": initial_hash,
+        },
+        "source_files_sha256": {"initial_checkpoint": initial_hash},
+    }
+    config = EVAL._evaluation_config(
+        tmp_path / "temporal-test.json",
+        provenance,
+        skip_resource_preflight_for_tests=False,
+    )
+    TRAIN._validate_config(config)
+    assert config.freeze_public_backbone is True
+    assert config.initial_checkpoint_path == initial.resolve()
+
+    provenance["configuration"]["initial_checkpoint_sha256"] = "0" * 64
+    with pytest.raises(
+        EVAL.TemporalTestEvaluationError, match="locked initial checkpoint"
+    ):
+        EVAL._evaluation_config(
+            tmp_path / "temporal-test.json",
+            provenance,
+            skip_resource_preflight_for_tests=False,
+        )

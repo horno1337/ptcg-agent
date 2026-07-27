@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from dataclasses import dataclass
 import hashlib
 import json
 import os
@@ -41,6 +42,12 @@ LAST_EPISODE_ID = 88340514
 
 class TemporalTestCorpusError(RuntimeError):
     """The sealed temporal cohort or its selection authority failed closed."""
+
+
+@dataclass(frozen=True)
+class TrainingIdentities:
+    game_uids: frozenset[str]
+    content_sha256s: frozenset[str]
 
 
 def _test_rank(game_uid: str) -> tuple[int, str]:
@@ -102,9 +109,9 @@ def _summary(games: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _load_selected_training_uids(
+def _load_selected_training_identities(
     selection: Mapping[str, Any],
-) -> frozenset[str]:
+) -> TrainingIdentities:
     selected = selection.get("selected_arm")
     corpus_record = (
         selected.get("corpus_manifest")
@@ -123,14 +130,30 @@ def _load_selected_training_uids(
         or not isinstance(corpus.get("games"), list)
     ):
         raise TemporalTestCorpusError("selected training corpus drifted")
-    result = {
-        game.get("game_uid")
-        for game in corpus["games"]
-        if isinstance(game, Mapping) and isinstance(game.get("game_uid"), str)
-    }
-    if len(result) != len(corpus["games"]):
+    game_uids: set[str] = set()
+    content_sha256s: set[str] = set()
+    for game in corpus["games"]:
+        uid = game.get("game_uid") if isinstance(game, Mapping) else None
+        content_sha256 = (
+            game.get("content_sha256") if isinstance(game, Mapping) else None
+        )
+        if (
+            not SELECT._is_sha256(uid)
+            or uid in game_uids
+            or not SELECT._is_sha256(content_sha256)
+            or content_sha256 in content_sha256s
+        ):
+            raise TemporalTestCorpusError(
+                "selected training corpus identities are invalid"
+            )
+        game_uids.add(uid)
+        content_sha256s.add(content_sha256)
+    if len(game_uids) != len(corpus["games"]):
         raise TemporalTestCorpusError("selected training corpus identities are invalid")
-    return frozenset(result)
+    return TrainingIdentities(
+        game_uids=frozenset(game_uids),
+        content_sha256s=frozenset(content_sha256s),
+    )
 
 
 def validate_source_inventory(
@@ -171,6 +194,7 @@ def derive_test_manifest(
     selection_path: Path,
     selection_file_sha256: str,
     selected_training_uids: frozenset[str],
+    selected_training_content_sha256s: frozenset[str],
     source_inventory: Mapping[str, Any],
 ) -> dict[str, Any]:
     if (
@@ -190,6 +214,7 @@ def derive_test_manifest(
             continue
         game = copy.deepcopy(dict(raw))
         uid = game.get("game_uid")
+        content_sha256 = game.get("content_sha256")
         episode_id = game.get("episode_id")
         membership = game.get("source_membership")
         aliases = game.get("aliases")
@@ -197,6 +222,8 @@ def derive_test_manifest(
             not isinstance(uid, str)
             or uid in seen
             or uid in selected_training_uids
+            or not SELECT._is_sha256(content_sha256)
+            or content_sha256 in selected_training_content_sha256s
             or isinstance(episode_id, bool)
             or not isinstance(episode_id, int)
             or not FIRST_EPISODE_ID <= episode_id <= LAST_EPISODE_ID
@@ -335,7 +362,7 @@ def prepare(
         raise TemporalTestCorpusError(
             f"temporal test output already exists: {resolved_output}"
         )
-    training_uids = _load_selected_training_uids(selection)
+    training_identities = _load_selected_training_identities(selection)
     before_inventory = validate_source_inventory(selection, source)
     base = build_base_index(source)
     after_inventory = validate_source_inventory(selection, source)
@@ -346,7 +373,9 @@ def prepare(
         selection=selection,
         selection_path=resolved_selection,
         selection_file_sha256=selection_file_hash,
-        selected_training_uids=training_uids,
+        selected_training_uids=training_identities.game_uids,
+        selected_training_content_sha256s=
+            training_identities.content_sha256s,
         source_inventory=after_inventory,
     )
     atomic_write_manifest(resolved_output, manifest)

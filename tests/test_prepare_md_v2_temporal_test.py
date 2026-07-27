@@ -111,6 +111,7 @@ def test_derivation_scans_by_exact_deck_not_team_name_and_has_no_outcome_aggrega
         selection_path=Path("/candidate/selection-lock.json"),
         selection_file_sha256="5" * 64,
         selected_training_uids=frozenset(),
+        selected_training_content_sha256s=frozenset(),
         source_inventory={"files": 2},
     )
     assert INDEX.verify_manifest(manifest)
@@ -136,6 +137,7 @@ def test_derivation_rejects_training_overlap_and_out_of_day_identity():
             selection_path=Path("/candidate/selection-lock.json"),
             selection_file_sha256="5" * 64,
             selected_training_uids=frozenset({"6" * 64}),
+            selected_training_content_sha256s=frozenset(),
             source_inventory={"files": 1},
         )
     out_of_day = _game("7" * 64, PREP.FIRST_EPISODE_ID - 1)
@@ -146,5 +148,20 @@ def test_derivation_rejects_training_overlap_and_out_of_day_identity():
             selection_path=Path("/candidate/selection-lock.json"),
             selection_file_sha256="5" * 64,
             selected_training_uids=frozenset(),
+            selected_training_content_sha256s=frozenset(),
+            source_inventory={"files": 1},
+        )
+
+
+def test_derivation_rejects_same_content_under_a_different_episode_id():
+    game = _game("8" * 64, PREP.FIRST_EPISODE_ID)
+    with pytest.raises(PREP.TemporalTestCorpusError, match="isolation"):
+        PREP.derive_test_manifest(
+            _base([game]),
+            selection=_selection(),
+            selection_path=Path("/candidate/selection-lock.json"),
+            selection_file_sha256="5" * 64,
+            selected_training_uids=frozenset({"9" * 64}),
+            selected_training_content_sha256s=frozenset({"b" * 64}),
             source_inventory={"files": 1},
         )
