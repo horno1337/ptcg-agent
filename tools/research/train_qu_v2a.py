@@ -111,6 +111,7 @@ class TrainingConfig:
     require_gpu: bool = False
     min_gpu_free_bytes: int = 6 * training_preflight.GIB
     test_skip_resource_preflight: bool = False
+    defer_test: bool = False
     overwrite_candidate: bool = False
 
     @property
@@ -750,7 +751,11 @@ def _select_alias(game: Mapping[str, Any], uid: str, content_sha256: str) -> Map
     )
 
 
-def load_corpus_plan(manifest_path: Path) -> CorpusPlan:
+def load_corpus_plan(
+    manifest_path: Path,
+    *,
+    required_splits: Sequence[str] = _SPLITS,
+) -> CorpusPlan:
     """Load and verify a v2 manifest without opening any replay split."""
     path = manifest_path.expanduser().resolve()
     try:
@@ -859,8 +864,13 @@ def load_corpus_plan(manifest_path: Path) -> CorpusPlan:
             registered_decks=decks,
             registered_deck_sha256s=deck_hashes,
         ))
+    unknown_required = set(required_splits) - set(_SPLITS)
+    if unknown_required:
+        raise TrainingError(
+            "unknown required corpus splits: " + ", ".join(sorted(unknown_required))
+        )
     for split_name, rows in by_split.items():
-        if not rows:
+        if not rows and split_name in required_splits:
             raise TrainingError(f"no valid_for_bc games in {split_name} split")
         rows.sort(key=lambda game: (game.split_rank, game.game_uid))
     return CorpusPlan(
@@ -1821,6 +1831,7 @@ def _config_manifest(config: TrainingConfig, device: torch.device) -> dict[str, 
         "target_deck_sha256": config.target_deck_sha256,
         "target_select_type": config.target_select_type,
         "freeze_public_backbone": config.freeze_public_backbone,
+        "defer_test": config.defer_test,
     }
 
 
@@ -2164,7 +2175,12 @@ def _run_training_locked(
     """Train, select on validation, then evaluate test exactly once."""
     device = _choose_device(config)
     preflight = _run_preflight(config, device)
-    plan = load_corpus_plan(config.manifest_path)
+    plan = load_corpus_plan(
+        config.manifest_path,
+        required_splits=(
+            ("train", "validation") if config.defer_test else _SPLITS
+        ),
+    )
     feature_contract_fingerprint = _feature_contract_fingerprint()
     model_implementation_sha256 = _model_implementation_sha256()
     known_sources = {
@@ -2385,29 +2401,36 @@ def _run_training_locked(
         raise TrainingError("selected checkpoint tensor hash verification failed")
     net.load_state_dict(checkpoint["state_dict"], strict=True)
 
-    # This is deliberately the first construction/open of the test iterator.
-    emit("split_open", split="test", epoch=None)
-    test_metrics = _run_split(
-        net,
-        iter_split_samples(
-            plan,
-            "test",
-            config,
-            anchor,
-            cache,
-            epoch=None,
-            progress_hook=lambda completed, total: emit(
-                "split_progress",
-                split="test",
+    if config.defer_test:
+        # Scale/model selection may compare several validation-selected arms.
+        # Keep the test iterator completely unopened until an external,
+        # one-shot evaluator receives the selected checkpoint.
+        test_metrics = None
+        emit("test_deferred")
+    else:
+        # This is deliberately the first construction/open of the test iterator.
+        emit("split_open", split="test", epoch=None)
+        test_metrics = _run_split(
+            net,
+            iter_split_samples(
+                plan,
+                "test",
+                config,
+                anchor,
+                cache,
                 epoch=None,
-                completed_games=completed,
-                total_games=total,
+                progress_hook=lambda completed, total: emit(
+                    "split_progress",
+                    split="test",
+                    epoch=None,
+                    completed_games=completed,
+                    total_games=total,
+                ),
             ),
-        ),
-        config,
-        device,
-        None,
-    )
+            config,
+            device,
+            None,
+        )
     exported = QM.export_numpy_weights(net)
     if (
         str(np.asarray(exported.get("feature_dependency_fingerprint", "")).item())
@@ -2469,6 +2492,7 @@ def _run_training_locked(
             "history": history,
         },
         "test": test_metrics,
+        "test_status": "deferred" if config.defer_test else "evaluated",
         "events": events,
         "artifacts": {
             "checkpoint": {
@@ -2650,6 +2674,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--test-skip-resource-preflight", action="store_true",
         help="explicit test-only override; recorded in the provenance manifest",
     )
+    parser.add_argument(
+        "--defer-test", action="store_true",
+        help=(
+            "select/export on validation without constructing the test "
+            "iterator; intended for prospectively locked multi-arm selection"
+        ),
+    )
     parser.add_argument("--overwrite-candidate", action="store_true")
     return parser
 
@@ -2695,6 +2726,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             require_gpu=args.require_gpu,
             min_gpu_free_bytes=args.min_gpu_free_gib,
             test_skip_resource_preflight=args.test_skip_resource_preflight,
+            defer_test=args.defer_test,
             overwrite_candidate=args.overwrite_candidate,
         )
         def report_event(name: str, payload: Mapping[str, Any]) -> None:

@@ -300,6 +300,51 @@ def _check_manifest_and_replay_hashes_fail_closed_before_feature_encoding():
             encoder.assert_not_called()
 
 
+def _check_explicit_defer_test_allows_a_manifest_with_no_test_rows():
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        manifest_path, _, _ = _synthetic_index(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["games"] = [
+            game for game in manifest["games"] if game["split"] != "test"
+        ]
+        manifest["summary"]["split_games"]["test"] = 0
+        manifest["summary"]["split_valid_bc_games"]["test"] = 0
+        manifest["corpus_content_sha256"] = INDEX._corpus_content_hash(
+            manifest["games"]
+        )
+        manifest = INDEX.add_manifest_sha256(manifest)
+        deferred_path = root / "deferred-index.json"
+        deferred_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+        with _raises(TRAIN.TrainingError, "no valid_for_bc games in test"):
+            TRAIN.load_corpus_plan(deferred_path)
+        deferred_plan = TRAIN.load_corpus_plan(
+            deferred_path, required_splits=("train", "validation")
+        )
+        assert deferred_plan.games["test"] == ()
+
+        result = TRAIN.run_training(_config(
+            deferred_path,
+            root / "deferred-candidate",
+            epochs=1,
+            defer_test=True,
+        ))
+        assert result["test"] is None
+        assert result["weights_path"].is_file()
+        assert {"event": "test_deferred"} in result["events"]
+        assert not any(
+            event["event"] == "split_open" and event["split"] == "test"
+            for event in result["events"]
+        )
+        provenance = json.loads(
+            result["provenance_path"].read_text(encoding="utf-8")
+        )
+        assert provenance["test"] is None
+        assert provenance["test_status"] == "deferred"
+        assert provenance["configuration"]["defer_test"] is True
+
+
 def _check_candidate_output_rejects_production_trees():
     config = TRAIN.TrainingConfig(
         manifest_path=Path("unused.json"),
@@ -772,6 +817,9 @@ class QuV2ATrainingTests(unittest.TestCase):
 
     def test_manifest_and_replay_hashes_fail_closed_before_feature_encoding(self):
         _check_manifest_and_replay_hashes_fail_closed_before_feature_encoding()
+
+    def test_explicit_defer_test_allows_a_manifest_with_no_test_rows(self):
+        _check_explicit_defer_test_allows_a_manifest_with_no_test_rows()
 
     def test_candidate_output_rejects_production_trees(self):
         _check_candidate_output_rejects_production_trees()
