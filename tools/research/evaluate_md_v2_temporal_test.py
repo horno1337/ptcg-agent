@@ -319,6 +319,24 @@ def _evaluation_config(
 ) -> TRAIN.TrainingConfig:
     locked = provenance["configuration"]
     architecture = locked["architecture"]
+    initial_path_raw = locked.get("initial_checkpoint_path")
+    initial_hash = locked.get("initial_checkpoint_sha256")
+    source_hashes = provenance.get("source_files_sha256")
+    if (
+        not isinstance(initial_path_raw, str)
+        or not initial_path_raw
+        or not SELECT._is_sha256(initial_hash)
+        or not isinstance(source_hashes, Mapping)
+        or source_hashes.get("initial_checkpoint") != initial_hash
+    ):
+        raise TemporalTestEvaluationError(
+            "selected training provenance has no locked initial checkpoint"
+        )
+    initial_path = Path(initial_path_raw).expanduser().resolve()
+    if SELECT.file_sha256(initial_path) != initial_hash:
+        raise TemporalTestEvaluationError(
+            "selected training initial checkpoint hash drifted"
+        )
     return TRAIN.TrainingConfig(
         manifest_path=test_manifest_path,
         out_dir=RUN / "temporal-test-evaluator-internal-no-output",
@@ -340,6 +358,7 @@ def _evaluation_config(
         draw_weight=1.0,
         loss_weight=1.0,
         game_normalized=True,
+        initial_checkpoint_path=initial_path,
         target_deck_sha256=SELECT.TARGET_DECK_SHA256,
         target_select_type=0,
         freeze_public_backbone=True,
