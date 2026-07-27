@@ -77,3 +77,53 @@ def test_single_directory_mode_uses_that_directory_as_the_window(tmp_path):
     assert all(
         entry["historical_count"] == entry["recent_count"] for entry in output
     )
+
+
+def test_field_snapshot_uses_one_weighted_representative_per_archetype(tmp_path):
+    grim = [648] * 60
+    mewtwo = [722] * 60
+    snapshot = tmp_path / "field.json"
+    snapshot.write_text(
+        json.dumps(
+            {
+                "field": [
+                    {
+                        "archetype": "Mewtwo",
+                        "registered_seats": 30,
+                        "representative_count": 10,
+                        "deck": mewtwo,
+                    },
+                    {
+                        "archetype": "Grimmsnarl",
+                        "registered_seats": 70,
+                        "representative_count": 50,
+                        "deck": grim,
+                    },
+                ],
+                "excluded_tail": [
+                    {
+                        "archetype": "Tail",
+                        "registered_seats": 1,
+                        "representative_count": 1,
+                        "deck": [999] * 60,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    output = MINE.build_from_field_snapshot(snapshot)
+
+    assert [entry["archetype"] for entry in output] == [
+        "Grimmsnarl",
+        "Mewtwo",
+        "Tail",
+    ]
+    assert [entry["count"] for entry in output] == [70, 30, 1]
+    assert [entry["recent_exact_count"] for entry in output] == [50, 10, 1]
+    assert [entry["included_in_primary_field"] for entry in output] == [
+        True,
+        True,
+        False,
+    ]

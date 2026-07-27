@@ -127,7 +127,14 @@ think-time drains it directly), never crash.
   (834.8, 860.7, 872.4). Precedent: ft10 gated `pool:8` at +14.4 pp over the
   champion and landed a dead tie (641 vs 655). Local gates propose; the
   ladder disposes. Do not change `decks/deck.csv` until the pre-registered
-  live read resolves.
+  live read resolves. The cross-deck read was locked before control launch to
+  the first 160 clean post-launch games per arm: support the switch only when
+  MD/Grim's score-rate delta is positive with a positive 95% CI lower bound;
+  a non-positive delta falsifies the switch, and a positive delta whose
+  interval crosses zero is inconclusive. Lock:
+  `tools/checkpoints/md-v1/cross-deck-ladder-preregistration-v2.json`
+  (`c171af4d...40d9cd`), binding fresh collectors `55013396` (MD-v1) and
+  `55013385` (Qu-v2B/Alakazam) before either produced eligible outcomes.
 
 ### Active next direction
 
@@ -1344,10 +1351,10 @@ python tools/selfplay_teacher.py /tmp/teacher-w1.jsonl 150 --worker w1 \
     --ckpt-dir /tmp/teacher-run
 
 # refresh opponent-model library after new episode downloads
-# Current-field order and belief weights. The explicit recent-window source,
-# not cumulative historical popularity, determines meta:<i> and pool:<n>.
-python tools/mine_meta_decks.py ~/Desktop/ptcg_episodes \
-    --recent-dir ~/Desktop/ptcg_official_recent
+# Current-field order and belief weights. One exact representative per live
+# archetype prevents variants from crowding threats out of pool:<n>.
+python tools/mine_meta_decks.py \
+    --field-snapshot tools/checkpoints/md-v1-recent-weighted-field-v1/field.json
 
 # package + ship (clean tree, tag first; tag name chosen by the maintainer)
 git tag <name> && python tools/build_submission.py
