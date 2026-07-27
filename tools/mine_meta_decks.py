@@ -13,6 +13,8 @@ Usage:
     python tools/mine_meta_decks.py ~/Desktop/ptcg_official_recent
     python tools/mine_meta_decks.py ~/Desktop/ptcg_episodes \
         --recent-dir ~/Desktop/ptcg_official_recent
+    python tools/mine_meta_decks.py \
+        --field-snapshot tools/checkpoints/current-field/field.json
 """
 
 from __future__ import annotations
@@ -98,12 +100,84 @@ def build(
     )
 
 
+def build_from_field_snapshot(path: Path) -> list[dict[str, Any]]:
+    """Convert a sealed recent-frequency archetype snapshot to the runtime prior.
+
+    The snapshot builder has already paid the cost of reading full replay JSON.
+    One most-common exact representative per included archetype prevents a
+    popular archetype's near-identical variants from crowding live threats out
+    of a small ``pool:<n>`` slice.
+    """
+    with path.expanduser().open(encoding="utf-8") as handle:
+        payload = json.load(handle)
+    field = payload.get("field") if isinstance(payload, dict) else None
+    excluded_tail = (
+        payload.get("excluded_tail", []) if isinstance(payload, dict) else None
+    )
+    if not isinstance(field, list) or not field:
+        raise ValueError(f"{path} has no recent-frequency field")
+    if not isinstance(excluded_tail, list):
+        raise ValueError(f"{path} has an invalid excluded tail")
+    output = []
+    seen_decks: set[tuple[int, ...]] = set()
+    rows = [(item, True) for item in field]
+    rows.extend((item, False) for item in excluded_tail)
+    for index, (item, included) in enumerate(rows):
+        if not isinstance(item, dict):
+            raise ValueError(f"{path}: field row {index} is not an object")
+        deck = item.get("deck")
+        count = item.get("registered_seats")
+        exact_count = item.get("representative_count")
+        archetype = item.get("archetype")
+        if (
+            not isinstance(deck, list)
+            or len(deck) != 60
+            or any(
+                not isinstance(card_id, int) or isinstance(card_id, bool)
+                for card_id in deck
+            )
+            or not isinstance(count, int)
+            or isinstance(count, bool)
+            or count <= 0
+            or not isinstance(exact_count, int)
+            or isinstance(exact_count, bool)
+            or exact_count <= 0
+            or not isinstance(archetype, str)
+            or not archetype
+        ):
+            raise ValueError(f"{path}: invalid field row {index}")
+        key = tuple(sorted(deck))
+        if key in seen_decks:
+            raise ValueError(f"{path}: duplicate representative deck at row {index}")
+        seen_decks.add(key)
+        output.append(
+            {
+                "deck": list(key),
+                "count": count,
+                "recent_count": count,
+                "recent_exact_count": exact_count,
+                "archetype": archetype,
+                "included_in_primary_field": included,
+                "teams": [],
+            }
+        )
+    return sorted(
+        output,
+        key=lambda entry: (-entry["recent_count"], tuple(entry["deck"])),
+    )
+
+
 def write(
     episode_dir: Path,
     recent_dir: Path | None,
     output_path: Path,
+    field_snapshot: Path | None = None,
 ) -> list[dict[str, Any]]:
-    output = build(episode_dir, recent_dir)
+    output = (
+        build_from_field_snapshot(field_snapshot)
+        if field_snapshot is not None
+        else build(episode_dir, recent_dir)
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(output, handle)
@@ -130,18 +204,38 @@ def parser() -> argparse.ArgumentParser:
             "output membership, order, and `count` weights"
         ),
     )
+    result.add_argument(
+        "--field-snapshot",
+        type=Path,
+        help=(
+            "sealed output of snapshot_recent_weighted_field.py; use its "
+            "included archetype representatives and recent registration "
+            "counts without reparsing full replay JSON"
+        ),
+    )
     result.add_argument("--out", type=Path, default=OUT)
     return result
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
+    if args.field_snapshot is not None and args.recent_dir is not None:
+        print(
+            "error: --field-snapshot and --recent-dir are mutually exclusive",
+            file=sys.stderr,
+        )
+        return 2
     try:
-        output = write(args.episode_dir, args.recent_dir, args.out)
+        output = write(
+            args.episode_dir,
+            args.recent_dir,
+            args.out,
+            field_snapshot=args.field_snapshot,
+        )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    window = args.recent_dir or args.episode_dir
+    window = args.field_snapshot or args.recent_dir or args.episode_dir
     print(
         f"{len(output)} recent decklists from {window.expanduser()} "
         f"-> {args.out.expanduser()}"
@@ -150,7 +244,8 @@ def main(argv: list[str] | None = None) -> int:
         cards = Counter(entry["deck"])
         print(
             f"  recent x{entry['recent_count']:5d} "
-            f"historical x{entry['historical_count']:5d} "
+            f"exact x{entry.get('recent_exact_count', entry['recent_count']):5d} "
+            f"historical x{entry.get('historical_count', 0):5d} "
             f"{entry['teams'][:3]} top cards {cards.most_common(4)}"
         )
     return 0
