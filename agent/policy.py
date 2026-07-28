@@ -395,6 +395,22 @@ def _model_decide(view: ObsView) -> list[int] | None:
                     pass
             sample = _qu_v2_features.encode_public_observation(
                 view.obs, registration)
+            # Candidate-only exact-deck ST_CARD overlay.  It is default-off and
+            # additionally requires a publicly revealed opposing Grimmsnarl
+            # evolution line; every failure leaves the existing MD-v2/Qu-v2B
+            # layered runtime unchanged.
+            if (
+                view.select_type == ST_CARD
+                and os.environ.get("PTCG_MD_V2_CARD") == "1"
+            ):
+                try:
+                    from . import md_v2_card as _md_v2_card
+                    card_action = _md_v2_card.decide(
+                        sample, view, registration)
+                    if card_action is not None:
+                        return card_action
+                except Exception:
+                    pass
             # MD-v1 is a separately hashed, exact-deck ST_MAIN overlay.  Its
             # module and artifact are absent from ordinary Qu-v2B packages;
             # every load/scope failure falls through to the frozen base.
