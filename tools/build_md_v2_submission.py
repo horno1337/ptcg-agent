@@ -131,18 +131,23 @@ def accepted_candidate(
 
 
 def validate_candidate(candidate_path: Path, candidate_sha: str) -> None:
-    """Validate one exact-deck ST_MAIN overlay without granting acceptance."""
+    """Validate one Qu-v2 policy artifact without granting acceptance.
+
+    MD-v1/MD-v2 are complete QuV2 networks.  Their exact-deck and ST_MAIN
+    boundary is owned by ``agent.md_v1``, not by optional ``model.Net`` deck
+    adapter keys used by an older architecture.
+    """
     if sha256_file(candidate_path) != candidate_sha:
         raise BuildError("candidate weights digest drifted")
     candidate = model.load(str(candidate_path))
     if (
         candidate is None
         or not getattr(candidate, "is_qu_v2", False)
-        or not getattr(candidate, "has_deck_adapter", False)
-        or not candidate.supports_deck(md_v1.TARGET_DECK)
-        or getattr(candidate, "deck_adapter_select_type", None) != 0
+        or getattr(candidate, "has_deck_adapter", False)
+        or not md_v1.supports_deck(md_v1.TARGET_DECK)
+        or md_v1.supports_deck(md_v1.TARGET_DECK[:-1])
     ):
-        raise BuildError("candidate is not the exact-deck ST_MAIN overlay")
+        raise BuildError("candidate is not compatible with the MD ST_MAIN overlay")
 
 
 def patch_overlay_integrity(

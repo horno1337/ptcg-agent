@@ -45,3 +45,15 @@ def test_integrity_patch_rejects_ambiguous_or_missing_source():
 
 def test_base_package_excludes_the_damage_guard():
     assert "grim_damage_guard.py" in BUILD.EXCLUDED_AGENT_FILES
+
+
+def test_fixed_candidate_matches_complete_quv2_overlay_contract():
+    candidate = (
+        ROOT
+        / "tools/checkpoints/md-v2-allthrough26/model"
+        / "candidate-qu-v2a-weights.npz"
+    )
+    BUILD.validate_candidate(
+        candidate,
+        "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8",
+    )
