@@ -214,6 +214,7 @@ def build_candidate(
     candidate_path: Path,
     candidate_sha: str,
     cg_lib: Path | None = DEFAULT_CG_LIB,
+    enable_card_overlay: bool = False,
 ) -> Path:
     """Package a previously authorized candidate.
 
@@ -266,6 +267,23 @@ def build_candidate(
                 ),
                 encoding="utf-8",
             )
+            if enable_card_overlay:
+                policy_path = stage / "agent/policy.py"
+                policy_source = policy_path.read_text(encoding="utf-8")
+                old = 'os.environ.get("PTCG_MD_V2_CARD") == "1"'
+                new = 'os.environ.get("PTCG_MD_V2_CARD", "1") == "1"'
+                if policy_source.count(old) != 1:
+                    raise BuildError(
+                        "MD-v2 card-overlay activation source is ambiguous"
+                    )
+                policy_path.write_text(
+                    policy_source.replace(old, new), encoding="utf-8"
+                )
+                if (
+                    not (stage / "agent/md_v2_card.py").is_file()
+                    or not (stage / "agent/md_v2_card_weights.npz").is_file()
+                ):
+                    raise BuildError("MD-v2 card-overlay artifacts are missing")
             if (
                 sha256_file(stage / "agent/weights.npz")
                     != BASE_WEIGHTS_SHA256
