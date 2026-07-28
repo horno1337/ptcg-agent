@@ -156,6 +156,7 @@ def _collect_prompts(
     policy_reference: bool = False,
     reference_deck: Sequence[int] | None = None,
     forced_seat: int | None = None,
+    policy_overlay_weights: Path | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     learner_deck = tuple(
         policy.load_deck() if reference_deck is None else reference_deck)
@@ -179,8 +180,30 @@ def _collect_prompts(
     }
     seen: set[Any] = set()
     original_load_deck = policy.load_deck
+    overlay_state = None
     if reference_deck is not None:
         policy.load_deck = lambda: list(learner_deck)
+    if policy_overlay_weights is not None:
+        if not policy_reference:
+            raise AuditError(
+                "--policy-overlay-weights requires --policy-reference"
+            )
+        try:
+            from agent import md_v1, model as runtime_model
+
+            overlay = runtime_model.load(str(policy_overlay_weights.resolve()))
+            if overlay is None or not getattr(overlay, "is_qu_v2", False):
+                raise AuditError("policy overlay reference is not Qu-v2 compatible")
+            overlay_state = (
+                md_v1._candidate,
+                md_v1._load_attempted,
+            )
+            md_v1._candidate = overlay
+            md_v1._load_attempted = True
+        except (OSError, ValueError) as error:
+            raise AuditError(
+                f"cannot load policy overlay reference: {error}"
+            ) from error
     safety._spent = 0.0
     try:
         for path in _replay_paths(sources):
@@ -257,6 +280,10 @@ def _collect_prompts(
                 })
     finally:
         policy.load_deck = original_load_deck
+        if overlay_state is not None:
+            from agent import md_v1
+
+            md_v1._candidate, md_v1._load_attempted = overlay_state
     if not rows:
         raise AuditError("no resolved replay prompts were collected")
     return rows, counts
@@ -380,6 +407,7 @@ def audit(
     policy_reference: bool = False,
     reference_deck: Sequence[int] | None = None,
     forced_seat: int | None = None,
+    policy_overlay_weights: Path | None = None,
 ) -> dict[str, Any]:
     archive = archive.resolve()
     reference_weights = reference_weights.resolve()
@@ -393,6 +421,7 @@ def audit(
         policy_reference=policy_reference,
         reference_deck=reference_deck,
         forced_seat=forced_seat,
+        policy_overlay_weights=policy_overlay_weights,
     )
     if ladder_canary and (
         collection["files"] != 1
@@ -494,6 +523,13 @@ def audit(
             "path": str(reference_weights),
             "sha256": sha256_file(reference_weights),
         },
+        "policy_overlay_weights": (
+            {
+                "path": str(policy_overlay_weights.resolve()),
+                "sha256": sha256_file(policy_overlay_weights.resolve()),
+            }
+            if policy_overlay_weights is not None else None
+        ),
         "reference_deck": (
             list(reference_deck) if reference_deck is not None else None),
         "forced_seat": forced_seat,
@@ -536,6 +572,15 @@ def main(argv: Sequence[str] | None = None) -> int:
               "required for guarded policy layers above frozen weights"),
     )
     parser.add_argument(
+        "--policy-overlay-weights",
+        type=Path,
+        help=(
+            "replace the repository MD ST_MAIN overlay only in the reference "
+            "process; requires --policy-reference and leaves the worktree "
+            "untouched"
+        ),
+    )
+    parser.add_argument(
         "--reference-deck", type=Path,
         help=("60-line deck registration used by the repository reference; "
               "the extracted archive still reads its packaged decks/deck.csv"),
@@ -565,6 +610,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             policy_reference=args.policy_reference,
             reference_deck=reference_deck,
             forced_seat=args.learner_seat,
+            policy_overlay_weights=args.policy_overlay_weights,
         )
     except (AuditError, OSError, ValueError) as error:
         print(f"error: {error}", file=sys.stderr)
