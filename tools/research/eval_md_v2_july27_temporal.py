@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import index_corpus  # noqa: E402
+from agent import qu_v2_features as RUNTIME_FEATURES  # noqa: E402
 from tools.research import eval_md_v2_scaled_gameplay as COMMON  # noqa: E402
 from tools.research import train_qu_v2a as TRAIN  # noqa: E402
 
@@ -204,6 +205,26 @@ def sequence_nll(logits: np.ndarray, sample: TRAIN.TrainingSample) -> float:
     return result
 
 
+def runtime_features(features) -> RUNTIME_FEATURES.PublicFeatures:
+    """Convert the research twin record to the NumPy runtime's exact type.
+
+    The two records intentionally contain the same schema/arrays but are
+    distinct dataclass types.  Runtime validation is nominal and therefore
+    requires this explicit boundary conversion.
+    """
+    try:
+        converted = RUNTIME_FEATURES.PublicFeatures(**{
+            name: getattr(features, name)
+            for name in RUNTIME_FEATURES.PublicFeatures.__dataclass_fields__
+        })
+        RUNTIME_FEATURES.validate_public_features(converted)
+    except (AttributeError, TypeError, ValueError) as error:
+        raise EvaluationError(
+            f"cannot convert research features to runtime features: {error}"
+        ) from error
+    return converted
+
+
 def temporal_decision(objectives: Mapping[str, float]) -> dict[str, Any]:
     candidate = objectives["md_v2"]
     md_v1 = objectives["md_v1"]
@@ -287,8 +308,9 @@ def evaluate(
             ):
                 game_decisions += 1
                 decisions += 1
+                runtime_sample = runtime_features(sample.features)
                 for name, net in nets.items():
-                    logits, _ = net.forward(sample.features)
+                    logits, _ = net.forward(runtime_sample)
                     numerators[name] += sequence_nll(logits, sample) * sample.weight
                     denominators[name] += sample.weight
             games_with_decisions += int(game_decisions > 0)
