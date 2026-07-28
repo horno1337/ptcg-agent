@@ -39,3 +39,24 @@ def test_temporal_pass_rule_remains_strictly_better_than_both():
     })
     assert passed["passed"] is True
     assert tied["passed"] is False
+
+
+def test_committed_preregistration_binds_fixed_code_and_models():
+    prereg = EVAL.load_preregistration(PREP.PREREGISTRATION)
+    assert prereg["locked_before_official_source_available"] is True
+    assert prereg["candidate_weights_sha256"] == (
+        "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    )
+    assert set(prereg["artifacts"]) == {
+        "candidate_weights",
+        "dataset_loader",
+        "evaluator",
+        "gameplay_lock",
+        "gameplay_result",
+        "indexer",
+        "md_v1_weights",
+        "preparer",
+        "qu_v2b_weights",
+        "temporal_core",
+        "trainer",
+    }

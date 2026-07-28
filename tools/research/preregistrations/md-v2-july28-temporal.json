@@ -1,0 +1,69 @@
+{
+  "artifacts": {
+    "candidate_weights": {
+      "path": "tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-weights.npz",
+      "sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    },
+    "dataset_loader": {
+      "path": "tools/il_dataset.py",
+      "sha256": "ff4185c89f7d763b535d127315a188371374661da1d44db9eb66e51c54df9fa3"
+    },
+    "evaluator": {
+      "path": "tools/research/eval_md_v2_july28_temporal.py",
+      "sha256": "32a54030ce3ebce36f6abbbc98b38febd69d222897425d6a0705f388d460d273"
+    },
+    "gameplay_lock": {
+      "path": "tools/checkpoints/md-v2-allthrough26/gameplay-lock.json",
+      "sha256": "963b1117613077bda5f35250dee67975296d4ee9aef385afeb1ee66186e8f2e2"
+    },
+    "gameplay_result": {
+      "path": "tools/checkpoints/md-v2-allthrough26/gameplay-result.json",
+      "sha256": "ce897ff1274603c724919e846eea1b6022d57927858486574b8ec25e430a337b"
+    },
+    "indexer": {
+      "path": "tools/index_corpus.py",
+      "sha256": "074d4419faa134a9e11e8c74d619c982231ad8947c4759741bb559e12d88d2fd"
+    },
+    "md_v1_weights": {
+      "path": "agent/md_v1_weights.npz",
+      "sha256": "5784b7ea693d2adc3a8cf0b7422b6940481042181051ef2941b982094dabe78c"
+    },
+    "preparer": {
+      "path": "tools/research/prepare_md_v2_july28_temporal.py",
+      "sha256": "cb7f89f248bb66250a9fdca62884e2ff1fdc2cf229176250c3244154ac2a2ffa"
+    },
+    "qu_v2b_weights": {
+      "path": "agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "temporal_core": {
+      "path": "tools/research/eval_md_v2_july27_temporal.py",
+      "sha256": "d8e46c490696fa227ea6da80f1eb5c19c931c62ca77a9ab639d81f5345316dbb"
+    },
+    "trainer": {
+      "path": "tools/research/train_qu_v2a.py",
+      "sha256": "450bf71266925abb22a89f895d3088ac1b66f2f686ea4ee938208b971aceff38"
+    }
+  },
+  "candidate_weights_sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8",
+  "created_at": "2026-07-28T09:27:02+02:00",
+  "fixed_code_git_commit": "0cdba745da7a4d9a557470b159a8f4e513b5c070",
+  "locked_before_official_source_available": true,
+  "preregistration_sha256": "7eb8eb2d7cd77df26cd15d6f7de54c1910866301412409e4668392f3e0642aa0",
+  "protocol": {
+    "cohort": "all BC-valid games containing the exact target deck",
+    "date": "2026-07-28",
+    "metric": "ST_MAIN game-normalized policy objective",
+    "models": [
+      "fixed MD-v2",
+      "frozen MD-v1",
+      "frozen Qu-v2B"
+    ],
+    "no_retraining_or_reselection_after_open": true,
+    "one_shot": true,
+    "pass_rule": "MD-v2 objective is strictly lower than both MD-v1 and Qu-v2B",
+    "same_decision_stream_for_all_models": true,
+    "team_name_prefilter": false
+  },
+  "schema": "ptcg.md-v2.july28-temporal-preregistration.v1"
+}
