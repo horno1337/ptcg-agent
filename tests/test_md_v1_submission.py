@@ -40,7 +40,10 @@ def test_md_artifact_and_deck_are_exactly_locked():
         ROOT / "decks/md_v1_grimmsnarl.csv") == md_v1.TARGET_DECK_SHA256
     assert _sha256(ROOT / "agent/md_v1_weights.npz") == md_v1.WEIGHTS_SHA256
     assert md_v1.supports_deck(deck)
-    assert not md_v1.supports_deck(policy.load_deck())
+    # decks/deck.csv registers the MD-v1 Grimmsnarl list, so the overlay is
+    # live in production.  Assert the two stay in sync: editing deck.csv away
+    # from this list would silently deactivate MD-v1 and ship frozen Qu-v2B.
+    assert md_v1.supports_deck(policy.load_deck())
     assert md_v1._load() is not None
 
 
@@ -59,7 +62,16 @@ def test_md_router_owns_only_target_deck_main_prompts():
     finally:
         policy.load_deck = original
 
-    off_deck = policy.load_deck()
+    # decks/deck.csv is now the MD-v1 target itself, so the fail-closed check
+    # needs a registration the overlay does not own.  decks/sample.csv is the
+    # shipped sample bundle and is never MD-v1's list.
+    off_deck = [
+        int(line)
+        for line in (ROOT / "decks/sample.csv").read_text(
+            encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert not md_v1.supports_deck(off_deck)
     assert md_v1.decide(
         QF.encode_public_observation(obs, off_deck), view, off_deck) is None
     non_main = observation()
