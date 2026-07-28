@@ -4,17 +4,18 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
-from tools import eval_ab as BASE
-from tools.research import eval_md_v2_scaled_gameplay as GAME
-from tools.research import lock_md_v2_scaled_gameplay as LOCK
-
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools import eval_ab as BASE  # noqa: E402
+from tools.research import eval_md_v2_scaled_gameplay as GAME  # noqa: E402
+from tools.research import lock_md_v2_scaled_gameplay as LOCK  # noqa: E402
 
 
 class FakeQuNet:
