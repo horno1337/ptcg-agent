@@ -181,6 +181,7 @@ def _collect_prompts(
     seen: set[Any] = set()
     original_load_deck = policy.load_deck
     overlay_state = None
+    model_cache_state = None
     if reference_deck is not None:
         policy.load_deck = lambda: list(learner_deck)
     if policy_overlay_weights is not None:
@@ -191,6 +192,10 @@ def _collect_prompts(
         try:
             from agent import md_v1, model as runtime_model
 
+            model_cache_state = (
+                runtime_model._cached,
+                runtime_model._cached_path,
+            )
             overlay = runtime_model.load(str(policy_overlay_weights.resolve()))
             if overlay is None or not getattr(overlay, "is_qu_v2", False):
                 raise AuditError("policy overlay reference is not Qu-v2 compatible")
@@ -281,9 +286,11 @@ def _collect_prompts(
     finally:
         policy.load_deck = original_load_deck
         if overlay_state is not None:
-            from agent import md_v1
+            from agent import md_v1, model as runtime_model
 
             md_v1._candidate, md_v1._load_attempted = overlay_state
+            assert model_cache_state is not None
+            runtime_model._cached, runtime_model._cached_path = model_cache_state
     if not rows:
         raise AuditError("no resolved replay prompts were collected")
     return rows, counts
