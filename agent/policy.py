@@ -385,6 +385,14 @@ def _model_decide(view: ObsView) -> list[int] | None:
             # Qu-v1 archives retain their byte-compatible path.
             from . import qu_v2_features as _qu_v2_features
             registration = load_deck()
+            if os.environ.get("PTCG_GRIM_DAMAGE_GUARD") == "1":
+                try:
+                    from . import grim_damage_guard as _grim_damage_guard
+                    guarded = _grim_damage_guard.decide(view, registration)
+                    if guarded is not None:
+                        return guarded
+                except Exception:
+                    pass
             sample = _qu_v2_features.encode_public_observation(
                 view.obs, registration)
             # MD-v1 is a separately hashed, exact-deck ST_MAIN overlay.  Its
