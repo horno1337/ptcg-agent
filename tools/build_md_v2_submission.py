@@ -126,6 +126,14 @@ def accepted_candidate(
         or sha256_file(candidate_path) != candidate_sha
     ):
         raise BuildError("MD-v2 acceptance evidence does not bind one candidate")
+    validate_candidate(candidate_path, candidate_sha)
+    return candidate_path, candidate_sha
+
+
+def validate_candidate(candidate_path: Path, candidate_sha: str) -> None:
+    """Validate one exact-deck ST_MAIN overlay without granting acceptance."""
+    if sha256_file(candidate_path) != candidate_sha:
+        raise BuildError("candidate weights digest drifted")
     candidate = model.load(str(candidate_path))
     if (
         candidate is None
@@ -134,8 +142,7 @@ def accepted_candidate(
         or not candidate.supports_deck(md_v1.TARGET_DECK)
         or getattr(candidate, "deck_adapter_select_type", None) != 0
     ):
-        raise BuildError("accepted candidate is not the exact-deck ST_MAIN overlay")
-    return candidate_path, candidate_sha
+        raise BuildError("candidate is not the exact-deck ST_MAIN overlay")
 
 
 def patch_overlay_integrity(
@@ -182,17 +189,39 @@ def build(
     temporal_result_path: Path = DEFAULT_TEMPORAL_RESULT,
     cg_lib: Path | None = DEFAULT_CG_LIB,
 ) -> Path:
-    output = output.expanduser().resolve()
-    if output.suffixes[-2:] != [".tar", ".gz"]:
-        raise BuildError("MD-v2 submission output must end in .tar.gz")
-    if output.exists():
-        raise BuildError(f"refusing to overwrite {output}")
     candidate_path, candidate_sha = accepted_candidate(
         gameplay_lock_path=gameplay_lock_path,
         gameplay_result_path=gameplay_result_path,
         temporal_lock_path=temporal_lock_path,
         temporal_result_path=temporal_result_path,
     )
+    return build_candidate(
+        output,
+        candidate_path=candidate_path,
+        candidate_sha=candidate_sha,
+        cg_lib=cg_lib,
+    )
+
+
+def build_candidate(
+    output: Path,
+    *,
+    candidate_path: Path,
+    candidate_sha: str,
+    cg_lib: Path | None = DEFAULT_CG_LIB,
+) -> Path:
+    """Package a previously authorized candidate.
+
+    This helper performs no evidence decision.  Callers must establish their
+    own strict or experimental authority before reaching this boundary.
+    """
+    output = output.expanduser().resolve()
+    candidate_path = candidate_path.expanduser().resolve()
+    if output.suffixes[-2:] != [".tar", ".gz"]:
+        raise BuildError("MD-v2 submission output must end in .tar.gz")
+    if output.exists():
+        raise BuildError(f"refusing to overwrite {output}")
+    validate_candidate(candidate_path, candidate_sha)
     base_path = ROOT / "agent/weights.npz"
     deck_path = ROOT / "decks/md_v1_grimmsnarl.csv"
     if sha256_file(base_path) != BASE_WEIGHTS_SHA256:
