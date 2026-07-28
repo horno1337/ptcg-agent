@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-07-28T20:50:39.981889+00:00",
+  "schema": "ptcg.md-v2-card-v1.random-smoke-attempt.v1",
+  "smoke_lock_sha256": "8e162caa2a36929960ef5c3c0f935c64e347a5b9219bd1448429bcdf4d806ce4",
+  "written_before_first_engine_outcome": true
+}

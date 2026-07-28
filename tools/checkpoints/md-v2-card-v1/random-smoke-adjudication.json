@@ -1,0 +1,25 @@
+{
+  "adjudication_sha256": "10f917085b409ccb34b6ae4878d6eb10fc43f18203e2f9975c1a3c339ad5bdcd",
+  "created_at": "2026-07-28T20:51:50.234410+00:00",
+  "decision": {
+    "original_boolean_superseded": true,
+    "passed": true,
+    "route_identity_passed": true
+  },
+  "incident": {
+    "correct_route_identity": "calls == main_routes + card_routes + qu_routes",
+    "kind": "evaluator-integration",
+    "legacy_predicate": "calls == main_routes + qu_routes",
+    "observed": {
+      "calls": 11607,
+      "card_routes": 3586,
+      "main_routes": 5292,
+      "qu_routes": 2729
+    }
+  },
+  "outcomes_reused_without_rerun": true,
+  "rule_unchanged": "all 200 games terminate cleanly; zero exceptions, fallbacks, repairs, or off-deck routes; and ST_CARD specialist is used",
+  "schema": "ptcg.md-v2-card-v1.random-smoke-adjudication.v1",
+  "smoke_lock_sha256": "8e162caa2a36929960ef5c3c0f935c64e347a5b9219bd1448429bcdf4d806ce4",
+  "smoke_result_sha256": "847c365e0e379fff8f664e61ca40aae4eefc462b9029c41644f454f997b6422f"
+}
