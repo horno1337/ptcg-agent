@@ -1,0 +1,192 @@
+{
+  "artifacts": {
+    "corpus": {
+      "path": "tools/checkpoints/md-v2-allthrough26/corpus.json",
+      "sha256": "494f2bd1bbba33252aa4bcdedbc2d7bc0d38a27ce0d2087bfac7e1d654610a79"
+    },
+    "dataset_loader": {
+      "path": "tools/il_dataset.py",
+      "sha256": "ff4185c89f7d763b535d127315a188371374661da1d44db9eb66e51c54df9fa3"
+    },
+    "evaluator": {
+      "path": "tools/research/eval_md_v2_card_v1_validation.py",
+      "sha256": "e8648a778f88a9c919f2ef99d2e7e2ce27055a827fc5f4dc97260bf99c73395e"
+    },
+    "indexer": {
+      "path": "tools/index_corpus.py",
+      "sha256": "074d4419faa134a9e11e8c74d619c982231ad8947c4759741bb559e12d88d2fd"
+    },
+    "initial_checkpoint": {
+      "path": "tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-checkpoint.pt",
+      "sha256": "9ba093b81a0f06f96812422084e19b66e0652006713e28ccaee81b28ec3cd65a"
+    },
+    "lock_builder": {
+      "path": "tools/research/lock_md_v2_card_v1.py",
+      "sha256": "d7629159df4b60e6721c85e99dff57706348a25354a550e9a6a3a47c63ede53f"
+    },
+    "md_v2_main_weights": {
+      "path": "tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-weights.npz",
+      "sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    },
+    "qu_v2b_weights": {
+      "path": "agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "resource_preflight": {
+      "path": "tools/training_preflight.py",
+      "sha256": "402e7c751bae6203c75b1ffc6f063e32421cc2e42a41c0dc284b4642d71a3f48"
+    },
+    "runtime_features": {
+      "path": "agent/qu_v2_features.py",
+      "sha256": "b2225e0075fa7597c1df6afbfc1a5e18427d6e6d64e5bcc1a16ae92ba34594d7"
+    },
+    "runtime_model": {
+      "path": "agent/model.py",
+      "sha256": "238a21d2830ae067178d01913e7fa5092bd33aa38cb6d34ffc936fef769556ef"
+    },
+    "source_lock": {
+      "path": "tools/checkpoints/md-v2-allthrough26/lock.json",
+      "sha256": "492dbd6d0009c3ee30828c99bf4acef513605ca83864099a89dd678b40fd531a"
+    },
+    "target_deck": {
+      "path": "decks/md_v1_grimmsnarl.csv",
+      "sha256": "92b92bac9f9163ecff933b3dc39294d2cc154c8684f3c8497877661419ebc59d"
+    },
+    "temporal_core": {
+      "path": "tools/research/eval_md_v2_july27_temporal.py",
+      "sha256": "d8e46c490696fa227ea6da80f1eb5c19c931c62ca77a9ab639d81f5345316dbb"
+    },
+    "trainer": {
+      "path": "tools/research/train_qu_v2a.py",
+      "sha256": "450bf71266925abb22a89f895d3088ac1b66f2f686ea4ee938208b971aceff38"
+    },
+    "training_features": {
+      "path": "tools/research/qu_v2a_features.py",
+      "sha256": "100e09f545db88b64b24ef757b9861639268e3d305bdd1ef56b58c752e4476da"
+    },
+    "training_model": {
+      "path": "tools/research/qu_v2a_model.py",
+      "sha256": "1e8c957ad8abb4ef60e7cc4299d50188c6c32b0927e365b4f78a764bf1338f9b"
+    }
+  },
+  "candidate_name": "MD-v2 ST_CARD mirror specialist v1",
+  "corpus": {
+    "corpus_content_sha256": "ab71734dfbf78e0a2b1896161e49d47eff7b4eb27be9edb06bca4d84405ec5d5",
+    "discovery": "all numeric replay JSONs; no team-name prefilter",
+    "exact_list_mirror_games": {
+      "total": 2463,
+      "train": 2213,
+      "validation": 250
+    },
+    "file_sha256": "494f2bd1bbba33252aa4bcdedbc2d7bc0d38a27ce0d2087bfac7e1d654610a79",
+    "games": 17591,
+    "manifest_sha256": "562ce0e6534c781e05c7f824ec4244710f1f839894feea6dd540500a1bd36d50",
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v2-allthrough26/corpus.json",
+    "split_games": {
+      "train": 15831,
+      "validation": 1760
+    },
+    "split_seed": 20260727
+  },
+  "created_at": "2026-07-28T11:46:44.877137+00:00",
+  "gameplay_gate_after_validation_pass": {
+    "comparison": "candidate runtime (MD-v2 ST_MAIN, candidate mirror ST_CARD, Qu-v2B fallback) versus unchanged MD-v2 runtime",
+    "deck": "exact target Grimmsnarl list in every seat",
+    "games": 640,
+    "one_schedule_one_attempt": true,
+    "pass": {
+      "candidate_point_estimate": "> 0.50",
+      "candidate_wilson_95_lower": "> 0.45",
+      "fallbacks": 0,
+      "invalid_games": 0,
+      "legality_repairs": 0,
+      "runtime_errors": 0
+    },
+    "promotion_authority": false,
+    "seat_balance": "exactly 320 games per candidate seat",
+    "seed": 20260811
+  },
+  "lock_sha256": "79b448f4733778494e3c50de961dc5e1a1c3092fe178e183e49504a4c40f1b8e",
+  "motivation_frozen_before_outcomes": {
+    "live_exact_mirror_record": "1-7 descriptive signal only",
+    "observed_mirror_mechanism": "fewer Munkidori activations and slower charged-Munkidori setup than exact-list opponents",
+    "structural_gap": "MD-v2 owns ST_MAIN only; ST_CARD still uses Alakazam-conditioned Qu-v2B"
+  },
+  "prospective_ladder_replays": {
+    "allowed_use": "forward descriptive validation of this already fixed mechanism/model only",
+    "forbidden_use": "training, retuning, route expansion, or threshold changes",
+    "source": "MD-v2 and MD-v2 harvester 1"
+  },
+  "runtime": {
+    "fallback": "unchanged MD-v2 layered runtime",
+    "flag_gated_default": "off until all gates pass",
+    "matchups_without_public_grim_signature_unchanged": true,
+    "md_v2_st_main_unchanged": true,
+    "public_opposing_signature": {
+      "any_card_id": [
+        646,
+        647,
+        648
+      ],
+      "hidden_registration_used": false,
+      "zones": [
+        "active",
+        "bench"
+      ]
+    },
+    "route": "exact own deck plus ST_CARD plus public opposing Grimmsnarl signature only"
+  },
+  "schema": "ptcg.md-v2-card-v1.lock.v1",
+  "scientific_status": "candidate-only follow-up; no ladder or submission authority",
+  "training": {
+    "architecture": [
+      16,
+      48,
+      160,
+      112,
+      80
+    ],
+    "batch_size": 128,
+    "cache": "reuse encoding cache namespace when hashes match",
+    "checkpoint_selection": "lowest validation objective; earliest epoch tie",
+    "deck_weights": {},
+    "epochs": 10,
+    "freeze_public_backbone": true,
+    "game_normalized": true,
+    "gradient_clip": 1.0,
+    "initial_checkpoint": "frozen Qu-v2B training checkpoint",
+    "kl_coefficient": 0.0,
+    "learning_rate": 5e-05,
+    "no_retraining_or_threshold_changes_after_validation": true,
+    "seed": 20260728,
+    "shuffle_buffer": 4096,
+    "single_training_run": true,
+    "source_weights": {},
+    "target_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+    "target_select_type": 1,
+    "test_status": "deferred",
+    "value_coefficient": 0.0,
+    "weight_decay": 1e-05,
+    "win_draw_loss_weights": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "validation": {
+    "empty_nonfinite_or_contract_drift": "fail",
+    "metric": "game-normalized ST_CARD sequence NLL",
+    "models": [
+      "fixed ST_CARD candidate",
+      "frozen Qu-v2B"
+    ],
+    "pass_rule": "candidate objective is strictly lower than frozen Qu-v2B both overall and on exact-list mirror games",
+    "promotion_authority": false,
+    "same_decision_stream_for_models": true,
+    "split": "locked all-through-26 validation split",
+    "strata": [
+      "all exact-own-deck validation games",
+      "exact-list Grimmsnarl mirror validation games"
+    ]
+  }
+}
