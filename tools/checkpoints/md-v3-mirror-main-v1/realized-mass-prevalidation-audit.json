@@ -1,0 +1,45 @@
+{
+  "schema": "ptcg.md-v3.mirror-main-realized-mass-audit.v1",
+  "recorded_before_common_validation_outcomes": true,
+  "definitions": {
+    "nominal_arm_mass": "trusted Grimmsnarl-family target-seat game equivalents divided by all target-seat game equivalents",
+    "realized_training_mass": "trusted and arm-multiplied Grimmsnarl-family ST_MAIN game-normalized decision weight divided by total ST_MAIN training weight",
+    "common_validation_mass": "not arm-weighted; fixed cohort uses win/draw/loss 1/1/1 and no matchup multiplier"
+  },
+  "base_st_main_weight_sums": {
+    "train_trusted_grim_family": 1283.0995997103748,
+    "train_non_grim": 3193.4129650473606,
+    "validation_trusted_grim_family": 146.79818950193874,
+    "validation_non_grim": 350.1965111591388
+  },
+  "arms": {
+    "35": {
+      "nominal_target_seat_game_mass": 0.35,
+      "matchup_multiplier": 1.1747740020237623,
+      "realized_train_st_main_mass": 0.32066100865744146,
+      "training_weight_sum": 4700.765016794205,
+      "training_manifest_sha256": "3bb699107b92b004e95742c5060b60898e75e7309ab1c7ec5e47d2ecbcd55450"
+    },
+    "51": {
+      "nominal_target_seat_game_mass": 0.51,
+      "matchup_multiplier": 2.2707730709672145,
+      "realized_train_st_main_mass": 0.47709324798908587,
+      "training_weight_sum": 6107.040983438492,
+      "training_manifest_sha256": "c0e575f3a49f82075d743cfa2c16db2fca8143d210ce43ca95a99cd12322bdcc"
+    },
+    "65": {
+      "nominal_target_seat_game_mass": 0.65,
+      "matchup_multiplier": 4.051771558000324,
+      "realized_train_st_main_mass": 0.6194802339324573,
+      "training_weight_sum": 8392.239460468292,
+      "training_manifest_sha256": "a5c193dac8cd1b370032418f8ccda583b20916637257e4aa9d45cc5f50fdcc4d"
+    }
+  },
+  "assertions": {
+    "all_three_arms_completed": true,
+    "realized_mass_is_below_nominal_for_every_arm": true,
+    "reason": "Grimmsnarl-family games contain a lower ST_MAIN share after indexed-game normalization than the target-seat game-equivalent calibration assumed",
+    "multipliers_changed_after_training_started": false,
+    "common_validation_remains_fixed_and_unweighted": true
+  }
+}
