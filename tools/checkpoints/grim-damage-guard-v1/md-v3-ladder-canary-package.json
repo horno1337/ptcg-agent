@@ -1,0 +1,45 @@
+{
+  "builder": {
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/build_md_v3_damage_guard_submission.py",
+    "sha256": "003439e741442fe2df48bd1402bce8b59532ca8b701d059f99fa2779844755e6"
+  },
+  "candidate": {
+    "added_files": [
+      "agent/grim_damage_guard.py"
+    ],
+    "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-md-v3-damage-guard-canary-unsigned.tar.gz",
+    "modified_files": [
+      "agent/policy.py"
+    ],
+    "removed_files": [],
+    "runtime_change": "default-enable the locked fail-soft visible-KO damage destination guard ahead of otherwise frozen MD-v3",
+    "sha256": "824ba9f4a25e28fdc45486ce19f872f52a776818471c0fcf63b9d120fade4fe8"
+  },
+  "created_at": "2026-07-29T21:40:43.621494+00:00",
+  "evidence": {
+    "base_audit_sha256": "751bbba2bc3cea3d601b054aaf4ceacf2abe2745c932bdc77dae763fb604c605",
+    "reserved_result_sha256": "559a1c72d4b5ac3602c19bb788f3fe7d317c386b7ef6beffeb16b45a96f7f6ed",
+    "rule_lock_sha256": "98882ae1f44e61904c03ada7c84a783450351d223821a0439c96d87515529670",
+    "sizing_result_sha256": "3b3ade63001e107763e73c68fb8ede3f403d356afd1fd2dbb3b742bff4fb338c"
+  },
+  "manifest_sha256": "3d890d5a839e43a4b8c6cfac24242070cc2f07a90c4e0b5a875ffe89aca1da24",
+  "parent": {
+    "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-md-v2-card-v1-experimental-unsigned.tar.gz",
+    "live_submission_ids": [
+      55064789,
+      55064928
+    ],
+    "sha256": "adb0e8c1da13a56468f6855bee197eab3d4b58f378e0a0a9b1ea6cc8b604ac42"
+  },
+  "safety_contract": {
+    "fail_soft": "any import, scope, or decision exception falls through to the byte-frozen MD-v3 path",
+    "required_before_upload": [
+      "tests/test_safety.py",
+      "200-game random smoke",
+      "exact-extracted-tarball audit under non-owner UID",
+      "user-supplied tag and explicit upload approval"
+    ],
+    "upload_authorized": false
+  },
+  "schema": "ptcg.md-v3.damage-guard-ladder-canary-package.v1"
+}
