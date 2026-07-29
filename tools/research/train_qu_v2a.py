@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 import fcntl
 import hashlib
 import io
@@ -50,6 +50,9 @@ from tools.research import qu_v2a_model as QM
 TRAINING_SCHEMA = "ptcg.qu-v2a.training.v1"
 SOURCE_WEIGHT_POLICY = "max_across_source_membership_v1"
 DECK_WEIGHT_POLICY = "actor_registered_deck_sha256_multiplier_v1"
+MATCHUP_WEIGHT_POLICY = (
+    "opponent_registered_deck_card_membership_times_actor_outcome_v1"
+)
 KL_WEIGHTING_POLICIES = {
     "sample": "uniform_per_decision_v1",
     "uniform-game": "inverse_indexed_game_decision_count_v1",
@@ -100,12 +103,18 @@ class TrainingConfig:
     cache_dir: Path | None = None
     resume_latest: bool = False
     qu_v1_anchor_path: Path | None = None
+    qu_v2_anchor_checkpoint_path: Path | None = None
     initial_checkpoint_path: Path | None = None
     target_deck_sha256: str | None = None
     target_select_type: int | None = None
     freeze_public_backbone: bool = False
     kl_coefficient: float = 0.0
     kl_weighting: str = "sample"
+    matchup_card_id: int | None = None
+    matchup_weight: float = 1.0
+    matchup_win_weight: float = 1.0
+    matchup_draw_weight: float = 1.0
+    matchup_loss_weight: float = 1.0
     min_available_bytes: int = 6 * training_preflight.GIB
     min_swap_free_bytes: int = 4 * training_preflight.GIB
     require_gpu: bool = False
@@ -180,6 +189,16 @@ class EncodedSample:
     reward: float
     parent_logits: np.ndarray | None
     acting_seat: int
+
+
+@dataclass(frozen=True)
+class PolicyAnchor:
+    """One immutable parent policy used only to compute KL targets."""
+
+    kind: str
+    artifact_sha256: str
+    qu_v1: QuV1Net | None = None
+    qu_v2: QM.TorchQuV2A | None = None
 
 
 @dataclass
@@ -410,6 +429,7 @@ def create_encoded_game_cache(
     config: TrainingConfig,
     feature_contract_fingerprint: str | None = None,
     anchor_sha256: str | None = None,
+    anchor_kind: str | None = None,
 ) -> EncodedGameCache | None:
     """Describe a cache namespace without creating or probing split paths."""
     if config.cache_dir is None:
@@ -422,22 +442,42 @@ def create_encoded_game_cache(
     if not _is_sha256(feature_fingerprint):
         raise TrainingError("cache feature-contract fingerprint is invalid")
     anchor_hash = anchor_sha256
-    if config.qu_v1_anchor_path is not None:
+    configured_anchor = (
+        config.qu_v1_anchor_path
+        if config.qu_v1_anchor_path is not None
+        else config.qu_v2_anchor_checkpoint_path
+    )
+    if configured_anchor is not None:
         if anchor_hash is None:
             try:
-                anchor_hash = _sha256_file(config.qu_v1_anchor_path.expanduser().resolve())
+                anchor_hash = _sha256_file(configured_anchor.expanduser().resolve())
             except OSError as error:
-                raise TrainingError(f"cannot hash Qu-v1 cache anchor: {error}") from error
+                raise TrainingError(f"cannot hash policy cache anchor: {error}") from error
         if not _is_sha256(anchor_hash):
-            raise TrainingError("Qu-v1 cache anchor hash is invalid")
+            raise TrainingError("policy cache anchor hash is invalid")
+        expected_kind = (
+            "qu-v1-npz" if config.qu_v1_anchor_path is not None
+            else "qu-v2-checkpoint"
+        )
+        if anchor_kind is None:
+            anchor_kind = expected_kind
+        elif anchor_kind != expected_kind:
+            raise TrainingError("policy cache anchor kind drifted")
     elif anchor_hash is not None:
         raise TrainingError("cache anchor hash was supplied without an anchor")
+    elif anchor_kind is not None:
+        raise TrainingError("cache anchor kind was supplied without an anchor")
     namespace_header = {
         "schema": CACHE_SCHEMA,
         "qf_schema": QF.SCHEMA,
         "feature_contract_fingerprint": feature_fingerprint,
         "source_sha256": _cache_source_hashes(),
-        "qu_v1_anchor_sha256": anchor_hash,
+        "policy_anchor_kind": anchor_kind,
+        "policy_anchor_sha256": anchor_hash,
+        # Retained for backward-compatible provenance readers.
+        "qu_v1_anchor_sha256": (
+            anchor_hash if anchor_kind == "qu-v1-npz" else None
+        ),
     }
     namespace = _json_sha256(namespace_header)
     namespace_path = root_path / f"qu-v2a-encoded-v1-{namespace[:20]}"
@@ -501,6 +541,10 @@ def _validate_config(config: TrainingConfig) -> None:
         "draw_weight": config.draw_weight,
         "loss_weight": config.loss_weight,
         "kl_coefficient": config.kl_coefficient,
+        "matchup_weight": config.matchup_weight,
+        "matchup_win_weight": config.matchup_win_weight,
+        "matchup_draw_weight": config.matchup_draw_weight,
+        "matchup_loss_weight": config.matchup_loss_weight,
     }
     for name, value in finite_nonnegative.items():
         if not math.isfinite(value) or value < 0.0:
@@ -543,9 +587,25 @@ def _validate_config(config: TrainingConfig) -> None:
     if config.device not in ("auto", "cpu", "cuda"):
         raise TrainingError("device must be auto, cpu, or cuda")
     if config.kl_coefficient > 0.0 and config.qu_v1_anchor_path is None:
-        raise TrainingError("positive KL coefficient requires --qu-v1-anchor")
-    if config.qu_v1_anchor_path is not None and config.kl_coefficient <= 0.0:
-        raise TrainingError("--qu-v1-anchor requires a positive --kl-coefficient")
+        if config.qu_v2_anchor_checkpoint_path is None:
+            raise TrainingError(
+                "positive KL coefficient requires exactly one policy anchor")
+    if (
+        config.qu_v1_anchor_path is not None
+        and config.qu_v2_anchor_checkpoint_path is not None
+    ):
+        raise TrainingError("Qu-v1 and Qu-v2 policy anchors are mutually exclusive")
+    if (
+        config.qu_v1_anchor_path is not None
+        or config.qu_v2_anchor_checkpoint_path is not None
+    ) and config.kl_coefficient <= 0.0:
+        raise TrainingError("a policy anchor requires a positive --kl-coefficient")
+    if config.matchup_card_id is not None and (
+        isinstance(config.matchup_card_id, bool)
+        or not isinstance(config.matchup_card_id, int)
+        or not 0 < config.matchup_card_id < QU_V1_FEATURES.N_CARD_IDS
+    ):
+        raise TrainingError("matchup card id is outside the card registry")
     for name, value in (
         ("min_available_bytes", config.min_available_bytes),
         ("min_swap_free_bytes", config.min_swap_free_bytes),
@@ -950,6 +1010,28 @@ def _deck_weight(
     return float(config.deck_weights.get(deck_sha256, 1.0))
 
 
+def _matchup_weight(
+    config: TrainingConfig,
+    game: LockedGame,
+    acting_seat: int,
+    reward: float,
+) -> float:
+    """Apply an actor-relative opponent-deck and outcome multiplier."""
+    if config.matchup_card_id is None:
+        return 1.0
+    if acting_seat not in (0, 1):
+        raise TrainingError(
+            f"game {game.game_uid} has invalid acting seat {acting_seat}")
+    if config.matchup_card_id not in game.registered_decks[1 - acting_seat]:
+        return 1.0
+    outcome = (
+        config.matchup_win_weight if reward > 0.0
+        else config.matchup_loss_weight if reward < 0.0
+        else config.matchup_draw_weight
+    )
+    return config.matchup_weight * outcome
+
+
 def _parent_logits(anchor: QuV1Net, obs: Mapping[str, Any], expected_rows: int) -> np.ndarray:
     view = ObsView(dict(obs))
     state = QU_V1_FEATURES.encode_state(view)
@@ -1048,7 +1130,7 @@ def _pack_encoded_game(
         result[f"feature__{name}"] = packed
 
     parent_values = [sample.parent_logits for sample in samples]
-    if header.get("qu_v1_anchor_sha256") is None:
+    if header.get("policy_anchor_sha256") is None:
         if any(value is not None for value in parent_values):
             raise TrainingError("unanchored cache received parent logits")
         result["parent_logits"] = np.empty(0, dtype=np.float32)
@@ -1177,7 +1259,7 @@ def _decode_cached_game(
         "option_mask": _require_cache_array(
             arrays, "feature__option_mask", np.dtype(np.bool_), (option_total,)),
     }
-    parent_expected = expected_header.get("qu_v1_anchor_sha256") is not None
+    parent_expected = expected_header.get("policy_anchor_sha256") is not None
     parent = _require_cache_array(
         arrays,
         "parent_logits",
@@ -1274,15 +1356,49 @@ def _guard_cache_destination(
         raise TrainingError(f"encoded-game cache entry may not be a symlink: {destination}")
 
 
+def _attach_qu_v2_parent_logits(
+    samples: Sequence[EncodedSample],
+    anchor: PolicyAnchor,
+) -> list[EncodedSample]:
+    net = anchor.qu_v2
+    if anchor.kind != "qu-v2-checkpoint" or net is None:
+        raise TrainingError("invalid Qu-v2 policy anchor")
+    try:
+        device = next(net.parameters()).device
+    except StopIteration as error:
+        raise TrainingError("Qu-v2 policy anchor has no parameters") from error
+    result: list[EncodedSample] = []
+    with torch.no_grad():
+        for begin in range(0, len(samples), 512):
+            chunk = samples[begin:begin + 512]
+            batch = QM.collate(
+                [sample.features for sample in chunk], device=device)
+            logits, _ = net(batch)
+            logits_cpu = logits.detach().cpu().numpy()
+            for row, sample in enumerate(chunk):
+                parent = np.array(
+                    logits_cpu[row, :sample.n_opts + 1],
+                    dtype=np.float32,
+                    order="C",
+                    copy=True,
+                )
+                if parent.shape != (sample.n_opts + 1,) \
+                        or not np.isfinite(parent).all():
+                    raise TrainingError(
+                        "Qu-v2 policy anchor produced invalid parent logits")
+                result.append(replace(sample, parent_logits=parent))
+    return result
+
+
 def _iter_encoded_replay(
     game: LockedGame,
-    anchor: QuV1Net | None,
+    anchor: PolicyAnchor | None,
 ) -> Iterator[EncodedSample]:
     """Verify, decode, and stream exactly one episode's decisions."""
     raw = _stable_locked_read(
         game.path, game.content_sha256, f"replay {game.game_uid}")
     document = _verify_replay_metadata(game, raw)
-    seen = 0
+    encoded_rows: list[EncodedSample] = []
     for obs, picks, reward in il_dataset.iter_document(document):
         current = obs.get("current") if isinstance(obs, Mapping) else None
         seat = current.get("yourIndex") if isinstance(current, Mapping) else None
@@ -1314,9 +1430,14 @@ def _iter_encoded_replay(
             or (n_max > 0 and len(pick_tuple) > min(n_max, n_opts))
         ):
             raise TrainingError(f"replay {game.game_uid} yielded illegal picks")
-        seen += 1
-        parent = _parent_logits(anchor, obs, n_opts + 1) if anchor is not None else None
-        yield EncodedSample(
+        parent = (
+            _parent_logits(anchor.qu_v1, obs, n_opts + 1)
+            if anchor is not None
+            and anchor.kind == "qu-v1-npz"
+            and anchor.qu_v1 is not None
+            else None
+        )
+        encoded_rows.append(EncodedSample(
             features=encoded,
             picks=pick_tuple,
             n_opts=n_opts,
@@ -1325,17 +1446,20 @@ def _iter_encoded_replay(
             reward=float(reward),
             parent_logits=parent,
             acting_seat=int(seat),
-        )
-    if seen != game.decision_count:
+        ))
+    if len(encoded_rows) != game.decision_count:
         raise TrainingError(
-            f"replay {game.game_uid} yielded {seen} decisions, "
+            f"replay {game.game_uid} yielded {len(encoded_rows)} decisions, "
             f"manifest says {game.decision_count}"
         )
+    if anchor is not None and anchor.kind == "qu-v2-checkpoint":
+        encoded_rows = _attach_qu_v2_parent_logits(encoded_rows, anchor)
+    yield from encoded_rows
 
 
 def _encoded_game_samples(
     game: LockedGame,
-    anchor: QuV1Net | None,
+    anchor: PolicyAnchor | None,
     cache: EncodedGameCache | None,
 ) -> Iterable[EncodedSample]:
     if cache is None:
@@ -1362,7 +1486,7 @@ def _encoded_game_samples(
 def iter_game_samples(
     game: LockedGame,
     config: TrainingConfig,
-    anchor: QuV1Net | None,
+    anchor: PolicyAnchor | None,
     cache: EncodedGameCache | None = None,
 ) -> Iterator[TrainingSample]:
     """Stream one game, computing mutable scientific weights only at read time."""
@@ -1384,6 +1508,8 @@ def iter_game_samples(
             source_weight
             * _outcome_weight(config, encoded.reward)
             * _deck_weight(config, game, encoded.acting_seat)
+            * _matchup_weight(
+                config, game, encoded.acting_seat, encoded.reward)
             / normalizer
         )
         kl_weight = (
@@ -1446,7 +1572,7 @@ def iter_split_samples(
     plan: CorpusPlan,
     split: str,
     config: TrainingConfig,
-    anchor: QuV1Net | None,
+    anchor: PolicyAnchor | None,
     cache: EncodedGameCache | None = None,
     *,
     epoch: int | None,
@@ -1608,7 +1734,7 @@ def _stable_file_bytes(path: Path, description: str) -> bytes:
     return raw
 
 
-def _load_anchor(path: Path | None) -> QuV1Net | None:
+def _load_qu_v1_anchor(path: Path | None) -> PolicyAnchor | None:
     if path is None:
         return None
     resolved = path.expanduser().resolve()
@@ -1619,11 +1745,59 @@ def _load_anchor(path: Path | None) -> QuV1Net | None:
         feature_version = int(np.asarray(weights.get("feat_version", -1)).item())
         if not 1 <= feature_version <= QU_V1_FEATURES.FEAT_VERSION:
             raise ValueError(f"unsupported feature version {feature_version}")
-        result = QuV1Net(weights)
-        result._artifact_sha256 = _sha256_bytes(raw)  # type: ignore[attr-defined]
-        return result
+        return PolicyAnchor(
+            kind="qu-v1-npz",
+            artifact_sha256=_sha256_bytes(raw),
+            qu_v1=QuV1Net(weights),
+        )
     except (OSError, ValueError, KeyError, IndexError) as error:
         raise TrainingError(f"cannot load Qu-v1 KL anchor {resolved}: {error}") from error
+
+
+def _load_qu_v2_anchor(
+    path: Path | None,
+    *,
+    device: torch.device,
+    feature_contract_fingerprint: str,
+    model_implementation_sha256: str,
+    architecture: tuple[int, int, int, int, int],
+) -> PolicyAnchor | None:
+    if path is None:
+        return None
+    net = QM.TorchQuV2A(*architecture).to(device)
+    artifact_sha256 = _load_initial_checkpoint(
+        path,
+        net,
+        feature_contract_fingerprint=feature_contract_fingerprint,
+        model_implementation_sha256=model_implementation_sha256,
+        architecture=architecture,
+    )
+    net.eval()
+    for parameter in net.parameters():
+        parameter.requires_grad = False
+    return PolicyAnchor(
+        kind="qu-v2-checkpoint",
+        artifact_sha256=artifact_sha256,
+        qu_v2=net,
+    )
+
+
+def _load_policy_anchor(
+    config: TrainingConfig,
+    *,
+    device: torch.device,
+    feature_contract_fingerprint: str,
+    model_implementation_sha256: str,
+) -> PolicyAnchor | None:
+    if config.qu_v1_anchor_path is not None:
+        return _load_qu_v1_anchor(config.qu_v1_anchor_path)
+    return _load_qu_v2_anchor(
+        config.qu_v2_anchor_checkpoint_path,
+        device=device,
+        feature_contract_fingerprint=feature_contract_fingerprint,
+        model_implementation_sha256=model_implementation_sha256,
+        architecture=config.architecture,
+    )
 
 
 def _load_initial_checkpoint(
@@ -1778,6 +1952,9 @@ def _file_provenance(config: TrainingConfig) -> dict[str, str]:
     }
     if config.qu_v1_anchor_path is not None:
         paths["qu_v1_anchor"] = config.qu_v1_anchor_path.expanduser().resolve()
+    if config.qu_v2_anchor_checkpoint_path is not None:
+        paths["qu_v2_anchor_checkpoint"] = (
+            config.qu_v2_anchor_checkpoint_path.expanduser().resolve())
     if config.initial_checkpoint_path is not None:
         paths["initial_checkpoint"] = (
             config.initial_checkpoint_path.expanduser().resolve())
@@ -1812,6 +1989,14 @@ def _config_manifest(config: TrainingConfig, device: torch.device) -> dict[str, 
             "deck_weight_policy": DECK_WEIGHT_POLICY,
             "game_normalized_by_decision_count": config.game_normalized,
         },
+        "matchup_weighting": {
+            "policy": MATCHUP_WEIGHT_POLICY,
+            "opponent_registered_deck_card_id": config.matchup_card_id,
+            "base": config.matchup_weight,
+            "win": config.matchup_win_weight,
+            "draw": config.matchup_draw_weight,
+            "loss": config.matchup_loss_weight,
+        },
         "kl_coefficient": config.kl_coefficient,
         "kl_weighting": config.kl_weighting,
         "kl_weighting_policy": KL_WEIGHTING_POLICIES[config.kl_weighting],
@@ -1819,6 +2004,10 @@ def _config_manifest(config: TrainingConfig, device: torch.device) -> dict[str, 
         "qu_v1_anchor_path": (
             str(config.qu_v1_anchor_path.expanduser().resolve())
             if config.qu_v1_anchor_path is not None else None
+        ),
+        "qu_v2_anchor_checkpoint_path": (
+            str(config.qu_v2_anchor_checkpoint_path.expanduser().resolve())
+            if config.qu_v2_anchor_checkpoint_path is not None else None
         ),
         "initial_checkpoint_path": (
             str(config.initial_checkpoint_path.expanduser().resolve())
@@ -1899,7 +2088,22 @@ def _resume_lock(
         "cache_namespace": cache.namespace if cache is not None else None,
         "cache_namespace_header": (
             dict(cache.namespace_header) if cache is not None else None),
-        "qu_v1_anchor_sha256": anchor_sha256,
+        "policy_anchor": {
+            "kind": (
+                "qu-v1-npz" if config.qu_v1_anchor_path is not None
+                else "qu-v2-checkpoint"
+                if config.qu_v2_anchor_checkpoint_path is not None
+                else None
+            ),
+            "sha256": anchor_sha256,
+        },
+        "qu_v1_anchor_sha256": (
+            anchor_sha256 if config.qu_v1_anchor_path is not None else None
+        ),
+        "qu_v2_anchor_checkpoint_sha256": (
+            anchor_sha256
+            if config.qu_v2_anchor_checkpoint_path is not None else None
+        ),
         "initial_checkpoint_sha256": (
             _sha256_file(config.initial_checkpoint_path.expanduser().resolve())
             if config.initial_checkpoint_path is not None else None
@@ -1937,6 +2141,11 @@ def _resume_lock(
             "kl_weighting": config.kl_weighting,
             "kl_weighting_policy": KL_WEIGHTING_POLICIES[config.kl_weighting],
             "kl_denominator_policy": KL_DENOMINATOR_POLICY,
+            "matchup_card_id": config.matchup_card_id,
+            "matchup_weight": config.matchup_weight,
+            "matchup_win_weight": config.matchup_win_weight,
+            "matchup_draw_weight": config.matchup_draw_weight,
+            "matchup_loss_weight": config.matchup_loss_weight,
         },
         "runtime": {
             "torch": str(torch.__version__),
@@ -2211,13 +2420,21 @@ def _run_training_locked(
         raise TrainingError(
             "target deck does not occur in the selected corpus")
     _seed_everything(config.seed)
-    anchor = _load_anchor(config.qu_v1_anchor_path)
-    anchor_sha256 = (
-        getattr(anchor, "_artifact_sha256", None) if anchor is not None else None)
+    anchor = _load_policy_anchor(
+        config,
+        device=device,
+        feature_contract_fingerprint=feature_contract_fingerprint,
+        model_implementation_sha256=model_implementation_sha256,
+    )
+    anchor_sha256 = anchor.artifact_sha256 if anchor is not None else None
     if anchor_sha256 is not None and not _is_sha256(anchor_sha256):
-        raise TrainingError("loaded Qu-v1 anchor has an invalid artifact hash")
+        raise TrainingError("loaded policy anchor has an invalid artifact hash")
     cache = create_encoded_game_cache(
-        config, feature_contract_fingerprint, anchor_sha256)
+        config,
+        feature_contract_fingerprint,
+        anchor_sha256,
+        anchor.kind if anchor is not None else None,
+    )
     net = QM.TorchQuV2A(*config.architecture).to(device)
     initial_checkpoint_sha256 = None
     if config.initial_checkpoint_path is not None:
@@ -2456,6 +2673,10 @@ def _run_training_locked(
             "qu_v1_anchor_sha256"]:
         if config.qu_v1_anchor_path is not None:
             raise TrainingError("Qu-v1 anchor changed during training")
+    if source_files_sha256.get("qu_v2_anchor_checkpoint") != resume_lock[
+            "qu_v2_anchor_checkpoint_sha256"]:
+        if config.qu_v2_anchor_checkpoint_path is not None:
+            raise TrainingError("Qu-v2 anchor checkpoint changed during training")
     if source_files_sha256.get("initial_checkpoint") != resume_lock.get(
             "initial_checkpoint_sha256"):
         if config.initial_checkpoint_path is not None:
@@ -2632,6 +2853,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--qu-v1-anchor", type=Path)
     parser.add_argument(
+        "--qu-v2-anchor-checkpoint",
+        type=Path,
+        help=(
+            "contract-matched frozen Qu-v2 checkpoint used as the KL parent; "
+            "mutually exclusive with --qu-v1-anchor"
+        ),
+    )
+    parser.add_argument(
         "--initial-checkpoint",
         type=Path,
         help="initialize from a contract-matched Qu-v2 training checkpoint",
@@ -2657,6 +2886,22 @@ def build_parser() -> argparse.ArgumentParser:
         default="sample",
         help="weight parent KL uniformly by decision or uniformly by game",
     )
+    parser.add_argument(
+        "--matchup-card-id",
+        type=int,
+        help=(
+            "apply the matchup multipliers when the acting seat's opponent "
+            "registered this card"
+        ),
+    )
+    parser.add_argument(
+        "--matchup-weight", type=_nonnegative_float, default=1.0)
+    parser.add_argument(
+        "--matchup-win-weight", type=_nonnegative_float, default=1.0)
+    parser.add_argument(
+        "--matchup-draw-weight", type=_nonnegative_float, default=1.0)
+    parser.add_argument(
+        "--matchup-loss-weight", type=_nonnegative_float, default=1.0)
     parser.add_argument(
         "--min-available-gib", type=training_preflight.gib,
         default=training_preflight.gib(6.0),
@@ -2715,12 +2960,18 @@ def main(argv: Iterable[str] | None = None) -> int:
             deck_weights=_deck_weights(args.deck_weight),
             game_normalized=args.game_normalized,
             qu_v1_anchor_path=args.qu_v1_anchor,
+            qu_v2_anchor_checkpoint_path=args.qu_v2_anchor_checkpoint,
             initial_checkpoint_path=args.initial_checkpoint,
             target_deck_sha256=args.target_deck_sha256,
             target_select_type=args.target_select_type,
             freeze_public_backbone=args.freeze_public_backbone,
             kl_coefficient=args.kl_coefficient,
             kl_weighting=args.kl_weighting,
+            matchup_card_id=args.matchup_card_id,
+            matchup_weight=args.matchup_weight,
+            matchup_win_weight=args.matchup_win_weight,
+            matchup_draw_weight=args.matchup_draw_weight,
+            matchup_loss_weight=args.matchup_loss_weight,
             min_available_bytes=args.min_available_gib,
             min_swap_free_bytes=args.min_swap_free_gib,
             require_gpu=args.require_gpu,
