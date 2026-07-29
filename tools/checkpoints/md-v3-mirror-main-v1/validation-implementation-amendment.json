@@ -1,0 +1,27 @@
+{
+  "schema": "ptcg.md-v3.mirror-main-validation-implementation-amendment.v1",
+  "created_at": "2026-07-29T23:06:34+02:00",
+  "recorded_before_validation_outcomes": true,
+  "parent_preregistration": {
+    "git_commit": "62997e431e578e3f17717c7a1eec803ba9769bab",
+    "lock_sha256": "0e23d5d5c31d17c7cdf51acf0d695f634cf2059a6e95127ba9e7874b9c692159"
+  },
+  "finding": {
+    "contract": "validation uses unweighted, game-normalized ST_MAIN policy NLL",
+    "implementation_bug": "TrainingConfig defaults would have applied win/draw/loss weights 1.0/0.3/0.1 to the common validation stream",
+    "impact_if_unfixed": "the all-non-Grim validation objective would not have been outcome-unweighted"
+  },
+  "correction": {
+    "change": "set validation TrainingConfig win_weight, draw_weight, and loss_weight explicitly to 1.0",
+    "old_evaluator_sha256": "7e8a8c23e92aa1885ac92cc915494b18b936fc1e8892d8cb409ff22d22a603dc",
+    "new_evaluator_sha256": "f8afb0c40714e4a2599eb983b8a925226cc3b42dc0b6e34d847bbd070c50bfb2"
+  },
+  "scientific_contract": {
+    "cohort_changed": false,
+    "strata_changed": false,
+    "thresholds_changed": false,
+    "arm_order_changed": false,
+    "model_or_training_changed": false,
+    "validation_outcomes_opened_before_fix": false
+  }
+}
