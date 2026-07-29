@@ -1,4 +1,4 @@
-"""Freeze and run the 640-game MD-v3 early-attachment guard mirror A/B."""
+"""Freeze and run the confirmatory MD-v3 early-attachment guard mirror A/B."""
 
 from __future__ import annotations
 
@@ -27,10 +27,10 @@ from tools.research import eval_md_v2_scaled_gameplay as COMMON  # noqa: E402
 from tools.rl_env import OpponentSpec, environment_manifest  # noqa: E402
 
 
-LOCK_SCHEMA = "ptcg.md-v3-setup-guard.gameplay-lock.v1"
-RESULT_SCHEMA = "ptcg.md-v3-setup-guard.gameplay-result.v1"
-ATTEMPT_SCHEMA = "ptcg.md-v3-setup-guard.gameplay-attempt.v1"
-RUN = ROOT / "tools/checkpoints/md-v3-setup-guard-v1"
+LOCK_SCHEMA = "ptcg.md-v3-setup-guard.confirm-lock.v1"
+RESULT_SCHEMA = "ptcg.md-v3-setup-guard.confirm-result.v1"
+ATTEMPT_SCHEMA = "ptcg.md-v3-setup-guard.confirm-attempt.v1"
+RUN = ROOT / "tools/checkpoints/md-v3-setup-guard-confirm-v1"
 CARD_RUN = ROOT / "tools/checkpoints/md-v2-card-v1"
 DEFAULT_CARD_LOCK = CARD_RUN / "gameplay-lock.json"
 DEFAULT_CARD_RESULT = CARD_RUN / "gameplay-result.json"
@@ -42,8 +42,8 @@ DEFAULT_DISCOVERY_DIAGNOSTIC = (
 )
 DEFAULT_LOCK = RUN / "gameplay-lock.json"
 DEFAULT_RESULT = RUN / "gameplay-result.json"
-GAMES = 640
-SEED = 20260813
+GAMES = 1280
+SEED = 20260814
 
 
 class EvaluationError(RuntimeError):
@@ -181,7 +181,7 @@ def build_lock(
         seed=SEED,
     )
     seats = [row["learner_seat"] for row in schedule["episodes"]]
-    if seats.count(0) != 320 or seats.count(1) != 320:
+    if seats.count(0) != 640 or seats.count(1) != 640:
         raise EvaluationError("schedule is not exactly seat balanced")
     artifacts = {
         "card_gameplay_lock": _record(card_lock_path),
@@ -210,14 +210,14 @@ def build_lock(
             "matchup": "exact-deck Grimmsnarl mirror",
             "candidate": "frozen MD-v3 plus early manual-Dark-to-Munkidori guard",
             "control": "byte-identical frozen MD-v3 without guard",
-            "seat_balance": "exactly 320 games per candidate seat",
+            "seat_balance": "exactly 640 games per candidate seat",
             "one_change": (
                 "turns 1-4 only: retarget an already selected manual Dark "
                 "attachment from a non-Munkidori to a legal unpowered Munkidori"
             ),
             "pass_rule": (
-                "640 clean games; guard executes; point estimate > 0.50; "
-                "Wilson CI95 lower bound > 0.45"
+                "1280 clean games; guard executes; point estimate > 0.50; "
+                "Wilson CI95 lower bound > 0.50"
             ),
         },
         "artifacts": artifacts,
@@ -234,7 +234,7 @@ def load_lock(path: Path) -> tuple[dict[str, Any], dict[str, Path]]:
         protocol.get("games") != GAMES
         or protocol.get("seed") != SEED
         or protocol.get("seat_balance")
-            != "exactly 320 games per candidate seat"
+            != "exactly 640 games per candidate seat"
     ):
         raise EvaluationError("gameplay protocol drifted")
     paths: dict[str, Path] = {}
@@ -309,10 +309,24 @@ def run(
     EVAL.print_result(result)
     candidate_diag = result.controller
     baseline_diag = baseline.diagnostics()
+    def clean(row: Mapping[str, Any]) -> bool:
+        return (
+            row.get("fallbacks") == 0
+            and row.get("repairs") == 0
+            and row.get("exceptions") == {}
+            and row.get("off_deck_main_routes") == 0
+            and row.get("off_deck_card_routes") == 0
+            and row.get("calls") == (
+                row.get("main_routes", 0)
+                + row.get("card_routes", 0)
+                + row.get("qu_routes", 0)
+            )
+            and row.get("card_routes", 0) > 0
+        )
     valid = (
         COMMON.series_clean(result, GAMES)
-        and CARD_GAMEPLAY._diagnostics_clean(candidate_diag)
-        and CARD_GAMEPLAY._diagnostics_clean(baseline_diag)
+        and clean(candidate_diag)
+        and clean(baseline_diag)
         and candidate_diag.get("guard_routes", 0) > 0
     )
     low, high = result.ci95
@@ -322,7 +336,7 @@ def run(
         "gameplay_lock_sha256": lock["lock_sha256"],
         "decision": {
             "valid": valid,
-            "passed": valid and result.score > 0.50 and low > 0.45,
+            "passed": valid and result.score > 0.50 and low > 0.50,
             "score": result.score,
             "wilson_ci95": [low, high],
             "rule": lock["protocol"]["pass_rule"],

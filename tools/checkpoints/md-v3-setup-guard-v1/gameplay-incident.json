@@ -1,0 +1,30 @@
+{
+  "aggregate_outcome": {
+    "draws": 3,
+    "gate_valid": true,
+    "invalid": 0,
+    "losses": 301,
+    "score": 0.52734375,
+    "wilson_ci95": [
+      0.488621,
+      0.56574
+    ],
+    "wins": 336
+  },
+  "created_at": "2026-07-29T09:41:00+00:00",
+  "disposition": {
+    "original_schedule_may_not_be_rerun": true,
+    "promotion_evidence": false,
+    "result": "exploratory_inconclusive",
+    "strict_independent_confirmation_required": true
+  },
+  "gameplay_lock_sha256": "feb3c66e7a3c792ba5a64a8e823add11648284415d44e905cbdfd757a8ddb5df",
+  "incident": {
+    "kind": "evaluator_integration",
+    "message": "_diagnostics_clean called with one argument instead of candidate and baseline",
+    "outcomes_generated": true,
+    "per_controller_diagnostics_persisted": false,
+    "result_file_persisted": false
+  },
+  "schema": "ptcg.md-v3-setup-guard.gameplay-incident.v1"
+}
