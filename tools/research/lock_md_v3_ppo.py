@@ -7,11 +7,14 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Sequence
-
-from tools.research import train_md_v3_ppo as PPO
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.research import train_md_v3_ppo as PPO  # noqa: E402
 
 
 def artifact(path: Path) -> dict[str, str]:
