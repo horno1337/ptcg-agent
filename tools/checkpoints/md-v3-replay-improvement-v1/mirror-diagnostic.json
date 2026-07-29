@@ -1,0 +1,2553 @@
+{
+  "created_at": "2026-07-29T09:37:26.131190+00:00",
+  "diagnostic_sha256": "6629ad1379ccc1e9a956f08b79d6182394c3aaeabe3f7dc4871de63761042e8f",
+  "games": {
+    "by_result": {
+      "loss": 17,
+      "win": 18
+    },
+    "exact_mirror": 22,
+    "resolved_grimmsnarl": 35,
+    "unresolved": {
+      "learner_seat": 2
+    }
+  },
+  "input": {
+    "corpus_content_sha256": "2a185e4c58b35843c97263a945a07afb39298a012f0e0aab97747a4d61bbca51",
+    "index_path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-replay-improvement-v1/corpus-index.json",
+    "index_sha256": "4b862008d2329335de1ec1ce97c594e9e7b0ac8b525fc2e7eebd541e8fe782f3",
+    "manifest_sha256": "5098918f2a11954eca2ec0f412b72d5516a2a37bc6ded68ffed00109c56b99fe"
+  },
+  "interpretation_contract": {
+    "may_not_support": "behavior-cloning losses, declaring winner actions optimal, or promoting a runtime",
+    "may_support": "choosing a narrow separately preregistered mirror experiment"
+  },
+  "methodology": "Descriptive associations in fixed ladder outcomes. No individual logged action is treated as a correct or counterfactual label.",
+  "records": [
+    {
+      "card_families": {
+        "13:Munkidori": 1,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 1,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 9,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 1,
+        "7:None": 3,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Spikemuth Gym": 1,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 32,
+      "decisions": 70,
+      "episode_id": 88682693,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 1,
+      "first_froslass_turn": null,
+      "first_grim_turn": 3,
+      "first_morgrem_turn": 7,
+      "first_two_lines_turn": 5,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 2,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 11,
+        "15:Marnie's Grimmsnarl ex": 3,
+        "16:Munkidori": 11,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "3:Boss\u2019s Orders": 1,
+        "4:None": 3,
+        "7:Night Stretcher": 3,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 4,
+        "7:Spikemuth Gym": 2,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 51,
+      "decisions": 117,
+      "episode_id": 88683165,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 8,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 4,
+      "forced_ends": 3,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 1,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 1,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 9,
+        "22:Marnie's Grimmsnarl ex": 3,
+        "2:None": 1,
+        "3:None": 1,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 3,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 41,
+      "decisions": 92,
+      "episode_id": 88684560,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 9,
+      "first_froslass_turn": 5,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 1,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 10,
+        "15:Marnie's Grimmsnarl ex": 7,
+        "16:Munkidori": 10,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "3:None": 3,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 3,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 7,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 63,
+      "decisions": 136,
+      "episode_id": 88685035,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 2,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 3,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 7,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 7,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:Boss\u2019s Orders": 1,
+        "4:None": 2,
+        "7:Night Stretcher": 3,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 47,
+      "decisions": 103,
+      "episode_id": 88686759,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 5,
+      "first_froslass_turn": null,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 5,
+      "first_two_lines_turn": 1,
+      "forced_ends": 1,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 0,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 1,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 1,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:Boss\u2019s Orders": 2,
+        "3:None": 2,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 1,
+        "7:None": 2,
+        "7:Pok\u00e9 Pad": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 33,
+      "decisions": 74,
+      "episode_id": 88686905,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 1,
+      "first_froslass_turn": null,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 4,
+          "impidimp": 4,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 2,
+        "15:Marnie's Grimmsnarl ex": 2,
+        "16:Munkidori": 2,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 9,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "4:None": 2,
+        "7:Night Stretcher": 2,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Spikemuth Gym": 3,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 29,
+      "decisions": 64,
+      "episode_id": 88687829,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 6,
+      "first_froslass_turn": 4,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": null,
+      "first_two_lines_turn": 4,
+      "forced_ends": 1,
+      "learner_turns_observed": 7,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 2,
+      "result": "loss",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 3,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 3,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "4:None": 4,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 3,
+        "7:Pok\u00e9 Pad": 1,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 6,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 39,
+      "decisions": 82,
+      "episode_id": 88688301,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 10,
+      "first_froslass_turn": null,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 0,
+      "learner_turns_observed": 11,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 7,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 7,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 2,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Dawn": 2,
+        "7:Night Stretcher": 3,
+        "7:None": 3,
+        "7:Pok\u00e9 Pad": 4,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 52,
+      "decisions": 126,
+      "episode_id": 88688770,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 4,
+      "first_froslass_turn": null,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 2,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 4,
+          "impidimp": 4,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 2,
+      "result": "loss",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 5,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 5,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "2:None": 1,
+        "3:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 1,
+        "7:None": 6,
+        "7:Pok\u00e9 Pad": 1,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 39,
+      "decisions": 81,
+      "episode_id": 88689239,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": 4,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 4,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 4,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 8,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 2,
+        "5:Buddy-Buddy Poffin": 2,
+        "7:Night Stretcher": 2,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 44,
+      "decisions": 95,
+      "episode_id": 88690172,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 7,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 4,
+          "impidimp": 4,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 10,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 10,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 2,
+        "7:Dawn": 3,
+        "7:Night Stretcher": 3,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 3,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 55,
+      "decisions": 116,
+      "episode_id": 88690178,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 4,
+      "learner_turns_observed": 11,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 3,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 1,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "1:None": 1,
+        "2:None": 1,
+        "3:Boss\u2019s Orders": 2,
+        "4:None": 4,
+        "7:Night Stretcher": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5
+      },
+      "card_prompts": 16,
+      "decisions": 42,
+      "episode_id": 88692547,
+      "exact_mirror": false,
+      "first_dark_munk_turn": null,
+      "first_froslass_turn": 4,
+      "first_grim_turn": null,
+      "first_morgrem_turn": 8,
+      "first_two_lines_turn": 4,
+      "forced_ends": 4,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 2
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 4,
+        "15:Marnie's Grimmsnarl ex": 6,
+        "16:Munkidori": 4,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 9,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "3:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 2,
+        "7:Dawn": 3,
+        "7:Night Stretcher": 3,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 6,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 52,
+      "decisions": 103,
+      "episode_id": 88694875,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 7,
+      "first_froslass_turn": null,
+      "first_grim_turn": 3,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 1,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 2,
+      "result": "win",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "15:Marnie's Grimmsnarl ex": 3,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 8,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "4:None": 2,
+        "7:Dawn": 2,
+        "7:Night Stretcher": 2,
+        "7:None": 2,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 33,
+      "decisions": 89,
+      "episode_id": 88695441,
+      "exact_mirror": false,
+      "first_dark_munk_turn": null,
+      "first_froslass_turn": 15,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 3,
+      "forced_ends": 9,
+      "learner_turns_observed": 15,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 11,
+        "15:Marnie's Grimmsnarl ex": 3,
+        "16:Munkidori": 11,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 1,
+        "4:None": 3,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Dawn": 3,
+        "7:Night Stretcher": 3,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Spikemuth Gym": 4,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 56,
+      "decisions": 121,
+      "episode_id": 88696742,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 2,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 12,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 12,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "3:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 2,
+        "7:Night Stretcher": 3,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 7,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 64,
+      "decisions": 127,
+      "episode_id": 88697303,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 2,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 2,
+        "15:Marnie's Grimmsnarl ex": 3,
+        "16:Munkidori": 2,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Dawn": 2,
+        "7:Night Stretcher": 1,
+        "7:None": 1,
+        "7:Pok\u00e9 Pad": 1,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5
+      },
+      "card_prompts": 30,
+      "decisions": 66,
+      "episode_id": 88697307,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 4,
+      "first_froslass_turn": null,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 1,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 3,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 3,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 9,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "4:None": 2,
+        "7:Dawn": 3,
+        "7:Night Stretcher": 2,
+        "7:None": 3,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 44,
+      "decisions": 93,
+      "episode_id": 88699229,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 9,
+      "first_froslass_turn": null,
+      "first_grim_turn": 3,
+      "first_morgrem_turn": 5,
+      "first_two_lines_turn": 3,
+      "forced_ends": 1,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 0,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 5,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 5,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "3:None": 1,
+        "4:None": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 4,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 45,
+      "decisions": 93,
+      "episode_id": 88701629,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": 4,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 3,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 1,
+        "15:Marnie's Grimmsnarl ex": 2,
+        "16:Munkidori": 1,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "3:Boss\u2019s Orders": 1,
+        "4:None": 3,
+        "7:Night Stretcher": 1,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Spikemuth Gym": 5
+      },
+      "card_prompts": 24,
+      "decisions": 62,
+      "episode_id": 88701633,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 8,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 3,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 1,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 12,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 12,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "3:Boss\u2019s Orders": 1,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 3,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Spikemuth Gym": 6,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 59,
+      "decisions": 128,
+      "episode_id": 88702637,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 1,
+      "first_froslass_turn": null,
+      "first_grim_turn": 7,
+      "first_morgrem_turn": 5,
+      "first_two_lines_turn": 3,
+      "forced_ends": 3,
+      "learner_turns_observed": 11,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 4,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 4,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "4:None": 1,
+        "7:None": 2,
+        "7:Spikemuth Gym": 5
+      },
+      "card_prompts": 31,
+      "decisions": 62,
+      "episode_id": 88702652,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 1,
+      "first_froslass_turn": null,
+      "first_grim_turn": 3,
+      "first_morgrem_turn": 5,
+      "first_two_lines_turn": 1,
+      "forced_ends": 1,
+      "learner_turns_observed": 7,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 0,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 5,
+        "16:Munkidori": 5,
+        "1:None": 1,
+        "2:None": 1,
+        "4:None": 4,
+        "7:Dawn": 3,
+        "7:Night Stretcher": 1,
+        "7:None": 2,
+        "7:Spikemuth Gym": 1
+      },
+      "card_prompts": 23,
+      "decisions": 52,
+      "episode_id": 88703669,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 3,
+      "first_froslass_turn": 3,
+      "first_grim_turn": null,
+      "first_morgrem_turn": null,
+      "first_two_lines_turn": 1,
+      "forced_ends": 5,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 4,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 4,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "3:Boss\u2019s Orders": 1,
+        "3:None": 3,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 3,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Spikemuth Gym": 3,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 37,
+      "decisions": 101,
+      "episode_id": 88711337,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 1,
+      "first_froslass_turn": 11,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 3,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 2,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 2,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 38,
+      "decisions": 84,
+      "episode_id": 88717633,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 4,
+      "first_froslass_turn": 4,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 3,
+        "15:Marnie's Grimmsnarl ex": 2,
+        "16:Munkidori": 3,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "3:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 2,
+        "7:Pok\u00e9 Pad": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 1
+      },
+      "card_prompts": 29,
+      "decisions": 74,
+      "episode_id": 88725683,
+      "exact_mirror": false,
+      "first_dark_munk_turn": 7,
+      "first_froslass_turn": 3,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 7,
+      "first_two_lines_turn": 5,
+      "forced_ends": 4,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 3,
+        "15:Marnie's Grimmsnarl ex": 6,
+        "16:Munkidori": 3,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "3:None": 1,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 4,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 44,
+      "decisions": 98,
+      "episode_id": 88738491,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 3,
+      "first_froslass_turn": null,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 2,
+      "learner_turns_observed": 11,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 0,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 5,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 5,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 8,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 2,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 2,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 6,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 49,
+      "decisions": 106,
+      "episode_id": 88747849,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 4,
+          "impidimp": 4,
+          "morgrem": 0,
+          "munkidori": 2,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 2,
+      "result": "win",
+      "seat": 1,
+      "split": "test"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 6,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 6,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 8,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 3,
+        "7:None": 3,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 48,
+      "decisions": 106,
+      "episode_id": 88750512,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 4,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 8,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 3,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "loss",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 6,
+        "15:Marnie's Grimmsnarl ex": 2,
+        "16:Munkidori": 6,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 2,
+        "7:Dawn": 2,
+        "7:Night Stretcher": 2,
+        "7:None": 4,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Spikemuth Gym": 6
+      },
+      "card_prompts": 43,
+      "decisions": 95,
+      "episode_id": 88752978,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": 4,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 4,
+      "learner_turns_observed": 13,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 8,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 8,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 6,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "2:None": 1,
+        "4:None": 2,
+        "7:Dawn": 2,
+        "7:Night Stretcher": 1,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 4,
+        "7:Spikemuth Gym": 6,
+        "7:Team Rocket's Petrel": 2
+      },
+      "card_prompts": 52,
+      "decisions": 112,
+      "episode_id": 88753981,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 4,
+      "first_froslass_turn": 4,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 1,
+      "learner_turns_observed": 9,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 1
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 2
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 8,
+        "15:Marnie's Grimmsnarl ex": 5,
+        "16:Munkidori": 8,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 7,
+        "22:Marnie's Grimmsnarl ex": 2,
+        "3:None": 1,
+        "4:None": 2,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Dawn": 3,
+        "7:Night Stretcher": 3,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 4,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 58,
+      "decisions": 121,
+      "episode_id": 88757683,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 1,
+      "first_froslass_turn": null,
+      "first_grim_turn": 5,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 2,
+      "learner_turns_observed": 10,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 3,
+          "impidimp": 3,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 0,
+      "split": "validation"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 15,
+        "15:Marnie's Grimmsnarl ex": 4,
+        "16:Munkidori": 15,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "4:None": 3,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 3,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 3,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 65,
+      "decisions": 137,
+      "episode_id": 88758714,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 2,
+      "first_froslass_turn": null,
+      "first_grim_turn": 6,
+      "first_morgrem_turn": 4,
+      "first_two_lines_turn": 2,
+      "forced_ends": 2,
+      "learner_turns_observed": 11,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 1,
+          "impidimp": 1,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 1,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 0,
+      "result": "win",
+      "seat": 1,
+      "split": "train"
+    },
+    {
+      "card_families": {
+        "13:Munkidori": 5,
+        "15:Marnie's Grimmsnarl ex": 3,
+        "16:Munkidori": 5,
+        "1:None": 1,
+        "21:Marnie's Grimmsnarl ex": 5,
+        "22:Marnie's Grimmsnarl ex": 1,
+        "3:None": 1,
+        "4:None": 1,
+        "5:Buddy-Buddy Poffin": 1,
+        "7:Night Stretcher": 3,
+        "7:None": 5,
+        "7:Pok\u00e9 Pad": 2,
+        "7:Pok\u00e9gear 3.0": 1,
+        "7:Spikemuth Gym": 5,
+        "7:Team Rocket's Petrel": 3
+      },
+      "card_prompts": 42,
+      "decisions": 92,
+      "episode_id": 88763118,
+      "exact_mirror": true,
+      "first_dark_munk_turn": 3,
+      "first_froslass_turn": 3,
+      "first_grim_turn": 3,
+      "first_morgrem_turn": 3,
+      "first_two_lines_turn": 1,
+      "forced_ends": 1,
+      "learner_turns_observed": 7,
+      "opening_states": [
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 0,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 0,
+          "impidimp": 0,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 0
+        },
+        {
+          "dark_munkidori": 0,
+          "froslass": 0,
+          "grim": 0,
+          "grim_lines": 2,
+          "impidimp": 2,
+          "morgrem": 0,
+          "munkidori": 1,
+          "snorunt": 1
+        }
+      ],
+      "optional_ends": 0,
+      "rare_candy_plays": 1,
+      "result": "win",
+      "seat": 0,
+      "split": "train"
+    }
+  ],
+  "replay_sha256_by_episode": {
+    "88682693": "76be35860b388b97ce0c4470ada4709c55f0a3fcd7e402fc005e5ea16a252026",
+    "88683165": "7dbe6a2b333e93e4b66296ea90f4cf0b7859f2c3791cfffc876877c983a01733",
+    "88684560": "2ed02a1e271e31c668d8347595f750f0ed11c2c2ed2664be4c1be5a7d910806c",
+    "88685035": "5874c4fb30c329a24f87c7ce5b79621b3d4cfbeaefeb4fc65283ef138d75dec5",
+    "88686759": "09a2b0012f73d433aebf5579b6b38a5c5bed9080e96409c073985952bf5528e1",
+    "88686905": "0fa235d8af959717c13639f1677f125a6a9716c72e1255c5354b50890f8520f0",
+    "88687829": "329daedc264573015b1bc06689e4c4428da1187d4a5f5d086d78b7eb866ce0bd",
+    "88688301": "f7ae242c46e58aba5e6e8f6fb9944fbce9f87f8ba216fd24c075a9526edbb242",
+    "88688770": "7bf898481220bc257038444b7984b72c1f76dc4827ed76dca0a1e3eaae94ac40",
+    "88689239": "382ff4dfbab0dec31ad4f5a3d132842004213e69cd0bb71167ed1649df15ada6",
+    "88690172": "8de4730f9d303c4535aefb79440e33afe65ff0c6d090f657e766ac47de4d7791",
+    "88690178": "c86998f8daa8850109a76f389f12498d8fb4eb9fc9915caea46a1fbe823a17b5",
+    "88692547": "a194ef97ca777454120b138a4b37693c75da4a4290de4a6d1e1bc36977338b6e",
+    "88694875": "9d5a8bcb6ddfd6f861d6c8c59ff2ba4c2c07696face620aa31a7eb1347996a5b",
+    "88695441": "6ee9a14bc3ae1b7be9c6974a35f17540cc00d5b2ae758acc72ac561a8dad1cc7",
+    "88696742": "759704d5bf7c4033723e073980c9795e886d983393d28a3a817227d53df28ab3",
+    "88697303": "6610c41e4d809af523a6ef1e3a41e4b54e01df34891d6ce5d4d8a4b77d9b32c0",
+    "88697307": "2138a2af98da971ab0e9fe1075f88bf69bfc10ca1b6d01d2f41d63ce50a74a8c",
+    "88699229": "cdbfcb86c86125cb4a3ee319eb2d38371ef029ce50fd00ceb6a952c7b063ebb7",
+    "88701629": "40b9807415e59bf47dbdcc0f84bb8db93f26847e94a7a712c7f507e01bdf88de",
+    "88701633": "9e2b2d00d1689ee0cb2eceec899019d9db5d57d3e74c78997ebf14e01f66f2b7",
+    "88702637": "5038ecef2988974342e9ac30bfecefbc6db06458ad6b729768c806df2f4c9fb9",
+    "88702652": "3e9de23463d2ffbd0f552d4f7dfae3d88a6c699e27c444ab057aef45bcced885",
+    "88703669": "3f3cc99f4e745bc2a906911816e884410e8ca9af4e3e392fb4e62462f48dd1b6",
+    "88711337": "047c9937490e9034b98c0f18d2157521a2dbb051ad295cbf95481a2b48758699",
+    "88717633": "75eb9aea5c2c65262a0ddb563cfca70c023b01e3ad1977db77e5c461467dcf0f",
+    "88725683": "2694ce1e053232fbe878ef9872605229402bd784865b0e5dfc74602b0197206a",
+    "88738491": "96e056d809a1d1a1b65f6dfec492e78e628715dfcbd95bb540cd1772f38e2296",
+    "88747849": "74cacbd1a88496881b8bc0604edbf659b40e83de9d32ad00dce4023441303351",
+    "88750512": "40606531054bfcad7df478a660b8b7f5da7be7d446651e45ca5aa2de9576f78e",
+    "88752978": "630dcbc42333cbbbfb8167d216940026c2a0308a2acfd204f4eb100bc2f41b4f",
+    "88753981": "c251746cd2358b26760ff2f75f4ac1a9018b0decc9e03cd0b9d89852f58be13e",
+    "88757683": "1749d684cd0c398675a6926579182f98340f11e59dcf3e3f95ce57fdf02220df",
+    "88758714": "d5f5f6f56ae364f54dedfdbd3a9afdb4713c0f42c8670f87f9039541eb310b4a",
+    "88763118": "c8089bb434f4b1f24dc0f3b1ba3daf5e8884fa0eb9857f12898da0c35616d41b"
+  },
+  "schema": "ptcg.md-v3.mirror-ladder-diagnostic.v1",
+  "summary": {
+    "loss": {
+      "dark_munkidori_observed_rate": 0.8823529411764706,
+      "first_grim_observed_rate": 0.8823529411764706,
+      "first_morgrem_observed_rate": 0.8823529411764706,
+      "froslass_observed_rate": 0.47058823529411764,
+      "games": 17,
+      "mean_card_prompts": 35.529411764705884,
+      "mean_first_dark_munk_turn_when_observed": 3.7333333333333334,
+      "mean_first_grim_turn_when_observed": 4.8,
+      "mean_first_morgrem_turn_when_observed": 4.533333333333333,
+      "mean_forced_ends": 2.411764705882353,
+      "mean_optional_ends": 0.0,
+      "mean_rare_candy_plays": 0.7647058823529411,
+      "st_card_families": [
+        {
+          "family": "21:Marnie's Grimmsnarl ex",
+          "prompts": 107
+        },
+        {
+          "family": "7:Spikemuth Gym",
+          "prompts": 75
+        },
+        {
+          "family": "15:Marnie's Grimmsnarl ex",
+          "prompts": 57
+        },
+        {
+          "family": "16:Munkidori",
+          "prompts": 54
+        },
+        {
+          "family": "13:Munkidori",
+          "prompts": 54
+        },
+        {
+          "family": "7:None",
+          "prompts": 39
+        },
+        {
+          "family": "7:Pok\u00e9 Pad",
+          "prompts": 32
+        },
+        {
+          "family": "4:None",
+          "prompts": 31
+        },
+        {
+          "family": "7:Night Stretcher",
+          "prompts": 31
+        },
+        {
+          "family": "22:Marnie's Grimmsnarl ex",
+          "prompts": 28
+        },
+        {
+          "family": "7:Team Rocket's Petrel",
+          "prompts": 23
+        },
+        {
+          "family": "1:None",
+          "prompts": 17
+        },
+        {
+          "family": "3:None",
+          "prompts": 12
+        },
+        {
+          "family": "7:Dawn",
+          "prompts": 12
+        },
+        {
+          "family": "5:Buddy-Buddy Poffin",
+          "prompts": 11
+        },
+        {
+          "family": "7:Pok\u00e9gear 3.0",
+          "prompts": 9
+        },
+        {
+          "family": "2:None",
+          "prompts": 6
+        },
+        {
+          "family": "3:Boss\u2019s Orders",
+          "prompts": 6
+        }
+      ],
+      "two_lines_observed_rate": 1.0
+    },
+    "win": {
+      "dark_munkidori_observed_rate": 1.0,
+      "first_grim_observed_rate": 1.0,
+      "first_morgrem_observed_rate": 1.0,
+      "froslass_observed_rate": 0.2777777777777778,
+      "games": 18,
+      "mean_card_prompts": 50.166666666666664,
+      "mean_first_dark_munk_turn_when_observed": 3.0,
+      "mean_first_grim_turn_when_observed": 5.111111111111111,
+      "mean_first_morgrem_turn_when_observed": 3.888888888888889,
+      "mean_forced_ends": 1.7777777777777777,
+      "mean_optional_ends": 0.0,
+      "mean_rare_candy_plays": 0.6666666666666666,
+      "st_card_families": [
+        {
+          "family": "16:Munkidori",
+          "prompts": 132
+        },
+        {
+          "family": "13:Munkidori",
+          "prompts": 132
+        },
+        {
+          "family": "21:Marnie's Grimmsnarl ex",
+          "prompts": 115
+        },
+        {
+          "family": "7:Spikemuth Gym",
+          "prompts": 91
+        },
+        {
+          "family": "7:None",
+          "prompts": 82
+        },
+        {
+          "family": "15:Marnie's Grimmsnarl ex",
+          "prompts": 78
+        },
+        {
+          "family": "7:Pok\u00e9 Pad",
+          "prompts": 46
+        },
+        {
+          "family": "7:Night Stretcher",
+          "prompts": 44
+        },
+        {
+          "family": "7:Team Rocket's Petrel",
+          "prompts": 34
+        },
+        {
+          "family": "4:None",
+          "prompts": 31
+        },
+        {
+          "family": "22:Marnie's Grimmsnarl ex",
+          "prompts": 31
+        },
+        {
+          "family": "1:None",
+          "prompts": 18
+        },
+        {
+          "family": "5:Buddy-Buddy Poffin",
+          "prompts": 18
+        },
+        {
+          "family": "7:Dawn",
+          "prompts": 16
+        },
+        {
+          "family": "3:None",
+          "prompts": 14
+        },
+        {
+          "family": "7:Pok\u00e9gear 3.0",
+          "prompts": 11
+        },
+        {
+          "family": "2:None",
+          "prompts": 7
+        },
+        {
+          "family": "3:Boss\u2019s Orders",
+          "prompts": 3
+        }
+      ],
+      "two_lines_observed_rate": 1.0
+    }
+  }
+}

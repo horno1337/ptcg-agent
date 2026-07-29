@@ -420,6 +420,15 @@ def _model_decide(view: ObsView) -> list[int] | None:
                     md_action = _md_v1.decide(
                         sample, view, registration)
                     if md_action is not None:
+                        if os.environ.get("PTCG_MD_V3_SETUP_GUARD") == "1":
+                            try:
+                                from . import grim_mirror_setup_guard as _setup_guard
+                                setup_action = _setup_guard.decide(
+                                    view, registration, md_action)
+                                if setup_action is not None:
+                                    return setup_action
+                            except Exception:
+                                pass
                         return md_action
                 except Exception:
                     pass
