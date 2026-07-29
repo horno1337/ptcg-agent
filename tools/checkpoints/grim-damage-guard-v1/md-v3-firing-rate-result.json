@@ -1,0 +1,70 @@
+{
+  "cohort": {
+    "bytes_opened": 5330619189,
+    "replays": 953,
+    "seat_games": 1906
+  },
+  "counts": {
+    "by_subtype": {
+      "adrena_target": {
+        "changed_decisions": 49,
+        "eligible_prompts": 11583,
+        "guard_triggers": 1281
+      },
+      "shadow_target": {
+        "changed_decisions": 14,
+        "eligible_prompts": 7619,
+        "guard_triggers": 1448
+      }
+    },
+    "changed_decisions": 63,
+    "changed_replays": 49,
+    "changed_seat_games": 49,
+    "eligible_prompts": 19202,
+    "guard_triggers": 2729
+  },
+  "created_at": "2026-07-29T21:31:33.724781+00:00",
+  "decision": {
+    "changed_decisions": 63,
+    "changed_seat_game_rate": 0.02570828961175236,
+    "decision_threshold_passed": false,
+    "diagnostics_clean": true,
+    "proceed_to_gameplay_ab": false,
+    "rate_threshold_passed": false
+  },
+  "lock_sha256": "8b7041de5bac77df9fbd09e20274eb2c3d6d8330f15eba724117139961ef1605",
+  "promotion_authority": false,
+  "rates": {
+    "change_given_trigger": 0.023085379259802124,
+    "changed_decisions_per_seat_game": 0.03305351521511018,
+    "changed_replay_rate": 0.05141657922350472,
+    "changed_seat_game_rate": 0.02570828961175236,
+    "trigger_per_seat_game": 1.431794333683106
+  },
+  "result_sha256": "3b3ade63001e107763e73c68fb8ede3f403d356afd1fd2dbb3b742bff4fb338c",
+  "runtime_diagnostics": {
+    "calls": 2729,
+    "card_routes": 2729,
+    "exceptions": {},
+    "fallback_reasons": {},
+    "fallbacks": 0,
+    "latency_ms": {
+      "max": 151.70396899338812,
+      "mean": 1.30079002911771,
+      "p50": 1.1865149717777967,
+      "p95": 1.4652402140200138,
+      "total": 3549.8559894622304
+    },
+    "main_routes": 0,
+    "name": "frozen-md-v3-sizing",
+    "off_deck_card_routes": 0,
+    "off_deck_main_routes": 0,
+    "qu_routes": 0,
+    "registered_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+    "repairs": 0,
+    "select_types": {
+      "1": 2729
+    }
+  },
+  "schema": "ptcg.grim-damage-guard.md-v3-firing-result.v1"
+}
