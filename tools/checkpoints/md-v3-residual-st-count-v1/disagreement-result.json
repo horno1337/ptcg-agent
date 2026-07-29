@@ -1,0 +1,121 @@
+{
+  "candidate_select_type": 8,
+  "cohorts": {
+    "confirmation": {
+      "by_outcome": {
+        "draw": {
+          "affected_seat_games": 0,
+          "prompts": 0,
+          "semantic_disagreement_rate": 0.0,
+          "semantic_disagreements": 0
+        },
+        "loser": {
+          "affected_seat_games": 6,
+          "prompts": 7692,
+          "semantic_disagreement_rate": 0.0013000520020800832,
+          "semantic_disagreements": 10
+        },
+        "winner": {
+          "affected_seat_games": 64,
+          "prompts": 15018,
+          "semantic_disagreement_rate": 0.007257957118124917,
+          "semantic_disagreements": 109
+        }
+      },
+      "games": 1836,
+      "learnability": {
+        "covered_winner_prompts": 15009,
+        "dominant_semantic_action_agreement": 0.9927376907189019,
+        "dominant_semantic_action_matches": 14900,
+        "replicated_contexts": 5,
+        "winner_prompt_coverage": 0.9994007191370355
+      },
+      "opened_bytes": 10303218935,
+      "target_prompts_by_date": {
+        "confirmation": 22710
+      },
+      "winner_seat_games": 1836
+    },
+    "discovery": {
+      "by_outcome": {
+        "draw": {
+          "affected_seat_games": 0,
+          "prompts": 43,
+          "semantic_disagreement_rate": 0.0,
+          "semantic_disagreements": 0
+        },
+        "loser": {
+          "affected_seat_games": 19,
+          "prompts": 11380,
+          "semantic_disagreement_rate": 0.006414762741652021,
+          "semantic_disagreements": 73
+        },
+        "winner": {
+          "affected_seat_games": 132,
+          "prompts": 19657,
+          "semantic_disagreement_rate": 0.014702141730681182,
+          "semantic_disagreements": 289
+        }
+      },
+      "games": 2463,
+      "learnability": {
+        "covered_winner_prompts": 19648,
+        "dominant_semantic_action_agreement": 0.9852911237785016,
+        "dominant_semantic_action_matches": 19359,
+        "replicated_contexts": 5,
+        "winner_prompt_coverage": 0.9995421478353768
+      },
+      "opened_bytes": 13859851843,
+      "target_prompts_by_date": {
+        "2026-07-18": 204,
+        "2026-07-19": 201,
+        "2026-07-20": 1081,
+        "2026-07-21": 1187,
+        "2026-07-22": 3387,
+        "2026-07-23": 4730,
+        "2026-07-24": 8734,
+        "2026-07-25": 4911,
+        "2026-07-26": 6645
+      },
+      "winner_seat_games": 2458
+    }
+  },
+  "conclusion": "retire ST_COUNT; no combined residual fallback",
+  "created_at": "2026-07-29T22:43:23.467380+00:00",
+  "decision": {
+    "checks": {
+      "confirmation": {
+        "dominant_semantic_action_agreement": 0.9927376907189019,
+        "dominant_semantic_action_agreement_passed": true,
+        "replicated_context_coverage": 0.9994007191370355,
+        "replicated_context_coverage_passed": true,
+        "winner_affected_seat_game_passed": false,
+        "winner_affected_seat_game_rate": 0.034858387799564274,
+        "winner_disagreement_passed": false,
+        "winner_prompt_floor_passed": true,
+        "winner_prompts": 15018,
+        "winner_semantic_disagreement_rate": 0.007257957118124917
+      },
+      "discovery": {
+        "dominant_semantic_action_agreement": 0.9852911237785016,
+        "dominant_semantic_action_agreement_passed": true,
+        "replicated_context_coverage": 0.9995421478353768,
+        "replicated_context_coverage_passed": true,
+        "winner_affected_seat_game_passed": false,
+        "winner_affected_seat_game_rate": 0.05370219690805533,
+        "winner_disagreement_passed": false,
+        "winner_prompt_floor_passed": true,
+        "winner_prompts": 19657,
+        "winner_semantic_disagreement_rate": 0.014702141730681182
+      }
+    },
+    "passed": false
+  },
+  "gameplay_authority": false,
+  "inventory_result_sha256": "d72342cc3291fec8335d57d117a52d3f5a53f3da97ca4b22e2ecc10dadca2c11",
+  "lock_sha256": "f0e20c42e60f2b31d06c64472538816989a20596d4b41add7f5c97ae9f30b8d8",
+  "result_sha256": "c7226435ae8cc5bb7cec8e4a3d8429a052084fde02a2454fd02c0003b9dc0a7c",
+  "schema": "ptcg.md-v3.residual-st-count-disagreement.v1",
+  "training_authority": false,
+  "upload_authority": false
+}
