@@ -1,0 +1,8 @@
+{
+  "consumes_only_temporal_attempt": true,
+  "created_at": "2026-07-29T10:29:44.039086+00:00",
+  "schema": "ptcg.md-v2.july28-temporal-attempt.v1",
+  "temporal_lock_sha256": "b077d8417041cf308082af9cba71f1e9903a06446bf5bde8aa0cbe9c782f6cb4",
+  "written_after_all_contract/model/source checks": true,
+  "written_before_first_replay_open": true
+}

@@ -1,0 +1,95 @@
+{
+  "artifacts": {
+    "candidate_weights": {
+      "path": "tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-weights.npz",
+      "sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    },
+    "cohort": {
+      "path": "tools/checkpoints/md-v2-allthrough26/july28-temporal-cohort.json",
+      "sha256": "26247f7fcd9628f89559cae4775518c34c34536c419821e48f0a420c8ab077b7"
+    },
+    "dataset_loader": {
+      "path": "tools/il_dataset.py",
+      "sha256": "ff4185c89f7d763b535d127315a188371374661da1d44db9eb66e51c54df9fa3"
+    },
+    "evaluator": {
+      "path": "tools/research/eval_md_v2_july28_temporal.py",
+      "sha256": "32a54030ce3ebce36f6abbbc98b38febd69d222897425d6a0705f388d460d273"
+    },
+    "gameplay_lock": {
+      "path": "tools/checkpoints/md-v2-allthrough26/gameplay-lock.json",
+      "sha256": "963b1117613077bda5f35250dee67975296d4ee9aef385afeb1ee66186e8f2e2"
+    },
+    "indexer": {
+      "path": "tools/index_corpus.py",
+      "sha256": "074d4419faa134a9e11e8c74d619c982231ad8947c4759741bb559e12d88d2fd"
+    },
+    "md_v1_weights": {
+      "path": "agent/md_v1_weights.npz",
+      "sha256": "5784b7ea693d2adc3a8cf0b7422b6940481042181051ef2941b982094dabe78c"
+    },
+    "preparer": {
+      "path": "tools/research/prepare_md_v2_july28_temporal.py",
+      "sha256": "cb7f89f248bb66250a9fdca62884e2ff1fdc2cf229176250c3244154ac2a2ffa"
+    },
+    "preregistration": {
+      "path": "tools/research/preregistrations/md-v2-july28-temporal.json",
+      "sha256": "3fb6dbf01efcf3830108efd7b8dc5e8daa9729b56c5856a49d83e4442f930bd3"
+    },
+    "qu_v2b_weights": {
+      "path": "agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "raw_index": {
+      "path": "tools/checkpoints/md-v2-allthrough26/july28-raw-index.json",
+      "sha256": "86d27bcc7dc16e641b84cebf1667485e7d705e61a2be0376cd665a2f3f3d459e"
+    },
+    "temporal_core": {
+      "path": "tools/research/eval_md_v2_july27_temporal.py",
+      "sha256": "d8e46c490696fa227ea6da80f1eb5c19c931c62ca77a9ab639d81f5345316dbb"
+    },
+    "trainer": {
+      "path": "tools/research/train_qu_v2a.py",
+      "sha256": "450bf71266925abb22a89f895d3088ac1b66f2f686ea4ee938208b971aceff38"
+    }
+  },
+  "candidate_weights_sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8",
+  "cohort_games": 3292,
+  "cohort_manifest_sha256": "7ea3fcc99114bd510789b8ce18271b559b784a45069e3f4ff63ba8df23c2878c",
+  "created_at": "2026-07-29T10:29:23.602994+00:00",
+  "gameplay_lock_sha256": "991b8fbf5a10294e53f7ada57f0757613fab219757e8e1ebfdd935907f0ad3e8",
+  "lock_sha256": "b077d8417041cf308082af9cba71f1e9903a06446bf5bde8aa0cbe9c782f6cb4",
+  "locked_before_temporal_model_scoring": true,
+  "preregistration_sha256": "7eb8eb2d7cd77df26cd15d6f7de54c1910866301412409e4668392f3e0642aa0",
+  "protocol": {
+    "cohort": "all BC-valid games containing the exact target deck",
+    "date": "2026-07-28",
+    "metric": "ST_MAIN game-normalized policy objective",
+    "models": [
+      "fixed MD-v2",
+      "frozen MD-v1",
+      "frozen Qu-v2B"
+    ],
+    "no_retraining_or_reselection_after_open": true,
+    "one_shot": true,
+    "pass_rule": "MD-v2 objective is strictly lower than both MD-v1 and Qu-v2B",
+    "same_decision_stream_for_all_models": true,
+    "team_name_prefilter": false
+  },
+  "raw_index_manifest_sha256": "705c4eca01422138c3df50e9ab5b8f522c2679e6b0ef381fa926b84d9c034e1b",
+  "schema": "ptcg.md-v2.july28-temporal-lock.v1",
+  "source_inventory": {
+    "first_episode_id": 88529412,
+    "last_episode_id": 88702254,
+    "numeric_files": 4385,
+    "numeric_listing_sha256": "c68703d83e87f28eeba0acd600aca8cca154c9a873a0d3ce4b58841e609f0ff4",
+    "official_manifest": {
+      "path": "/home/horn/Desktop/ptcg_official_2026-07-28/manifest.csv",
+      "rows": 4385,
+      "sha256": "0f898057872a4a00baadd0620752dd7781a882295ac9406cbf7d798fe20c8700",
+      "size_bytes": 363971
+    },
+    "source": "/home/horn/Desktop/ptcg_official_2026-07-28",
+    "total_size_bytes": 21472088979
+  }
+}
