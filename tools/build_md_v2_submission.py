@@ -48,6 +48,7 @@ EXCLUDED_AGENT_FILES = frozenset({
     "qu_v2c_canary.py",
     "qu_v2c_canary_weights.npz",
     "grim_damage_guard.py",
+    "grim_mirror_setup_guard.py",
 })
 
 

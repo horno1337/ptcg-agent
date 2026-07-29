@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-07-29T09:41:50.733925+00:00",
+  "gameplay_lock_sha256": "b7eecf3f8d7624be3c0961e7a12add3b532eb227a4132e66fa39d241fa5ebd02",
+  "schema": "ptcg.md-v3-setup-guard.confirm-attempt.v1",
+  "written_before_first_engine_outcome": true
+}
