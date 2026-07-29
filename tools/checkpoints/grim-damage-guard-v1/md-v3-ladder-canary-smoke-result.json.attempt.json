@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-07-29T21:42:45.944944+00:00",
+  "schema": "ptcg.md-v3.damage-guard-random-smoke-attempt.v1",
+  "smoke_lock_sha256": "7fca87078ffa473165fa67fcea95e2c25acf4ebb9a14f6293e42187260fa59a6",
+  "written_before_first_engine_outcome": true
+}
