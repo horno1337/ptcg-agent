@@ -1,0 +1,89 @@
+{
+  "artifacts": {
+    "analyzer": {
+      "path": "tools/research/analyze_grim_damage_guard_md_v3_firing.py",
+      "sha256": "e1b320e07e564f1fe71b0897d338689046956bad4f63d013d79ecb16b0b5d56c"
+    },
+    "card_runtime": {
+      "path": "agent/md_v2_card.py",
+      "sha256": "4957b3adc5748b1b5468d750eb4a92effabe81a96fcb4b38b5d8edda7eb6858a"
+    },
+    "card_weights": {
+      "path": "agent/md_v2_card_weights.npz",
+      "sha256": "1aef7068130072dd00afe0e85d6485d9749c6326351597339c1bd33d6d239cf7"
+    },
+    "common": {
+      "path": "tools/research/eval_md_v2_scaled_gameplay.py",
+      "sha256": "5e480c776ba4a11431b6847f41be05c6766156c684fd5f5d757ff3a6d52f99d4"
+    },
+    "corpus": {
+      "path": "tools/checkpoints/md-v2-allthrough26/corpus.json",
+      "sha256": "494f2bd1bbba33252aa4bcdedbc2d7bc0d38a27ce0d2087bfac7e1d654610a79"
+    },
+    "guard": {
+      "path": "agent/grim_damage_guard.py",
+      "sha256": "453621908f2dccb74e47bc1ef46c699c028c64001ca86230ea29b3371adb3fca"
+    },
+    "layered_controller": {
+      "path": "tools/research/eval_md_v2_card_v1_gameplay.py",
+      "sha256": "3b9a449fc3e6da5fb05b571bbcb0854951bc09a5306949980a0a3fd01fabc408"
+    },
+    "main_weights": {
+      "path": "tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-weights.npz",
+      "sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    },
+    "md_v1_runtime": {
+      "path": "agent/md_v1.py",
+      "sha256": "d9d6cd43c9a91b80d8da6bb23e3643b50736a9628ac86bcb735c00871bf74839"
+    },
+    "phase_lock": {
+      "path": "tools/checkpoints/grim-damage-guard-v1/phase-lock.json",
+      "sha256": "e06f8592955a3513aff0ad5045928d3ef20d0ab90657f83f4f9e2968c1551c3e"
+    },
+    "policy_runtime": {
+      "path": "agent/policy.py",
+      "sha256": "b64e5966746abba228eb83cdfa68e8fa092de4879b2a059e93885183a59923f0"
+    },
+    "qu_weights": {
+      "path": "agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "reserved_result": {
+      "path": "tools/checkpoints/grim-damage-guard-v1/reserved-result.json",
+      "sha256": "b98efb626d426cb0ba16021c19056e6a0ad946347834234c316c42f6f6faa446"
+    },
+    "rule_lock": {
+      "path": "tools/checkpoints/grim-damage-guard-v1/rule-lock.json",
+      "sha256": "e112a5cd8b64e89eeb96ad7bff8bf7fa5826dfb783d00bb431d034755f8baa6c"
+    },
+    "safety_runtime": {
+      "path": "agent/safety.py",
+      "sha256": "3d1b6bc84ade3bc8bd1e996e40bf25f06788e82cd67412b5cee389aa42bb417e"
+    }
+  },
+  "cohort": {
+    "dates": [
+      "2026-07-25",
+      "2026-07-26"
+    ],
+    "exact_mirror_replays": 953,
+    "seat_games": 1906,
+    "use": "firing-rate sizing only; no promotion authority"
+  },
+  "created_at": "2026-07-29T21:29:57.139637+00:00",
+  "decision_rule": {
+    "changed_decisions": ">= 200",
+    "changed_seat_game_rate": ">= 0.1",
+    "failure": "retire guard without an engine A/B",
+    "proceed_to_gameplay_ab": "both thresholds pass and diagnostics clean"
+  },
+  "lock_sha256": "8b7041de5bac77df9fbd09e20274eb2c3d6d8330f15eba724117139961ef1605",
+  "locked_before_firing_rate_measurement": true,
+  "promotion_authority": false,
+  "runtime": {
+    "comparison": "fixed destination-only guard action versus the action frozen MD-v3 would take at the same eligible public observation",
+    "name": "frozen MD-v3",
+    "routes": "frozen ST_MAIN plus frozen ST_CARD plus frozen Qu-v2B"
+  },
+  "schema": "ptcg.grim-damage-guard.md-v3-firing-lock.v1"
+}
