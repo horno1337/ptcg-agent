@@ -1,0 +1,146 @@
+{
+  "cache_statistics": {
+    "by_split": {
+      "test": {
+        "hits": 0,
+        "misses": 0,
+        "writes": 0
+      },
+      "train": {
+        "hits": 0,
+        "misses": 0,
+        "writes": 0
+      },
+      "validation": {
+        "hits": 2090,
+        "misses": 0,
+        "writes": 0
+      }
+    },
+    "hits": 2090,
+    "misses": 0,
+    "writes": 0
+  },
+  "candidate_checkpoint_sha256": {
+    "35": "24ce91fd2b2067eee7803392ccc2044cd955704109b4926a3fb1f2d4bda1125b",
+    "51": "0233ffa998b047130638154c22be3178414dc4eaa36d84c8cb2b34f5d09926e7",
+    "65": "94acdf68b2718c2f52674630df014f3e75ebb15c19df9506377ec132be5ea05c",
+    "frozen": "4785572f32aa8f091684a58db724e30d671d69531a9255853deab163acceb702"
+  },
+  "cohort": {
+    "decisions": {
+      "exact_mirror_all": 29080,
+      "exact_mirror_winner": 15456,
+      "grim_family_all": 44317,
+      "grim_family_winner": 23069,
+      "non_grim_all": 55629
+    },
+    "game_normalized_weight_sum": {
+      "exact_mirror_all": 148.80771891938346,
+      "exact_mirror_winner": 79.64449145685387,
+      "grim_family_all": 228.36324507642453,
+      "grim_family_winner": 119.47500551146274,
+      "non_grim_all": 350.1965107343994
+    },
+    "games": {
+      "exact_mirror_all": 350,
+      "exact_mirror_winner": 349,
+      "grim_family_all": 714,
+      "grim_family_winner": 518,
+      "non_grim_all": 1376
+    }
+  },
+  "created_at": "2026-07-29T21:11:02.770816+00:00",
+  "gates": {
+    "35": {
+      "grim_family_winner_delta": -0.021237538657358,
+      "grim_family_winner_improved": true,
+      "non_grim_delta": -0.008355362749318473,
+      "non_grim_noninferior_at_0.01": true,
+      "passed": true
+    },
+    "51": {
+      "grim_family_winner_delta": -0.02884689439516508,
+      "grim_family_winner_improved": true,
+      "non_grim_delta": -0.0034475929714032905,
+      "non_grim_noninferior_at_0.01": true,
+      "passed": true
+    },
+    "65": {
+      "grim_family_winner_delta": -0.032393119046685404,
+      "grim_family_winner_improved": true,
+      "non_grim_delta": 0.00285140257206018,
+      "non_grim_noninferior_at_0.01": true,
+      "passed": true
+    }
+  },
+  "lock": {
+    "file_sha256": "55d14831d3deddb23d9d243a775934c1d7c03be23a26e0fe4d75f0b3a6a6a99b",
+    "lock_sha256": "0e23d5d5c31d17c7cdf51acf0d695f634cf2059a6e95127ba9e7874b9c692159",
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-mirror-main-v1/lock.json"
+  },
+  "objectives": {
+    "35": {
+      "exact_mirror_all": 0.6668441396497489,
+      "exact_mirror_winner": 0.6847018421859677,
+      "grim_family_all": 0.6717100920412149,
+      "grim_family_winner": 0.6970694820630486,
+      "non_grim_all": 0.6333130695992993
+    },
+    "51": {
+      "exact_mirror_all": 0.6600210514597485,
+      "exact_mirror_winner": 0.6771097729310881,
+      "grim_family_all": 0.6648206477565701,
+      "grim_family_winner": 0.6894601263252416,
+      "non_grim_all": 0.6382208393772145
+    },
+    "65": {
+      "exact_mirror_all": 0.6566688707034195,
+      "exact_mirror_winner": 0.6736657670892033,
+      "grim_family_all": 0.6614156985984038,
+      "grim_family_winner": 0.6859139016737212,
+      "non_grim_all": 0.644519834920678
+    },
+    "frozen": {
+      "exact_mirror_all": 0.6842341788957966,
+      "exact_mirror_winner": 0.7059212528995512,
+      "grim_family_all": 0.6887476116447122,
+      "grim_family_winner": 0.7183070207204066,
+      "non_grim_all": 0.6416684323486178
+    }
+  },
+  "passed": true,
+  "passed_arms": [
+    "35",
+    "51",
+    "65"
+  ],
+  "result_sha256": "69b4fb4d5bcb5f10078d2f9ecf70f4a212ddbe58898c4627fb6781fe231ef279",
+  "schema": "ptcg.md-v3.mirror-main-validation-result.v1",
+  "selected_arm": "65",
+  "selection_contract": {
+    "arm_pass": {
+      "grim_family_winner": "candidate objective strictly lower than frozen MD-v3",
+      "non_grim_noninferiority": "candidate objective no more than 0.010000 above frozen MD-v3"
+    },
+    "cohort": "the fixed 2,090-game validation split only",
+    "failure": "no passing arm means the retrain is rejected",
+    "gameplay_and_temporal_outcomes_not_used_for_arm_selection": true,
+    "metric": "unweighted, game-normalized ST_MAIN expert policy NLL for the exact target acting seat",
+    "models": [
+      "frozen MD-v3 main",
+      "35% arm validation-selected checkpoint",
+      "51% arm validation-selected checkpoint",
+      "65% arm validation-selected checkpoint"
+    ],
+    "one_candidate_advances": true,
+    "reported_strata": [
+      "Grimmsnarl-family winning seats",
+      "all Grimmsnarl-family target seats",
+      "exact-list mirror winning seats",
+      "all exact-list mirror target seats",
+      "all non-Grimmsnarl target seats"
+    ],
+    "selection": "among passing arms choose lowest Grimmsnarl-family winning-seat objective; exact tie priority 51, then 35, then 65"
+  }
+}
