@@ -1,0 +1,90 @@
+{
+  "audit_sha256": "a4bbef0aaeb1ed0324aebf93eee728e44954cc754c7c20556970bb2ee81f8234",
+  "contract": {
+    "calibration_unit": "one exact-target acting seat per game; exact mirrors provide two actor-relative seat trajectories",
+    "grim_family_outcome_weights": {
+      "draw": 0.5,
+      "loss": 0.25,
+      "win": 1.0
+    },
+    "grimmsnarl_family": "actor-relative opponent registered deck contains card 648",
+    "non_grim_outcome_weights": {
+      "draw": 1.0,
+      "loss": 1.0,
+      "win": 1.0
+    },
+    "target_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+    "target_masses": [
+      0.35,
+      0.51,
+      0.65
+    ],
+    "training_application": "the solved actor-relative multiplier is applied to every ST_MAIN decision before indexed-game decision normalization"
+  },
+  "created_at": "2026-07-29T11:18:36.914314+00:00",
+  "games": {
+    "train": {
+      "exact_mirror": 3110,
+      "grim_family": 6271,
+      "non_grim": 12522
+    },
+    "validation": {
+      "exact_mirror": 350,
+      "grim_family": 714,
+      "non_grim": 1376
+    }
+  },
+  "input": {
+    "corpus_content_sha256": "02451ca936ecc13caa30800022d6dd447430e2f7349c26d060732c342d7ad261",
+    "manifest_file_sha256": "2770569b044a36fa51741a8256645b943571535b7d207660da9a2075ce68674a",
+    "manifest_path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-mirror-main-v1/corpus.json",
+    "manifest_sha256": "74d9e5c02a7cd80b40de6c0b537fde27f7ed99d45c3c0d95ab6b1aa208efa037"
+  },
+  "schema": "ptcg.md-v3.mirror-main-mass-audit.v1",
+  "solved_matchup_weights": {
+    "35": {
+      "achieved_train_mass": 0.35,
+      "matchup_weight": 1.1747740020237623,
+      "target_grim_family_supervision_mass": 0.35
+    },
+    "51": {
+      "achieved_train_mass": 0.51,
+      "matchup_weight": 2.2707730709672145,
+      "target_grim_family_supervision_mass": 0.51
+    },
+    "65": {
+      "achieved_train_mass": 0.6500000000000001,
+      "matchup_weight": 4.051771558000324,
+      "target_grim_family_supervision_mass": 0.65
+    }
+  },
+  "target_seat_game_equivalents": {
+    "train": {
+      "exact_mirror.target_seats": 6220.0,
+      "grim_family.draw.target_seats": 14.0,
+      "grim_family.game_equivalents_trusted": 5739.5,
+      "grim_family.game_equivalents_unweighted": 9381.0,
+      "grim_family.loss.target_seats": 4846.0,
+      "grim_family.target_seats": 9381.0,
+      "grim_family.win.target_seats": 4521.0,
+      "non_grim.draw.target_seats": 12.0,
+      "non_grim.game_equivalents_unweighted": 12522.0,
+      "non_grim.loss.target_seats": 5725.0,
+      "non_grim.target_seats": 12522.0,
+      "non_grim.win.target_seats": 6785.0
+    },
+    "validation": {
+      "exact_mirror.target_seats": 700.0,
+      "grim_family.draw.target_seats": 2.0,
+      "grim_family.game_equivalents_trusted": 655.0,
+      "grim_family.game_equivalents_unweighted": 1064.0,
+      "grim_family.loss.target_seats": 544.0,
+      "grim_family.target_seats": 1064.0,
+      "grim_family.win.target_seats": 518.0,
+      "non_grim.game_equivalents_unweighted": 1376.0,
+      "non_grim.loss.target_seats": 592.0,
+      "non_grim.target_seats": 1376.0,
+      "non_grim.win.target_seats": 784.0
+    }
+  }
+}

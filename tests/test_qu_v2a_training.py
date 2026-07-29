@@ -474,6 +474,118 @@ def _check_actor_deck_weight_and_kl_weighting_are_independent():
         per_decision = list(TRAIN.iter_game_samples(
             game, replace(base, kl_weighting="sample"), None))
     assert [sample.kl_weight for sample in per_decision] == [1.0, 1.0]
+
+
+def _check_actor_relative_matchup_and_outcome_weights():
+    deck_hashes = ("c" * 64, "d" * 64)
+    game = TRAIN.LockedGame(
+        game_uid="a" * 64,
+        episode_id=1,
+        split="train",
+        split_rank=1,
+        content_sha256="b" * 64,
+        source_membership=("synthetic",),
+        source="synthetic",
+        path=Path("unused.json"),
+        decision_count=2,
+        rewards=(1.0, -1.0),
+        registered_decks=((10,) * 60, (648,) * 60),
+        registered_deck_sha256s=deck_hashes,
+    )
+    rows = tuple(
+        TRAIN.EncodedSample(
+            features=None,  # type: ignore[arg-type]
+            picks=(0,),
+            n_opts=1,
+            n_min=1,
+            n_max=1,
+            reward=game.rewards[seat],
+            parent_logits=None,
+            acting_seat=seat,
+        )
+        for seat in (0, 1)
+    )
+    config = TRAIN.TrainingConfig(
+        manifest_path=Path("unused.json"),
+        out_dir=Path("unused-candidate"),
+        win_weight=1.0,
+        draw_weight=1.0,
+        loss_weight=1.0,
+        game_normalized=True,
+        matchup_card_id=648,
+        matchup_weight=4.0,
+        matchup_win_weight=1.0,
+        matchup_draw_weight=0.5,
+        matchup_loss_weight=0.25,
+        test_skip_resource_preflight=True,
+    )
+    with mock.patch.object(
+            TRAIN, "_encoded_game_samples", return_value=rows):
+        samples = list(TRAIN.iter_game_samples(game, config, None))
+    # Seat 0 faces card 648 and wins: 4 / 2. Seat 1 does not face card 648.
+    assert [sample.weight for sample in samples] == [2.0, 0.5]
+    assert TRAIN.MATCHUP_WEIGHT_POLICY == \
+        "opponent_registered_deck_card_membership_times_actor_outcome_v1"
+
+    with _raises(TRAIN.TrainingError, "card registry"):
+        TRAIN._validate_config(replace(config, matchup_card_id=0))
+
+
+def _check_qu_v2_checkpoint_anchor_emits_exact_parent_logits():
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        architecture = (16, 48, 160, 112, 80)
+        net = QM.TorchQuV2A(*architecture)
+        state = net.state_dict()
+        feature_fingerprint = TRAIN._feature_contract_fingerprint()
+        model_hash = TRAIN._model_implementation_sha256()
+        checkpoint = root / "parent.pt"
+        torch.save({
+            "schema": TRAIN.TRAINING_SCHEMA,
+            "feature_schema": TRAIN.QF.SCHEMA,
+            "feature_dependency_fingerprint": feature_fingerprint,
+            "model_schema": QM.MODEL_SCHEMA,
+            "model_implementation_sha256": model_hash,
+            "architecture": architecture,
+            "state_dict": state,
+            "state_dict_sha256": TRAIN._state_dict_sha256(state),
+        }, checkpoint)
+        anchor = TRAIN._load_qu_v2_anchor(
+            checkpoint,
+            device=torch.device("cpu"),
+            feature_contract_fingerprint=feature_fingerprint,
+            model_implementation_sha256=model_hash,
+            architecture=architecture,
+        )
+        assert anchor is not None
+        features = TRAIN.QF.encode_public_observation(
+            _observation(0), tuple(5 + index % 4 for index in range(60)))
+        sample = TRAIN.EncodedSample(
+            features=features,
+            picks=(0,),
+            n_opts=len(features.option_ids) - 1,
+            n_min=1,
+            n_max=1,
+            reward=1.0,
+            parent_logits=None,
+            acting_seat=0,
+        )
+        attached = TRAIN._attach_qu_v2_parent_logits((sample,), anchor)
+        with torch.no_grad():
+            expected = net(QM.collate((features,), device="cpu"))[0][0]
+        expected = expected[:sample.n_opts + 1].detach().numpy()
+        assert np.array_equal(attached[0].parent_logits, expected)
+
+        config = TRAIN.TrainingConfig(
+            manifest_path=Path("unused.json"),
+            out_dir=Path("unused-candidate"),
+            kl_coefficient=0.1,
+            qu_v1_anchor_path=Path("old.npz"),
+            qu_v2_anchor_checkpoint_path=checkpoint,
+            test_skip_resource_preflight=True,
+        )
+        with _raises(TRAIN.TrainingError, "mutually exclusive"):
+            TRAIN._validate_config(config)
     assert TRAIN.DECK_WEIGHT_POLICY == \
         "actor_registered_deck_sha256_multiplier_v1"
 
@@ -835,6 +947,12 @@ class QuV2ATrainingTests(unittest.TestCase):
 
     def test_actor_deck_weight_and_kl_weighting_are_independent(self):
         _check_actor_deck_weight_and_kl_weighting_are_independent()
+
+    def test_actor_relative_matchup_and_outcome_weights(self):
+        _check_actor_relative_matchup_and_outcome_weights()
+
+    def test_qu_v2_checkpoint_anchor_emits_exact_parent_logits(self):
+        _check_qu_v2_checkpoint_anchor_emits_exact_parent_logits()
 
     def test_exact_deck_and_prompt_filters_are_actor_scoped(self):
         _check_exact_deck_and_prompt_filters_are_actor_scoped()

@@ -1,0 +1,242 @@
+{
+  "artifacts": {
+    "corpus": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-mirror-main-v1/corpus.json",
+      "sha256": "2770569b044a36fa51741a8256645b943571535b7d207660da9a2075ce68674a"
+    },
+    "corpus_builder": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/prepare_md_v3_mirror_main.py",
+      "sha256": "6438301f7e1b98d444ecc9302eef55645be49cf8845c96888d94d56cba7de5f2"
+    },
+    "frozen_md_v3_card_weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/md_v2_card_weights.npz",
+      "sha256": "1aef7068130072dd00afe0e85d6485d9749c6326351597339c1bd33d6d239cf7"
+    },
+    "frozen_md_v3_main_checkpoint": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-checkpoint.pt",
+      "sha256": "4785572f32aa8f091684a58db724e30d671d69531a9255853deab163acceb702"
+    },
+    "frozen_md_v3_main_weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-weights.npz",
+      "sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    },
+    "frozen_qu_v2b_weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "mass_audit": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-mirror-main-v1/mass-audit.json",
+      "sha256": "38c3a4bab07b4203ea91b4e65f351c2f5b9af2cff635a1bf959d6c76984ec5bc"
+    },
+    "mass_auditor": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/audit_md_v3_mirror_main_mass.py",
+      "sha256": "56c81448ac3de9e6f858ab9880496d9e9419219cae574276d73bc868d015cb9f"
+    },
+    "sweep_runner": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/run_md_v3_mirror_main_sweep.py",
+      "sha256": "99c87036a3ffd2cf78dd88077a9746ed2486c40e05295188aca836448e15c879"
+    },
+    "target_deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/md_v1_grimmsnarl.csv",
+      "sha256": "92b92bac9f9163ecff933b3dc39294d2cc154c8684f3c8497877661419ebc59d"
+    },
+    "trainer": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/train_qu_v2a.py",
+      "sha256": "c09c1756cfc7b5aa2117ddafbc9d983f26202c6881dd7afd16327699441f39eb"
+    },
+    "trainer_tests": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tests/test_qu_v2a_training.py",
+      "sha256": "bb52b82674369c87a8de76e82b2a9bd4425650b820a26ae8cc2f39d327df1646"
+    },
+    "validation_evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_md_v3_mirror_main_validation.py",
+      "sha256": "7e8a8c23e92aa1885ac92cc915494b18b936fc1e8892d8cb409ff22d22a603dc"
+    }
+  },
+  "corpus": {
+    "games": {
+      "all": {
+        "exact_mirror": 3460,
+        "grim_family": 6985,
+        "grim_variant": 3525,
+        "non_grim": 13898,
+        "total": 20883
+      },
+      "test": {
+        "exact_mirror": 0,
+        "grim_family": 0,
+        "grim_variant": 0,
+        "non_grim": 0,
+        "total": 0
+      },
+      "train": {
+        "exact_mirror": 3110,
+        "grim_family": 6271,
+        "grim_variant": 3161,
+        "non_grim": 12522,
+        "total": 18793
+      },
+      "validation": {
+        "exact_mirror": 350,
+        "grim_family": 714,
+        "grim_variant": 364,
+        "non_grim": 1376,
+        "total": 2090
+      }
+    },
+    "historical_july28_content_overlap": 0,
+    "historical_july28_uid_overlap": 0,
+    "split": "preserved Jul17-26 train/validation plus deterministic matchup-stratified Jul28 90/10",
+    "test_games": 0,
+    "unique_contents": 20883,
+    "unique_game_uids": 20883
+  },
+  "created_at": "2026-07-29T11:18:48.909228+00:00",
+  "experiment": "mirror-weighted ST_MAIN adaptation of frozen MD-v3; not an upload tag",
+  "hypothesis": "MD-v3 is approximately median against the Grimmsnarl family because its ST_MAIN supervision underweights that matchup and trusts resource-starved losing-seat behavior equally",
+  "ladder_rule_after_all_local_gates": {
+    "comparison": "same-window resolved W/L score; rating is descriptive at low counts",
+    "falsifies_replacement": "candidate same-window resolved score is not strictly above the frozen MD-v3 control after both reach 80 games",
+    "minimum_resolved_games_per_arm": 80,
+    "report_grim_family_and_exact_mirror_substrata": true,
+    "slots": [
+      "one byte-frozen MD-v3 paired control",
+      "one candidate package"
+    ],
+    "upload_requires_user_named_tag_and_explicit_approval": true
+  },
+  "lock_sha256": "0e23d5d5c31d17c7cdf51acf0d695f634cf2059a6e95127ba9e7874b9c692159",
+  "post_selection_gates": {
+    "all_local": {
+      "exceptions_fallbacks_legality_repairs": 0,
+      "invalid_games": 0,
+      "threshold_changes_or_posthoc_arms": false
+    },
+    "direct_exact_mirror": {
+      "candidate": "selected ST_MAIN plus frozen MD-v3 ST_CARD plus frozen Qu-v2B",
+      "control": "byte-frozen MD-v3 package",
+      "games": 1280,
+      "pass": "candidate score Wilson CI95 lower bound strictly above 0.50",
+      "seat_balance": "exact",
+      "seed": 2026073001
+    },
+    "recent_frequency_field": {
+      "games_per_arm": 1280,
+      "pass": "candidate-minus-control point delta > 0 and conservative independent CI95 lower bound > -0.05",
+      "schedule": "one identical recent-frequency matchup and seat schedule",
+      "seed": 2026073002
+    },
+    "untouched_temporal": {
+      "candidate_fixed_before_open": true,
+      "cohort": "first complete official day with zero overlap with inspected ladder replays; expected 2026-07-30",
+      "corroboration": "candidate Grimmsnarl-family winning-seat objective lower than frozen MD-v3 and non-Grim objective no more than 0.020000 above frozen MD-v3",
+      "inventory_and_zero_overlap_locked_before opening outcomes": true,
+      "metric": "same unweighted game-normalized ST_MAIN NLL strata as validation",
+      "models": [
+        "selected candidate",
+        "frozen MD-v3"
+      ],
+      "no_retraining_or_reselection_after_open": true
+    }
+  },
+  "prelock_checks": {
+    "command": "python tests/test_qu_v2a_training.py",
+    "trainer_unit_tests": "19 passed"
+  },
+  "schema": "ptcg.md-v3.mirror-main-lock.v1",
+  "shipping_audit_if_selected": {
+    "exact_extracted_tarball_non_owner_uid": true,
+    "one_changed_runtime_component": "ST_MAIN weights only",
+    "random_smoke_games": 200,
+    "tests": "tests/test_safety.py"
+  },
+  "training": {
+    "architecture": [
+      16,
+      48,
+      160,
+      112,
+      80
+    ],
+    "arms": {
+      "35": {
+        "matchup_weight": 1.1747740020237623,
+        "target_grim_family_supervision_mass": 0.35
+      },
+      "51": {
+        "matchup_weight": 2.2707730709672145,
+        "target_grim_family_supervision_mass": 0.51
+      },
+      "65": {
+        "matchup_weight": 4.051771558000324,
+        "target_grim_family_supervision_mass": 0.65
+      }
+    },
+    "batch_size": 128,
+    "changed_component": "ST_MAIN specialist only",
+    "epochs": 5,
+    "execution_order": [
+      "51",
+      "35",
+      "65"
+    ],
+    "freeze_public_backbone": true,
+    "frozen_components": [
+      "MD-v3 ST_CARD specialist",
+      "Qu-v2B fallback",
+      "public feature encoder and public backbone"
+    ],
+    "game_normalized": true,
+    "gradient_clip": 1.0,
+    "kl_coefficient": 0.1,
+    "kl_parent": "the same frozen MD-v3 main checkpoint",
+    "kl_weighting": "uniform-game",
+    "learning_rate": 5e-05,
+    "matchup_card_id": 648,
+    "matchup_definition": "actor-relative opponent registered deck contains card 648",
+    "matchup_outcome_weights": {
+      "draw": 0.5,
+      "loss": 0.25,
+      "win": 1.0
+    },
+    "non_matchup_outcome_weights": {
+      "draw": 1.0,
+      "loss": 1.0,
+      "win": 1.0
+    },
+    "seed": 20260729,
+    "shuffle_buffer": 4096,
+    "target_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+    "target_select_type": 0,
+    "test_deferred": true,
+    "value_coefficient": 0.0,
+    "warm_start": "frozen MD-v3 main checkpoint",
+    "weight_decay": 1e-05,
+    "within_arm_selection": "lowest weighted validation objective across five epochs; earliest epoch on exact tie"
+  },
+  "validation_selection": {
+    "arm_pass": {
+      "grim_family_winner": "candidate objective strictly lower than frozen MD-v3",
+      "non_grim_noninferiority": "candidate objective no more than 0.010000 above frozen MD-v3"
+    },
+    "cohort": "the fixed 2,090-game validation split only",
+    "failure": "no passing arm means the retrain is rejected",
+    "gameplay_and_temporal_outcomes_not_used_for_arm_selection": true,
+    "metric": "unweighted, game-normalized ST_MAIN expert policy NLL for the exact target acting seat",
+    "models": [
+      "frozen MD-v3 main",
+      "35% arm validation-selected checkpoint",
+      "51% arm validation-selected checkpoint",
+      "65% arm validation-selected checkpoint"
+    ],
+    "one_candidate_advances": true,
+    "reported_strata": [
+      "Grimmsnarl-family winning seats",
+      "all Grimmsnarl-family target seats",
+      "exact-list mirror winning seats",
+      "all exact-list mirror target seats",
+      "all non-Grimmsnarl target seats"
+    ],
+    "selection": "among passing arms choose lowest Grimmsnarl-family winning-seat objective; exact tie priority 51, then 35, then 65"
+  }
+}
