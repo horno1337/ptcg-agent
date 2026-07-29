@@ -1,0 +1,116 @@
+{
+  "artifacts": {
+    "analyzer": {
+      "path": "tools/research/analyze_md_v3_residual_st_count.py",
+      "sha256": "a103cc81586782e8ca41e2dbddf088f31395bbeb5d4ec0c483358474eef9ccb2"
+    },
+    "card_runtime": {
+      "path": "agent/md_v2_card.py",
+      "sha256": "4957b3adc5748b1b5468d750eb4a92effabe81a96fcb4b38b5d8edda7eb6858a"
+    },
+    "card_weights": {
+      "path": "agent/md_v2_card_weights.npz",
+      "sha256": "1aef7068130072dd00afe0e85d6485d9749c6326351597339c1bd33d6d239cf7"
+    },
+    "discovery_index": {
+      "path": "tools/checkpoints/md-v2-allthrough26/corpus.json",
+      "sha256": "494f2bd1bbba33252aa4bcdedbc2d7bc0d38a27ce0d2087bfac7e1d654610a79"
+    },
+    "features": {
+      "path": "agent/qu_v2_features.py",
+      "sha256": "b2225e0075fa7597c1df6afbfc1a5e18427d6e6d64e5bcc1a16ae92ba34594d7"
+    },
+    "july27_index": {
+      "path": "tools/checkpoints/md-v2-allthrough26/july27-raw-index.json",
+      "sha256": "478c928efe1234d7d2d8f4b7a3cbd18924ea090ba3ee9bebb54c80db20c96cad"
+    },
+    "july28_index": {
+      "path": "tools/checkpoints/md-v2-allthrough26/july28-raw-index.json",
+      "sha256": "86d27bcc7dc16e641b84cebf1667485e7d705e61a2be0376cd665a2f3f3d459e"
+    },
+    "loader": {
+      "path": "tools/il_dataset.py",
+      "sha256": "ff4185c89f7d763b535d127315a188371374661da1d44db9eb66e51c54df9fa3"
+    },
+    "main_runtime": {
+      "path": "agent/md_v1.py",
+      "sha256": "d9d6cd43c9a91b80d8da6bb23e3643b50736a9628ac86bcb735c00871bf74839"
+    },
+    "main_weights": {
+      "path": "tools/checkpoints/md-v2-allthrough26/model/candidate-qu-v2a-weights.npz",
+      "sha256": "76420fc2e031127143f5816e64973ec49e150da22b84604308b649c9a4dc8df8"
+    },
+    "model": {
+      "path": "agent/model.py",
+      "sha256": "238a21d2830ae067178d01913e7fa5092bd33aa38cb6d34ffc936fef769556ef"
+    },
+    "qu_weights": {
+      "path": "agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    }
+  },
+  "candidate_policy": {
+    "no_combined_residual_fallback": true,
+    "only_training_candidate": true,
+    "select_type": 8,
+    "select_type_name": "ST_COUNT"
+  },
+  "cohorts": {
+    "confirmation": {
+      "dates": [
+        "2026-07-27",
+        "2026-07-28"
+      ],
+      "exact_mirror_games": 1836,
+      "permitted_use": "locked temporal replication"
+    },
+    "discovery": {
+      "dates": "through 2026-07-26",
+      "exact_mirror_games": 2463,
+      "permitted_use": "inventory and disagreement discovery"
+    },
+    "future": {
+      "dates": "2026-07-29 and later",
+      "status": "untouched by this screen; reserve for candidate evidence"
+    }
+  },
+  "created_at": "2026-07-29T22:27:43.531817+00:00",
+  "disagreement_gate": {
+    "pass": "every threshold passes; otherwise retire ST_COUNT",
+    "replicated_context": {
+      "dominant_semantic_action_agreement": ">= 0.65",
+      "minimum_group_prompts": 10,
+      "required": "both metrics in both cohorts",
+      "winner_prompt_coverage": ">= 0.5"
+    },
+    "winner_affected_seat_game_rate": ">= 0.1 in both cohorts",
+    "winner_prompts": {
+      "confirmation": ">= 200",
+      "discovery": ">= 300"
+    },
+    "winner_semantic_disagreement_rate": ">= 0.2 in both cohorts"
+  },
+  "future_candidate_gate": {
+    "actual_change_coverage": "candidate must differ from Qu-v2B in >= 10% of locked exact-mirror seat-games before gameplay",
+    "gameplay": "1,280 clean exact-mirror games versus frozen MD-v3; Wilson CI95 lower bound strictly > 0.50",
+    "offline_metrics": "sanity only; no strength authority",
+    "scope": "exact deck plus public Grim signature plus ST_COUNT only"
+  },
+  "gameplay_authority": false,
+  "inventory_gate": {
+    "decision_share": ">= 0.03",
+    "pass": "both thresholds in both cohorts",
+    "seat_game_coverage": ">= 0.25"
+  },
+  "lock_sha256": "f0e20c42e60f2b31d06c64472538816989a20596d4b41add7f5c97ae9f30b8d8",
+  "locked_before_replay_action_analysis": true,
+  "router": {
+    "card": "exact deck and ST_CARD and public opposing Grim evolution signature",
+    "inventory_labels_opened": false,
+    "main": "exact deck and ST_MAIN",
+    "qu": "every other prompt"
+  },
+  "schema": "ptcg.md-v3.residual-st-count-lock.v1",
+  "training_authority": false,
+  "upload_authority": false
+}
