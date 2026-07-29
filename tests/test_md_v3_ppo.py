@@ -29,3 +29,15 @@ def test_parent_kl_is_zero_for_identical_policy():
 def test_completed_sequence_omits_stop_at_effective_max():
     assert PPO._completed_sequence([1], n_options=2, effective_max=1) == [1]
     assert PPO._completed_sequence([], n_options=2, effective_max=1) == [2]
+
+
+def test_padded_batch_logits_must_be_sliced_per_menu():
+    padded = torch.tensor([0.2, 1.1, -0.3, -1e9, -1e9])
+    spec = SelectionSpec(n_options=2, min_count=1, max_count=1)
+    logp, entropy, kl = PPO.sequence_statistics(
+        padded[:spec.n_options + 1], [1], spec,
+        parent_logits=padded[:spec.n_options + 1],
+    )
+    assert torch.isfinite(logp)
+    assert entropy > 0
+    assert torch.allclose(kl, torch.zeros_like(kl), atol=1e-7)

@@ -445,8 +445,8 @@ def ppo_update(
                 parent_logits, _ = parent(batch)
             terms = [
                 sequence_statistics(
-                    logits[index], row.picks, row.spec,
-                    parent_logits=parent_logits[index],
+                    logits[index, :row.n_options + 1], row.picks, row.spec,
+                    parent_logits=parent_logits[index, :row.n_options + 1],
                 )
                 for index, row in enumerate(rows)
             ]
