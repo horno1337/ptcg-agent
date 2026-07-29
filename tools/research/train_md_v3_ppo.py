@@ -50,6 +50,7 @@ from tools.rl_env import (  # noqa: E402
 
 
 LOCK_SCHEMA = "ptcg.md-v3.st-main-ppo-prototype-lock.v1"
+FULL_LOCK_SCHEMA = "ptcg.md-v3.st-main-ppo-training-lock.v1"
 RESULT_SCHEMA = "ptcg.md-v3.st-main-ppo-prototype-result.v1"
 CHECKPOINT_SCHEMA = "ptcg.md-v3.st-main-ppo-checkpoint.v1"
 
@@ -137,7 +138,7 @@ def atomic_npz(path: Path, arrays: Mapping[str, np.ndarray]) -> None:
 
 def load_lock(path: Path) -> tuple[dict[str, Any], dict[str, Path]]:
     raw = json.loads(path.read_text(encoding="utf-8"))
-    if raw.get("schema") != LOCK_SCHEMA:
+    if raw.get("schema") not in (LOCK_SCHEMA, FULL_LOCK_SCHEMA):
         raise PrototypeError("wrong PPO prototype lock schema")
     stored = raw.get("lock_sha256")
     unhashed = dict(raw)
@@ -521,7 +522,8 @@ def main(argv: Sequence[str] | None = None) -> None:
     if output.exists():
         parser.error("--output-dir already exists")
     lock, paths = load_lock(lock_path)
-    config = lock["prototype"]
+    config_key = "training" if lock["schema"] == FULL_LOCK_SCHEMA else "prototype"
+    config = lock[config_key]
     device = torch.device(
         "cuda" if args.device == "auto" and torch.cuda.is_available()
         else "cpu" if args.device == "auto" else args.device
@@ -551,23 +553,41 @@ def main(argv: Sequence[str] | None = None) -> None:
         if line.strip()
     ]
     started = time.time()
-    decisions, rollout = collect_games(
-        net, frozen_main, card_net, qu_net, deck,
-        int(config["games"]), seed, device,
-    )
-    collected = time.time()
-    if rollout["invalid"]:
-        raise PrototypeError("prototype rollout contained invalid games")
-    metrics = ppo_update(
-        net, parent, decisions, device=device, seed=seed,
-        learning_rate=float(config["learning_rate"]),
-        epochs=int(config["ppo_epochs"]),
-        minibatch_size=int(config["minibatch_size"]),
-        clip=float(config["clip"]),
-        value_coef=float(config["value_coefficient"]),
-        entropy_coef=float(config["entropy_coefficient"]),
-        kl_coef=float(config["parent_kl_coefficient"]),
-    )
+    update_rows = []
+    decisions: list[Decision] = []
+    rollout: dict[str, Any] = {}
+    rollout_seconds = 0.0
+    for update in range(1, int(config.get("updates", 1)) + 1):
+        update_started = time.time()
+        decisions, rollout = collect_games(
+            net, frozen_main, card_net, qu_net, deck,
+            int(config["games_per_update"] if "games_per_update" in config
+                else config["games"]),
+            seed + update * 1_000_003, device,
+        )
+        rollout_seconds += time.time() - update_started
+        if rollout["invalid"]:
+            raise PrototypeError(f"update {update} rollout contained invalid games")
+        metrics = ppo_update(
+            net, parent, decisions, device=device,
+            seed=seed + update * 1_000_003,
+            learning_rate=float(config["learning_rate"]),
+            epochs=int(config["ppo_epochs"]),
+            minibatch_size=int(config["minibatch_size"]),
+            clip=float(config["clip"]),
+            value_coef=float(config["value_coefficient"]),
+            entropy_coef=float(config["entropy_coefficient"]),
+            kl_coef=float(config["parent_kl_coefficient"]),
+        )
+        if metrics["parent_kl"] > float(config["maximum_update_parent_kl"]):
+            raise PrototypeError(f"update {update} exceeded parent KL ceiling")
+        update_rows.append({
+            "update": update,
+            "st_main_decisions": len(decisions),
+            "rollout": rollout,
+            "ppo": metrics,
+        })
+    collected = started + rollout_seconds
     delta = parameter_delta(net, parent)
     if not all(math.isfinite(value) for value in (*metrics.values(), *delta.values())):
         raise PrototypeError("non-finite PPO result")
@@ -624,6 +644,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         "candidate_only": True,
         "device": str(device),
         "rollout": rollout,
+        "updates": update_rows,
         "st_main_decisions": len(decisions),
         "ppo": metrics,
         "parameter_delta": delta,
@@ -632,7 +653,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             "max_abs_value_error": max_value_error,
         },
         "timing_seconds": {
-            "rollout": collected - started,
+            "rollout": rollout_seconds,
             "total": time.time() - started,
         },
         "artifacts": {
@@ -645,18 +666,23 @@ def main(argv: Sequence[str] | None = None) -> None:
                 "sha256": sha256_file(checkpoint_path),
             },
         },
-        "prototype_gate": {
+        f"{config_key}_gate": {
             "passed": (
-                rollout["invalid"] == 0
-                and rollout["opponent"]["fallbacks"] == 0
-                and rollout["opponent"]["repairs"] == 0
-                and len(decisions) >= int(config["minimum_st_main_decisions"])
+                all(
+                    row["rollout"]["invalid"] == 0
+                    and row["rollout"]["opponent"]["fallbacks"] == 0
+                    and row["rollout"]["opponent"]["repairs"] == 0
+                    and row["st_main_decisions"]
+                        >= int(config["minimum_st_main_decisions"])
+                    and row["ppo"]["parent_kl"]
+                        <= float(config["maximum_update_parent_kl"])
+                    for row in update_rows
+                )
                 and delta["changed_parameters"] > 0
-                and metrics["parent_kl"] <= float(config["maximum_update_parent_kl"])
                 and max_logit_error <= 2e-4
                 and max_value_error <= 2e-5
             ),
-            "rule": lock["decision_rules"]["prototype"],
+            "rule": lock["decision_rules"][config_key],
         },
     }
     atomic_json(output / "result.json", result)
