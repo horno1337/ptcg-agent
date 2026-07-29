@@ -35,10 +35,11 @@ for directory in (str(ROOT), str(ROOT / "tools")):
     if directory not in sys.path:
         sys.path.insert(0, directory)
 
-from agent import model, qu_v2_features as QF  # noqa: E402
+from agent import model, qu_v2_features as RUNTIME_QF  # noqa: E402
 from agent.obsview import ObsView, ST_MAIN  # noqa: E402
 from tools.research import eval_md_v2_card_v1_gameplay as LAYERED  # noqa: E402
 from tools.research import qu_v2a_model as QM  # noqa: E402
+from tools.research import qu_v2a_features as TRAIN_QF  # noqa: E402
 from tools.research import train_qu_v2a as BC  # noqa: E402
 from tools.rl_env import (  # noqa: E402
     OpponentSpec,
@@ -278,7 +279,7 @@ def sample_selection(
 
 @dataclass
 class Decision:
-    features: QF.PublicFeatures
+    features: TRAIN_QF.PublicFeatures
     picks: tuple[int, ...]
     n_options: int
     min_count: int
@@ -300,7 +301,7 @@ def frozen_action(
 ) -> list[int]:
     view = ObsView(obs)
     active = card_net if LAYERED.CARD.supports_view(view, deck) else qu_net
-    sample = QF.encode_public_observation(obs, deck)
+    sample = RUNTIME_QF.encode_public_observation(obs, deck)
     logits, _ = active.forward(sample)
     return model.decode_qu_v2(
         logits, len(view.options), view.min_count, view.max_count,
@@ -357,7 +358,7 @@ def collect_games(
                 view = ObsView(raw)
                 if view.select_type == ST_MAIN:
                     routes["st_main"] += 1
-                    features = QF.encode_public_observation(raw, deck)
+                    features = TRAIN_QF.encode_public_observation(raw, deck)
                     batch = QM.collate([features], device=device)
                     with torch.no_grad():
                         logits, values = net(batch)
