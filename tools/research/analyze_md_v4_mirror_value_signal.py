@@ -15,6 +15,7 @@ import math
 import os
 from pathlib import Path
 import random
+import sys
 import tempfile
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -22,11 +23,14 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from tools.research import run_md_v4_resource_ppo_v1 as RESOURCE_PPO
 from tools.research import train_md_v4 as TRAIN
 
 
-ROOT = Path(__file__).resolve().parents[2]
 SCHEMA = "ptcg.md-v4.mirror-value-signal.v1"
 PREREGISTRATION = (
     ROOT
