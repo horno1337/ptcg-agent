@@ -72,8 +72,8 @@ definition. Their mismatch cannot reject or rescue this policy.
 
 During the complete pass, compute offline metrics directly from the
 authoritative NumPy candidate and the already cached frozen-parent logits using
-the original equal-per-game estimator. Open those metrics as gates only after
-complete deployment parity passes. Require:
+the original float32 sequential equations and equal-per-game estimator. Open
+those metrics as gates only after complete deployment parity passes. Require:
 
 - game-normalized `KL(parent || candidate) <= 0.02`;
 - deterministic full-action disagreement from frozen MD-v3 at least 3%; and
