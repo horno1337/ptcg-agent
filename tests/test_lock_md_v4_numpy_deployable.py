@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -78,6 +80,82 @@ def test_cross_engine_result_is_diagnostic_not_a_gate():
         contract["temporal_seal"]["replay_content_opened"]
         is False
     )
+
+
+def test_historical_prior_lock_survives_later_repository_commits():
+    diagnostic = LOCK._validate_prior_numpy_diagnostic()
+    assert diagnostic["role"] == "cross_engine_diagnostic_only"
+    assert diagnostic["gating_authority"] is False
+    assert diagnostic["relabelled_or_reversed"] is False
+    assert diagnostic["complete_population"] == {
+        "callbacks": 99_946,
+        "games": 2_090,
+        "numeric_failures": 0,
+        "maximum_absolute_logit_delta":
+            LOCK.PRIOR_MAX_LOGIT_DELTA,
+        "maximum_absolute_value_delta":
+            LOCK.PRIOR_MAX_VALUE_DELTA,
+        "decoded_action_mismatches":
+            LOCK.PRIOR_ACTION_MISMATCHES,
+    }
+
+
+def test_historical_git_binding_checks_stored_blobs_not_current_head(
+    monkeypatch,
+):
+    commit = "a" * 40
+    paths = [
+        path.resolve().relative_to(LOCK.ROOT).as_posix()
+        for path in LOCK._code_paths()
+    ]
+    blobs = {
+        path: f"frozen:{path}".encode("utf-8")
+        for path in paths
+    }
+    artifacts = {
+        path: {
+            "path": str((LOCK.ROOT / path).resolve()),
+            "bytes": len(blob),
+            "sha256": hashlib.sha256(blob).hexdigest(),
+        }
+        for path, blob in blobs.items()
+    }
+
+    def fake_run(command, **kwargs):
+        assert command[:2] == ["git", "show"]
+        assert kwargs["cwd"] == LOCK.ROOT
+        assert kwargs["check"] is True
+        assert kwargs["capture_output"] is True
+        revision, relative = command[2].split(":", 1)
+        assert revision == commit
+        return SimpleNamespace(stdout=blobs[relative])
+
+    monkeypatch.setattr(LOCK.subprocess, "run", fake_run)
+    LOCK._validate_historical_git_binding(
+        {
+            "commit": commit,
+            "code_paths_committed_and_clean": True,
+            "paths": paths,
+        },
+        artifacts,
+    )
+    corrupted = {
+        key: dict(value)
+        for key, value in artifacts.items()
+    }
+    corrupted[paths[0]]["sha256"] = "0" * 64
+    with pytest.raises(
+        LOCK.NumpyDeployableLockError,
+        match="git blob identity drifted",
+    ):
+        LOCK._validate_historical_git_binding(
+            {
+                "commit": commit,
+                "code_paths_committed_and_clean": True,
+                "paths": paths,
+            },
+            corrupted,
+        )
 
 
 def test_prior_failed_result_record_is_in_artifact_set():

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
 import platform
+import subprocess
 import sys
 from typing import Any, Mapping
 
@@ -90,7 +92,7 @@ def _load_json(path: Path, label: str) -> dict[str, Any]:
 
 def _validate_prior_numpy_diagnostic() -> dict[str, Any]:
     prior_lock = PRIOR_LOCK.load_lock(
-        PRIOR_NUMPY_LOCK, verify_artifacts=True
+        PRIOR_NUMPY_LOCK, verify_artifacts=False
     )
     if (
         PRIOR_LOCK.PRIOR_LOCK.file_sha256(PRIOR_NUMPY_LOCK)
@@ -101,6 +103,28 @@ def _validate_prior_numpy_diagnostic() -> dict[str, Any]:
         raise NumpyDeployableLockError(
             "prior NumPy-authoritative lock identity drifted"
         )
+    # Historical locks bind the HEAD that existed when they were created.
+    # Their legacy loader recomputes that field from the *current* HEAD, which
+    # makes a valid immutable lock unloadable after any later commit.  The
+    # exact lock-file hash above already fixes its stored git identity.  Verify
+    # every artifact it bound directly, without rewriting history as though
+    # the repository had never advanced.
+    prior_artifacts = prior_lock.get("artifacts")
+    if not isinstance(prior_artifacts, Mapping) or not prior_artifacts:
+        raise NumpyDeployableLockError(
+            "prior NumPy-authoritative artifact map is invalid"
+        )
+    for label, row in prior_artifacts.items():
+        if (
+            not isinstance(label, str)
+            or not isinstance(row, Mapping)
+            or PRIOR_LOCK.PRIOR_LOCK.artifact(
+                Path(str(row.get("path", "")))
+            ) != row
+        ):
+            raise NumpyDeployableLockError(
+                f"prior NumPy-authoritative artifact drifted: {label}"
+            )
     result = _load_json(
         PRIOR_NUMPY_RESULT,
         "prior NumPy-authoritative result",
@@ -239,6 +263,67 @@ def _code_paths() -> list[Path]:
         ROOT / "tests/test_md_v4_model.py",
         ROOT / "tests/test_train_md_v4.py",
     ]
+
+
+def _validate_historical_git_binding(
+    git: Any,
+    artifacts: Mapping[str, Any],
+) -> None:
+    """Prove the locked sources existed at their stored commit.
+
+    A lock's commit is historical by definition. Comparing it to the current
+    HEAD would invalidate the lock after every later commit even when every
+    bound byte remains unchanged. Current-file identity is checked by the
+    artifact map; this check independently proves those exact bytes were
+    committed at the stored source revision.
+    """
+
+    expected_paths = [
+        path.resolve().relative_to(ROOT).as_posix()
+        for path in _code_paths()
+    ]
+    if (
+        not isinstance(git, Mapping)
+        or git.get("code_paths_committed_and_clean") is not True
+        or git.get("paths") != expected_paths
+    ):
+        raise NumpyDeployableLockError(
+            "locked git path contract drifted"
+        )
+    commit = git.get("commit")
+    if (
+        not isinstance(commit, str)
+        or len(commit) != 40
+        or any(character not in "0123456789abcdef" for character in commit)
+    ):
+        raise NumpyDeployableLockError(
+            "locked git commit is invalid"
+        )
+    for relative in expected_paths:
+        row = artifacts.get(relative)
+        if not isinstance(row, Mapping):
+            raise NumpyDeployableLockError(
+                f"locked git artifact is unavailable: {relative}"
+            )
+        try:
+            blob = subprocess.run(
+                ["git", "show", f"{commit}:{relative}"],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+            ).stdout
+        except (OSError, subprocess.CalledProcessError) as error:
+            raise NumpyDeployableLockError(
+                f"cannot read locked git blob: {relative}"
+            ) from error
+        if (
+            len(blob) != row.get("bytes")
+            or hashlib.sha256(blob).hexdigest()
+                != row.get("sha256")
+        ):
+            raise NumpyDeployableLockError(
+                f"locked git blob identity drifted: {relative}"
+            )
 
 
 def numpy_environment() -> dict[str, Any]:
@@ -467,6 +552,9 @@ def load_lock(
                 raise NumpyDeployableLockError(
                     f"locked artifact drifted: {label}"
                 )
+        _validate_historical_git_binding(
+            payload.get("git"), artifacts
+        )
         candidate = _candidate_identity()
         materialization = PRIOR_LOCK.PRIOR_LOCK.artifact(
             PRIOR_LOCK.PRIOR_LOCK.MATERIALIZATION
@@ -497,8 +585,6 @@ def load_lock(
                 "lock_sha256":
                     PRIOR_LOCK.PRIOR_LOCK.ORIGINAL_TRAINING_LOCK_SHA256,
             }
-            or payload.get("git")
-                != PRIOR_LOCK.PRIOR_LOCK._git_binding(_code_paths())
         ):
             raise NumpyDeployableLockError(
                 "locked provenance/authority contract drifted"
