@@ -30,23 +30,34 @@ The audit cohort was the fixed validation split in
 `tools/checkpoints/md-v3-mirror-main-v1/corpus.json`:
 
 - 350 valid exact-deck Grimmsnarl mirrors;
-- 137,036 actor observations;
+- 137,036 seat-relative observations in the discovery census;
 - engine versions 1.32.0–1.32.2;
-- 501,989 log events, mean 3.663 and maximum 135 events per observation;
+- 501,989 discovery-census log events, mean 3.663 and maximum 135 events per
+  observation;
 - 15,310 observations with no events;
 - 8,388 `select.deck` reveals; its length equalled the actor's `deckCount` in
   every case, so it was a full current-deck reveal on this cohort;
 - 307 `current.looking` reveals, all of length 7; and
-- the opponent hand was `null` in all 137,036 actor observations.
+- the opponent hand was `null` in all 137,036 seat-relative observations.
 
-Current zones accounted for all 60 registered cards on 128,850 prompts. On
-8,186 prompts exactly one card was transiently resolving outside the ordinary
-zones. The resource bounds below therefore include an explicit
+The deployable replay pairing is a strict subset of that discovery census:
+68,481 active source observations have a valid paired next-row action and are
+therefore actor callbacks eligible for the shadow audit and training. Those
+callbacks contain 252,634 current-log events. The remaining seat observations
+are useful for discovery and privacy census counts, but are not model examples.
+
+Current zones accounted for all 60 registered cards on 128,850 discovery
+observations. On 8,186 discovery observations exactly one card was transiently
+resolving outside the ordinary zones. The resource bounds below therefore
+include an explicit
 `unaccounted_count`; they do not falsely assign a resolving card to deck or
 prizes.
 
-Thirteen log event types appeared. The two privacy-preserving pairs were
-present at useful volume:
+All 252,634 callback events used by the shadow audit and training have the
+numeric 1.32.x schema. Fourteen raw event types appear:
+`{0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 15, 16}`. The two
+privacy-preserving pairs were present at useful volume in the broader
+discovery census:
 
 - actor-visible Draw (`type=4`): 41,769 events with identity; redacted Draw
   (`type=5`): 37,975 events without identity;
@@ -116,6 +127,18 @@ The actor view must satisfy:
 Violation fails closed to frozen MD-v3; it is never repaired by reading replay
 metadata or `visualize`.
 
+Known transport-only fields such as `search_begin_input` and
+`remainingOverageTime` are ignored by the callback projector. Mutating them, or
+mutating outer replay fields that are never passed to the callback
+(`visualize`, final rewards, future steps, episode metadata, names, ranks, or
+dates), must leave feature bytes unchanged. This is distinct from injecting
+hidden or privileged material into the callback observation itself: a
+non-null opponent hand, either player's raw deck, an exact-hidden research
+payload, or equivalent privileged state must fail closed rather than produce a
+feature record. Unknown outer root metadata is ignored by the allowlist
+projector; recognized private callback locations and the exact-hidden research
+marker are rejected.
+
 ### Log sanitizer
 
 The v1 sanitizer accepts the numeric 1.32.x event schema. Legacy string events
@@ -126,8 +149,8 @@ For numeric events:
 - known types are normalized to a fixed versioned enum;
 - DrawReverse (`5`) and MoveCardReverse (`7`) always have all card identities
   zeroed;
-- an opponent Draw (`4`) has its identity zeroed even if malformed input
-  includes one;
+- a Draw (`4`) retains identity only when its actor is unambiguously `SELF`;
+  opponent or unknown-actor Draw identities are zeroed;
 - identity-bearing MoveCard (`6`) may retain the identity emitted to the actor;
   the reverse event is the engine's redacted counterpart;
 - public Play, Attach, Evolve, Switch, Attack, HP-change, discard, board,
@@ -212,6 +235,12 @@ serial is discarded afterward.
 `resource_prompt_features`: `float32[2]`: the non-negative
 `unaccounted_count` and a resource-accounting-valid flag.
 
+An accounting-valid value of zero is diagnostic only. The research encoder may
+materialize such a conservative record to expose malformed serial/count input,
+but the training materializer must exclude it and a future runtime router must
+fall through to frozen MD-v3 before invoking the MD-v4 model. The locked shadow
+audit requires the flag to equal one on every callback.
+
 For resource ID `i`:
 
 ```text
@@ -225,11 +254,13 @@ prize_lower_i = max(hidden_i - deck_count - unaccounted_count, 0)
 prize_upper_i = min(hidden_i, prize_count)
 ```
 
-When `select.deck` is a list and its length equals self `deckCount`, its
-per-ID multiset count is exact, `exact-deck-count-known=1`, and exact prize
-deck lower/upper bounds are both replaced by that count. Prize bounds are
-then tightened over `hidden_i - exact_deck_i` while retaining
-`unaccounted_count`. A malformed or partial reveal does not tighten the
+When `select.deck` is a list and its length equals self `deckCount`, every ID
+must belong to the registered list and no revealed count plus already-visible
+self count may exceed the registered copies. A violation fails closed. A
+compatible reveal's per-ID multiset count is exact,
+`exact-deck-count-known=1`, and deck lower/upper bounds are both replaced by
+that count. Prize bounds are then tightened over `hidden_i - exact_deck_i`
+while retaining `unaccounted_count`. A partial reveal does not tighten the
 bounds.
 
 All bounds must satisfy:
@@ -245,7 +276,9 @@ deck_upper_i + prize_upper_i + unaccounted_count >= hidden_i
 
 The encoder preserves the most recent `LOG_SLOTS = 64` sanitized events from
 the current observation in their engine order. It drops the oldest events if
-the array is longer.
+the array is longer. Retained events are left-aligned: the oldest retained
+event occupies slot 0, later retained events follow it, and unused trailing
+slots are padding.
 
 - `log_event_type`: `int32[64]`;
 - `log_actor_role`: `int32[64]` (`0=PAD`, `1=SELF`, `2=OPPONENT`,
@@ -257,10 +290,11 @@ the array is longer.
 - `log_features`: `float32[64, 8]` for signed value (clipped to
   `[-340, 340] / 340`), `putDamageCounter`, `hasBasicPokemon`, coin `head`,
   `isRecover`, redacted-event flag, position within the untruncated event
-  batch, and schema-present sentinel;
+  batch as `clip((original_index + 1) / 255, 0, 1)` for the zero-based original
+  index, and schema-present sentinel;
 - `log_mask`: `bool[64]`; and
-- three prompt scalars: raw log count clipped at 255, dropped-event count
-  clipped at 255, and truncation flag.
+- `log_prompt_features`: `float32[3]` for raw log count clipped at 255,
+  dropped-event count clipped at 255, and truncation flag.
 
 Padding is all zero. Attack IDs require a separate bounded attack embedding or
 static attack encoder; they must never index the card embedding table.
@@ -317,7 +351,10 @@ from one game cannot cross train/validation boundaries.
 Implement the encoder research-only and run it over the same frozen 350-game
 validation cohort. Lock an audit JSON that reports:
 
-- game, prompt, log-event, and truncation counts;
+- the 350-game, 137,036-seat-observation, and 501,989-event discovery-census
+  counts separately from the 68,481 strict actor callbacks and their 252,634
+  current-log events;
+- callback prompt and log-truncation counts;
 - tensor shape, dtype, range, and finite-value checks;
 - all resource-bound invariant failures;
 - `select.deck` length versus actor `deckCount`;
@@ -333,9 +370,12 @@ The audit passes only with:
 - zero malformed feature records;
 - zero resource-bound failures;
 - zero opponent Draw/Reverse-event identities after sanitization;
-- byte-identical features after mutating `visualize`,
-  `search_begin_input`, opponent hidden-state fixtures, final rewards, future
-  steps, episode metadata, and absolute seat labels;
+- byte-identical features after mutating ignored callback transport fields,
+  outer `visualize`, final rewards, future steps, episode metadata, and
+  equivalent absolute-seat labels while preserving actor-relative state;
+- fail-closed behavior, with no feature record, after injecting opponent
+  hidden-state fixtures or other privileged material into the callback
+  observation;
 - byte-identical features for repeated calls before and after encoding an
   unrelated game; and
 - byte-identical offline/runtime golden samples.
