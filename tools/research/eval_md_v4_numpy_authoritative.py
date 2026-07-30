@@ -6,7 +6,6 @@ import argparse
 from datetime import datetime, timezone
 import json
 import math
-import os
 from pathlib import Path
 import tempfile
 from typing import Any, Mapping
@@ -44,14 +43,12 @@ def _write_json_no_replace(
 ) -> None:
     body = dict(payload)
     body[hash_key] = LOCK.PRIOR_LOCK.value_sha256(body)
-    if path.exists():
+    try:
+        TRAIN._atomic_json(body, path, replace=False)
+    except TRAIN.MDV4TrainingError as error:
         raise NumpyAuthoritativeEvaluationError(
             f"refusing to replace artifact: {path}"
-        )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(
-        LOCK.PRIOR_LOCK.canonical_json(body) + b"\n"
-    )
+        ) from error
 
 
 def _load_reference(
@@ -270,18 +267,28 @@ def _numpy_log_softmax(
     logits: np.ndarray, legal: np.ndarray
 ) -> np.ndarray:
     masked = np.where(
-        legal, np.asarray(logits, dtype=np.float64), -np.inf
-    )
-    maximum = float(np.max(masked))
-    if not math.isfinite(maximum):
+        legal,
+        np.asarray(logits, dtype=np.float32),
+        np.float32(-np.inf),
+    ).astype(np.float32, copy=False)
+    maximum = np.max(masked)
+    if not np.isfinite(maximum):
         raise NumpyAuthoritativeEvaluationError(
             "sequential metric has no legal action"
         )
-    shifted = masked - maximum
-    normalizer = maximum + math.log(
-        float(np.exp(shifted[legal]).sum())
+    shifted = (masked - maximum).astype(
+        np.float32, copy=False
     )
-    return masked - normalizer
+    exponential = np.exp(shifted[legal]).astype(
+        np.float32, copy=False
+    )
+    summed = np.sum(exponential, dtype=np.float32)
+    normalizer = np.float32(
+        maximum + np.float32(np.log(summed))
+    )
+    return (masked - normalizer).astype(
+        np.float32, copy=False
+    )
 
 
 def _numpy_sequence_terms(
@@ -291,10 +298,10 @@ def _numpy_sequence_terms(
 ) -> tuple[float, float]:
     n_opts = sample.n_opts
     candidate = np.asarray(
-        candidate_logits[:n_opts + 1], dtype=np.float64
+        candidate_logits[:n_opts + 1], dtype=np.float32
     )
     parent = np.asarray(
-        parent_logits[:n_opts + 1], dtype=np.float64
+        parent_logits[:n_opts + 1], dtype=np.float32
     )
     if (
         candidate.shape != (n_opts + 1,)
@@ -314,8 +321,8 @@ def _numpy_sequence_terms(
     if len(sequence) < effective_max:
         sequence.append(n_opts)
     available = np.ones(n_opts + 1, dtype=np.bool_)
-    nll = 0.0
-    kl = 0.0
+    nll = np.float32(0.0)
+    kl = np.float32(0.0)
     for step, action in enumerate(sequence):
         legal = available.copy()
         legal[n_opts] = step >= effective_min
@@ -323,24 +330,32 @@ def _numpy_sequence_terms(
             candidate, legal
         )
         parent_log = _numpy_log_softmax(parent, legal)
-        nll -= float(candidate_log[action])
-        probability = np.zeros_like(parent_log)
+        nll = np.float32(
+            nll - candidate_log[action]
+        )
+        probability = np.zeros_like(
+            parent_log, dtype=np.float32
+        )
         probability[legal] = np.exp(parent_log[legal])
-        kl += float(np.sum(
-            probability[legal]
-            * (
-                parent_log[legal]
-                - candidate_log[legal]
-            )
-        ))
+        term = np.sum(
+            (
+                probability[legal]
+                * (
+                    parent_log[legal]
+                    - candidate_log[legal]
+                )
+            ).astype(np.float32, copy=False),
+            dtype=np.float32,
+        )
+        kl = np.float32(kl + term)
         if action == n_opts:
             break
         available[action] = False
-    if not math.isfinite(nll) or not math.isfinite(kl):
+    if not np.isfinite(nll) or not np.isfinite(kl):
         raise NumpyAuthoritativeEvaluationError(
             "sequential NumPy metric is non-finite"
         )
-    return nll, kl
+    return float(nll), float(kl)
 
 
 def _verify_staged_bundle(
@@ -515,14 +530,21 @@ def _publish_bundle(
     manifest["manifest_sha256"] = (
         LOCK.PRIOR_LOCK.value_sha256(manifest)
     )
-    manifest_path.write_bytes(
-        LOCK.PRIOR_LOCK.canonical_json(manifest) + b"\n"
+    TRAIN._atomic_json(
+        manifest, manifest_path, replace=False
     )
     _verify_staged_bundle(
         staging,
         lock["candidate"]["numpy_array_mapping_sha256"],
     )
-    os.rename(staging, BUNDLE)
+    try:
+        TRAIN._publish_directory_exclusive(
+            staging, BUNDLE
+        )
+    except TRAIN.MDV4TrainingError as error:
+        raise NumpyAuthoritativeEvaluationError(
+            f"exclusive bundle publication failed: {error}"
+        ) from error
     records = _verify_staged_bundle(
         BUNDLE,
         lock["candidate"]["numpy_array_mapping_sha256"],
@@ -550,15 +572,15 @@ def evaluate(
         lock_path, verify_artifacts=True
     )
     reference_contract = lock["reference_execution"]
-    if (
-        reference_contract.get("device") != "cpu"
-        or torch.__version__
-            != reference_contract["torch_version"]
-    ):
+    if reference_contract != LOCK.reference_environment():
         raise NumpyAuthoritativeEvaluationError(
             "locked explicit-FP32 CPU environment drifted"
         )
     TRAIN._seed_everything()
+    if not torch.are_deterministic_algorithms_enabled():
+        raise NumpyAuthoritativeEvaluationError(
+            "deterministic Torch algorithms are not enabled"
+        )
     device = torch.device("cpu")
     config = TRAIN.TrainingConfig(
         lock_path=TRAIN.TRAINING_LOCK_PATH,

@@ -5,10 +5,13 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
+import platform
 import sys
 from typing import Any, Mapping
 
+import numpy as np
 import torch
 
 
@@ -166,8 +169,8 @@ def _candidate_identity() -> dict[str, Any]:
     }
 
 
-def create_lock() -> dict[str, Any]:
-    code_paths = [
+def _code_paths() -> list[Path]:
+    return [
         PREREGISTRATION,
         REFERENCE_SOURCE,
         REFERENCE_TEST,
@@ -181,6 +184,103 @@ def create_lock() -> dict[str, Any]:
         ROOT / "tests/test_md_v4_model.py",
         ROOT / "tests/test_train_md_v4.py",
     ]
+
+
+def reference_environment() -> dict[str, Any]:
+    return {
+        "device": "cpu",
+        "dtype": "float32",
+        "python_version": platform.python_version(),
+        "python_implementation":
+            platform.python_implementation(),
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "torch_version": torch.__version__,
+        "torch_num_threads": torch.get_num_threads(),
+        "torch_num_interop_threads":
+            torch.get_num_interop_threads(),
+        "numpy_version": np.__version__,
+        "numpy_configuration":
+            np.__config__.show(mode="dicts"),
+        "thread_environment": {
+            name: os.environ.get(name)
+            for name in (
+                "OMP_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "OPENBLAS_NUM_THREADS",
+                "NUMEXPR_NUM_THREADS",
+            )
+        },
+        "single_observation_only": True,
+        "nn_gru_forward_allowed": False,
+        "cudnn_rnn_allowed": False,
+        "deterministic_algorithms_required": True,
+    }
+
+
+def _fixed_contract(
+    candidate: Mapping[str, Any],
+    materialization: Mapping[str, Any],
+    temporal: Mapping[str, Any],
+) -> dict[str, Any]:
+    return {
+        "candidate": {
+            "name": "md-v4-numpy-authoritative-v1",
+            **dict(candidate),
+            "alternate_reference_numpy_epoch_seed_allowed":
+                False,
+            "retraining_allowed": False,
+        },
+        "materialization": {
+            **dict(materialization),
+            "validation_callbacks":
+                EXPECTED_VALIDATION_CALLBACKS,
+            "validation_games": EXPECTED_VALIDATION_GAMES,
+        },
+        "reference_execution": reference_environment(),
+        "deployment_parity_gate": {
+            "population":
+                "complete_locked_validation_in_canonical_order",
+            "callbacks": EXPECTED_VALIDATION_CALLBACKS,
+            "games": EXPECTED_VALIDATION_GAMES,
+            "reference_batch_size": 1,
+            "logit_atol": 3e-5,
+            "logit_rtol": 1e-5,
+            "value_atol_strict": 2e-5,
+            "maximum_numeric_failures": 0,
+            "maximum_decoded_action_mismatches": 0,
+        },
+        "offline_rejection_gates": {
+            "metric_implementation":
+                "authoritative_numpy_float32_sequential_v1",
+            "maximum_parent_kl_inclusive": 0.02,
+            "minimum_decision_disagreement_fraction_inclusive":
+                0.03,
+            "minimum_games_touched_fraction_inclusive": 0.50,
+            "evaluated_only_after_full_parity_pass": True,
+        },
+        "official_output_namespace": {
+            "attempt": str(ATTEMPT.resolve()),
+            "result": str(RESULT.resolve()),
+            "candidate_bundle":
+                str(CANDIDATE_BUNDLE.resolve()),
+            "one_attempt_only": True,
+            "replacement_allowed": False,
+        },
+        "temporal_seal": {
+            "archive": dict(temporal),
+            "central_directory_inventory_sha256":
+                PRIOR_LOCK.JULY29_CENTRAL_INVENTORY_SHA256,
+            "entries": 4_387,
+            "json_entries": 4_386,
+            "uncompressed_bytes": 21_474_480_425,
+            "replay_content_opened": False,
+        },
+    }
+
+
+def create_lock() -> dict[str, Any]:
+    code_paths = _code_paths()
     prior = _validate_prior_failure()
     candidate = _candidate_identity()
     materialization = PRIOR_LOCK.artifact(
@@ -210,6 +310,9 @@ def create_lock() -> dict[str, Any]:
             PRIOR_LOCK.artifact(path)
         for path in code_paths
     }
+    fixed = _fixed_contract(
+        candidate, materialization, temporal
+    )
     payload: dict[str, Any] = {
         "schema": LOCK_SCHEMA,
         "created_at_utc": datetime.now(
@@ -218,13 +321,7 @@ def create_lock() -> dict[str, Any]:
         "prospective": True,
         "promotion_authority": False,
         "upload_authority": False,
-        "candidate": {
-            "name": "md-v4-numpy-authoritative-v1",
-            **candidate,
-            "alternate_reference_numpy_epoch_seed_allowed":
-                False,
-            "retraining_allowed": False,
-        },
+        "candidate": fixed["candidate"],
         "prior_failed_route": prior,
         "original_training_lock": {
             **PRIOR_LOCK.artifact(
@@ -233,55 +330,16 @@ def create_lock() -> dict[str, Any]:
             "lock_sha256":
                 PRIOR_LOCK.ORIGINAL_TRAINING_LOCK_SHA256,
         },
-        "materialization": {
-            **materialization,
-            "validation_callbacks":
-                EXPECTED_VALIDATION_CALLBACKS,
-            "validation_games": EXPECTED_VALIDATION_GAMES,
-        },
-        "reference_execution": {
-            "device": "cpu",
-            "dtype": "float32",
-            "torch_version": torch.__version__,
-            "nn_gru_forward_allowed": False,
-            "cudnn_rnn_allowed": False,
-            "deterministic_algorithms_required": True,
-        },
-        "deployment_parity_gate": {
-            "population":
-                "complete_locked_validation_in_canonical_order",
-            "callbacks": EXPECTED_VALIDATION_CALLBACKS,
-            "games": EXPECTED_VALIDATION_GAMES,
-            "logit_atol": 3e-5,
-            "logit_rtol": 1e-5,
-            "value_atol_strict": 2e-5,
-            "maximum_numeric_failures": 0,
-            "maximum_decoded_action_mismatches": 0,
-        },
-        "offline_rejection_gates": {
-            "maximum_parent_kl_inclusive": 0.02,
-            "minimum_decision_disagreement_fraction_inclusive":
-                0.03,
-            "minimum_games_touched_fraction_inclusive": 0.50,
-            "evaluated_only_after_full_parity_pass": True,
-        },
-        "official_output_namespace": {
-            "attempt": str(ATTEMPT.resolve()),
-            "result": str(RESULT.resolve()),
-            "candidate_bundle":
-                str(CANDIDATE_BUNDLE.resolve()),
-            "one_attempt_only": True,
-            "replacement_allowed": False,
-        },
-        "temporal_seal": {
-            "archive": temporal,
-            "central_directory_inventory_sha256":
-                PRIOR_LOCK.JULY29_CENTRAL_INVENTORY_SHA256,
-            "entries": 4_387,
-            "json_entries": 4_386,
-            "uncompressed_bytes": 21_474_480_425,
-            "replay_content_opened": False,
-        },
+        "materialization": fixed["materialization"],
+        "reference_execution":
+            fixed["reference_execution"],
+        "deployment_parity_gate":
+            fixed["deployment_parity_gate"],
+        "offline_rejection_gates":
+            fixed["offline_rejection_gates"],
+        "official_output_namespace":
+            fixed["official_output_namespace"],
+        "temporal_seal": fixed["temporal_seal"],
         "artifacts": artifacts,
         "git": PRIOR_LOCK._git_binding(code_paths),
     }
@@ -326,15 +384,54 @@ def load_lock(
                 raise NumpyAuthoritativeLockError(
                     f"locked artifact drifted: {label}"
                 )
-        if payload.get("candidate") != {
-            "name": "md-v4-numpy-authoritative-v1",
-            **_candidate_identity(),
-            "alternate_reference_numpy_epoch_seed_allowed":
-                False,
-            "retraining_allowed": False,
-        }:
+        candidate = _candidate_identity()
+        materialization = PRIOR_LOCK.artifact(
+            PRIOR_LOCK.MATERIALIZATION
+        )
+        temporal = PRIOR_LOCK.artifact(
+            PRIOR_LOCK.JULY29_ARCHIVE
+        )
+        if (
+            materialization["sha256"]
+                != PRIOR_LOCK.MATERIALIZATION_FILE_SHA256
+            or temporal["sha256"]
+                != PRIOR_LOCK.JULY29_ARCHIVE_SHA256
+            or temporal["bytes"]
+                != PRIOR_LOCK.JULY29_ARCHIVE_BYTES
+        ):
+            raise NumpyAuthoritativeLockError(
+                "locked materialization/temporal identity drifted"
+            )
+        fixed = _fixed_contract(
+            candidate, materialization, temporal
+        )
+        for name, expected in fixed.items():
+            if payload.get(name) != expected:
+                raise NumpyAuthoritativeLockError(
+                    f"locked contract drifted: {name}"
+                )
+        if payload.get("candidate") != fixed["candidate"]:
             raise NumpyAuthoritativeLockError(
                 "locked candidate identity drifted"
+            )
+        if (
+            payload.get("prospective") is not True
+            or payload.get("promotion_authority") is not False
+            or payload.get("upload_authority") is not False
+            or payload.get("prior_failed_route")
+                != _validate_prior_failure()
+            or payload.get("original_training_lock") != {
+                **PRIOR_LOCK.artifact(
+                    PRIOR_LOCK.TRAINING_LOCK
+                ),
+                "lock_sha256":
+                    PRIOR_LOCK.ORIGINAL_TRAINING_LOCK_SHA256,
+            }
+            or payload.get("git")
+                != PRIOR_LOCK._git_binding(_code_paths())
+        ):
+            raise NumpyAuthoritativeLockError(
+                "locked provenance/authority contract drifted"
             )
     return payload
 
@@ -350,9 +447,7 @@ def main() -> int:
         )
     payload = create_lock()
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_bytes(
-        PRIOR_LOCK.canonical_json(payload) + b"\n"
-    )
+    TRAIN._atomic_json(payload, output, replace=False)
     loaded = load_lock(output)
     print(json.dumps({
         "path": str(output),
