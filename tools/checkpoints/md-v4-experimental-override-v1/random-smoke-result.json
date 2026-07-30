@@ -1,0 +1,4760 @@
+{
+  "controller": {
+    "calls": 11390,
+    "latency_ms": {
+      "max": 15.134252025745809,
+      "mean": 2.1358112009155095,
+      "p50": 1.4260340249165893,
+      "p95": 3.853596979752183
+    },
+    "md_v4": {
+      "counters": {
+        "calls": 5267,
+        "eligible_calls": 5267,
+        "load_attempts": 1,
+        "load_successes": 1,
+        "routes": 5267
+      },
+      "enabled_by_default": true,
+      "load_attempted": true,
+      "loaded": true,
+      "target_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+      "weights_file_sha256": "5ecfbece28822545102f046450d8b8008837d135875542ddf991ad4021a45d1f",
+      "weights_mapping_sha256": "e9042f980581355bf172f6aafb9b2fd9752b9e1873157d3feb22be17e21b7e01"
+    },
+    "model_calls": 11390,
+    "model_none": 0,
+    "name": "md-v4/exact-tarball-random-smoke",
+    "repairs": 0
+  },
+  "created_at": "2026-07-30T16:59:01.795966+00:00",
+  "decision": {
+    "passed": true,
+    "rule": "all 200 games terminate cleanly; zero agent, engine, or infrastructure faults; zero legality repairs; zero whole-model rules fallbacks; and MD-v4 routes at least one ST_MAIN prompt with zero load, feature, or inference failures",
+    "strength_claim": false
+  },
+  "environment": {
+    "dependencies": {
+      "attacks_data": {
+        "path": "data/attacks.json",
+        "sha256": "847ed9823c09eb8d337d4eaf97e590084996bbd8c7ffc489b52c731e0980b4d9"
+      },
+      "battle_engine": {
+        "path": "engine/libcg.so",
+        "sha256": "73cc06473da0645d87d3c820ddec3c078610d95c24ee1080efcd98ef50650db7"
+      },
+      "cabt": {
+        "path": "tools/cabt.py",
+        "sha256": "4fec5e0e654348affd3dbbe783c34ebdc8ee63127025645909bbce521b3627c3"
+      },
+      "cards": {
+        "path": "../../../../../tmp/md-v4-experimental-smoke-run-mq22k89u/submission/agent/cards.py",
+        "sha256": "368a79420473eb090d88bcf9b886e105c123119426ae6434769c92a2d95c250a"
+      },
+      "cards_data": {
+        "path": "data/cards.json",
+        "sha256": "f6442b596e9cacab1192e19aa66e4df4e802bf561446c6a771146b435cac9089"
+      },
+      "features": {
+        "path": "../../../../../tmp/md-v4-experimental-smoke-run-mq22k89u/submission/agent/features.py",
+        "sha256": "d3d8eb8f43bbb86315fb30f17d002e0c7ec1ca5f2b9843dfa6fb6b70867a27e9"
+      },
+      "meta_decks": {
+        "path": "../../../../../tmp/md-v4-experimental-smoke-run-mq22k89u/submission/decks/deck.csv",
+        "sha256": "92b92bac9f9163ecff933b3dc39294d2cc154c8684f3c8497877661419ebc59d"
+      },
+      "model": {
+        "path": "../../../../../tmp/md-v4-experimental-smoke-run-mq22k89u/submission/agent/model.py",
+        "sha256": "238a21d2830ae067178d01913e7fa5092bd33aa38cb6d34ffc936fef769556ef"
+      },
+      "obsview": {
+        "path": "../../../../../tmp/md-v4-experimental-smoke-run-mq22k89u/submission/agent/obsview.py",
+        "sha256": "d04119a25f3f569e22276a0a8d48824c23fa0cbbb7b080f265651a5ee712dc72"
+      },
+      "policy": {
+        "path": "../../../../../tmp/md-v4-experimental-smoke-run-mq22k89u/submission/agent/policy.py",
+        "sha256": "4319c469dc2f9e3fa9e4a5665bc426be30488750cdfcf2ef2b81bbd071cf7f10"
+      },
+      "rl_env": {
+        "path": "tools/rl_env.py",
+        "sha256": "7c081cff1d59e5c59d4fe214ec38a7306735c77b60d47f6821c8898413b947bb"
+      }
+    },
+    "engine_rng_seedable": false,
+    "env_version": 1,
+    "feature_version": 3,
+    "learner_deck_sha256": "cafa7652a6349be806d8ac2b9abfdb6c72ca3821f368e0d912e2d989f3b54cdd",
+    "opponents": [
+      {
+        "deck_sha256": "cafa7652a6349be806d8ac2b9abfdb6c72ca3821f368e0d912e2d989f3b54cdd",
+        "index": 0,
+        "key": "grimmsnarl/random-legal",
+        "policy_id": "random-legal:tools.rl_env.v1",
+        "schedule_group": "random-legal",
+        "weight": 1.0
+      }
+    ],
+    "reproducibility": "schedule-only; native engine RNG is unseedable"
+  },
+  "promotion_authority": false,
+  "records": [
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 0,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 0,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997091960977,
+        599.7885533251101
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        45,
+        94
+      ],
+      "selects": 139,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 1,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 0,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9170214240439,
+        599.9999633910484
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        41,
+        4
+      ],
+      "selects": 45,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 2,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 1,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998443980585,
+        599.8638055957272
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        22,
+        60
+      ],
+      "selects": 82,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 3,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 1,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8701572860009,
+        599.9998439699993
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        57,
+        21
+      ],
+      "selects": 78,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 4,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 2,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999177370337,
+        599.9518685971852
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        13,
+        25
+      ],
+      "selects": 38,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 5,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 2,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9073952079052,
+        599.9999012750341
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        46,
+        14
+      ],
+      "selects": 60,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 6,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 3,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999807168846,
+        599.860521207971
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        33,
+        64
+      ],
+      "selects": 97,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 7,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 3,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9536798851914,
+        599.9999730890268
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        26,
+        3
+      ],
+      "selects": 29,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 8,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 4,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8728146557696,
+        599.999785750173
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        68,
+        39
+      ],
+      "selects": 107,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 9,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 4,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998488949495,
+        599.8752563169692
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        26,
+        63
+      ],
+      "selects": 89,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 10,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 5,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999798311037,
+        599.8680850708042
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        34,
+        66
+      ],
+      "selects": 100,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 11,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 5,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8949751531472,
+        599.9998783131014
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        47,
+        18
+      ],
+      "selects": 65,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 12,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 6,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9136042770115,
+        599.9999324118835
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        43,
+        8
+      ],
+      "selects": 51,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 13,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 6,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997884029872,
+        599.8378596850671
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        31,
+        68
+      ],
+      "selects": 99,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 14,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 7,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997284127166,
+        599.8655951637193
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        50,
+        65
+      ],
+      "selects": 115,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 15,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 7,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7802594486275,
+        599.9997479661833
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        92,
+        37
+      ],
+      "selects": 129,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 16,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 8,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8632614979288,
+        599.9998506529955
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        65,
+        25
+      ],
+      "selects": 90,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 17,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 8,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999595929985,
+        599.9521748030093
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        4,
+        26
+      ],
+      "selects": 30,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 18,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 9,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999029190512,
+        599.896785556979
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        12,
+        52
+      ],
+      "selects": 64,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 19,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 9,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7247392536956,
+        599.9997462602332
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        136,
+        41
+      ],
+      "selects": 177,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 20,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 10,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9014719670522,
+        599.9999420329696
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        47,
+        7
+      ],
+      "selects": 54,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 21,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 10,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998435738962,
+        599.8715535566444
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        25,
+        57
+      ],
+      "selects": 82,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 22,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 11,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9996965386672,
+        599.8613766780472
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        51,
+        56
+      ],
+      "selects": 107,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 23,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 11,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8988092266372,
+        599.9999199101003
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        51,
+        10
+      ],
+      "selects": 61,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 24,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 12,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7991045710514,
+        599.999681118119
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        101,
+        56
+      ],
+      "selects": 157,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 25,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 12,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997579339542,
+        599.8640043168562
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        45,
+        66
+      ],
+      "selects": 111,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 26,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 13,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8807218483416,
+        599.9998344009509
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        54,
+        26
+      ],
+      "selects": 80,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 27,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 13,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997356242966,
+        599.8697754990426
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        38,
+        59
+      ],
+      "selects": 97,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 28,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 14,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999850652006,
+        599.8405930663575
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        20,
+        77
+      ],
+      "selects": 97,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 29,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 14,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7483433837187,
+        599.9993461641134
+      ],
+      "result": "loss",
+      "reward": -1.0,
+      "seat_selects": [
+        98,
+        104
+      ],
+      "selects": 202,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 30,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 15,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999712360441,
+        599.9551654870738
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        4,
+        23
+      ],
+      "selects": 27,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 31,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 15,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9413105371059,
+        599.9999793809839
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        32,
+        2
+      ],
+      "selects": 34,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 32,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 16,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997928509256,
+        599.8756105029606
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        37,
+        54
+      ],
+      "selects": 91,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 33,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 16,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7876895301742,
+        599.9996354678879
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        96,
+        61
+      ],
+      "selects": 157,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 34,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 17,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999738831073,
+        599.8839866929338
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        45,
+        51
+      ],
+      "selects": 96,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 35,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 17,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9273210550309,
+        599.9999291159329
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        35,
+        10
+      ],
+      "selects": 45,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 36,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 18,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.917191712826,
+        599.9999015949434
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        40,
+        14
+      ],
+      "selects": 54,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 37,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 18,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9996926067397,
+        599.86295354506
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        54,
+        58
+      ],
+      "selects": 112,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 38,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 19,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999094290542,
+        599.8787614975008
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        11,
+        57
+      ],
+      "selects": 68,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 39,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 19,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7661977140233,
+        599.9997609782731
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        108,
+        33
+      ],
+      "selects": 141,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 40,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 20,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8830459858291,
+        599.9998082190868
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        56,
+        34
+      ],
+      "selects": 90,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 41,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 20,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999371649465,
+        599.9368623938062
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        10,
+        32
+      ],
+      "selects": 42,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 42,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 21,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998855760205,
+        599.9241194589413
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        20,
+        38
+      ],
+      "selects": 58,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 43,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 21,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8474844621378,
+        599.9996428820887
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        67,
+        61
+      ],
+      "selects": 128,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 44,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 22,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8368663679576,
+        599.9997555582668
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        80,
+        42
+      ],
+      "selects": 122,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 45,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 22,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998670790228,
+        599.9396936039557
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        25,
+        32
+      ],
+      "selects": 57,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 46,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 23,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999870976957,
+        599.9110438263742
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        20,
+        41
+      ],
+      "selects": 61,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 47,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 23,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8671816648566,
+        599.9997191888979
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        63,
+        48
+      ],
+      "selects": 111,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 48,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 24,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8341933363117,
+        599.9997676338535
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        79,
+        38
+      ],
+      "selects": 117,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 49,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 24,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998199220863,
+        599.8873879357707
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        26,
+        57
+      ],
+      "selects": 83,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 50,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 25,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9099806610611,
+        599.9998198426911
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        41,
+        30
+      ],
+      "selects": 71,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 51,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 25,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9991479602177,
+        599.674769853882
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        144,
+        121
+      ],
+      "selects": 265,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 52,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 26,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9317895281129,
+        599.999902356125
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        34,
+        13
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 53,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 26,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997889061342,
+        599.8477534310659
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        33,
+        77
+      ],
+      "selects": 110,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 54,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 27,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9493764329818,
+        599.9999696130399
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        29,
+        4
+      ],
+      "selects": 33,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 55,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 27,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999089891207,
+        599.9108711712179
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        14,
+        46
+      ],
+      "selects": 60,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 56,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 28,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9516062430339,
+        599.9999571889639
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        26,
+        6
+      ],
+      "selects": 32,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 57,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 28,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999086469761,
+        599.9422084258404
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        12,
+        26
+      ],
+      "selects": 38,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 58,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 29,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9994359429111,
+        599.6876994493068
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        93,
+        136
+      ],
+      "selects": 229,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 59,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 29,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.911514776235,
+        599.9999351879233
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        39,
+        8
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 60,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 30,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8760804762132,
+        599.9998821779736
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        54,
+        17
+      ],
+      "selects": 71,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 61,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 30,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999272929854,
+        599.9223516720231
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        9,
+        38
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 62,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 31,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9996612198884,
+        599.8523020271095
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        59,
+        66
+      ],
+      "selects": 125,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 63,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 31,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8749577649287,
+        599.9997372721555
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        60,
+        43
+      ],
+      "selects": 103,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 64,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 32,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9533340019989,
+        599.9999646649812
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        24,
+        4
+      ],
+      "selects": 28,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 65,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 32,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997312649502,
+        599.870416402875
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        46,
+        57
+      ],
+      "selects": 103,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 66,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 33,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8955871048965,
+        599.9999028380844
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        52,
+        15
+      ],
+      "selects": 67,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 67,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 33,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998932830058,
+        599.8465575998416
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        15,
+        75
+      ],
+      "selects": 90,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 68,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 34,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998560908134,
+        599.8867195327766
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        19,
+        52
+      ],
+      "selects": 71,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 69,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 34,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9647385289427,
+        599.9999556549592
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        20,
+        7
+      ],
+      "selects": 27,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 70,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 35,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9994879011065,
+        599.7371938826982
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        86,
+        118
+      ],
+      "selects": 204,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 71,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 35,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9442894040258,
+        599.9999702849891
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        28,
+        4
+      ],
+      "selects": 32,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 72,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 36,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9216180990334,
+        599.9999467189773
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        40,
+        7
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 73,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 36,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999249391258,
+        599.9131446490646
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        11,
+        44
+      ],
+      "selects": 55,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 74,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 37,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.940099933825,
+        599.9999106821488
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        31,
+        16
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 75,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 37,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999606978963,
+        599.9644298149506
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        6,
+        20
+      ],
+      "selects": 26,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 76,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 38,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999788323883,
+        599.8965387789649
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        33,
+        49
+      ],
+      "selects": 82,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 77,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 38,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8724093716592,
+        599.9998634939548
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        65,
+        22
+      ],
+      "selects": 87,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 78,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 39,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7888727830723,
+        599.9997447459027
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        87,
+        36
+      ],
+      "selects": 123,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 79,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 39,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998293920071,
+        599.8715981657733
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        27,
+        58
+      ],
+      "selects": 85,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 80,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 40,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.866465801897,
+        599.9998257730622
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        59,
+        23
+      ],
+      "selects": 82,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 81,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 40,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9995988602168,
+        599.8348147558281
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        57,
+        68
+      ],
+      "selects": 125,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 82,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 41,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9055140130222,
+        599.9999249499524
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        46,
+        10
+      ],
+      "selects": 56,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 83,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 41,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997771030175,
+        599.828014030878
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        35,
+        71
+      ],
+      "selects": 106,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 84,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 42,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.920329193119,
+        599.9999438050436
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        33,
+        9
+      ],
+      "selects": 42,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 85,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 42,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997340321424,
+        599.8322806339129
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        39,
+        73
+      ],
+      "selects": 112,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 86,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 43,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999833680049,
+        599.8942606131895
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        29,
+        51
+      ],
+      "selects": 80,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 87,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 43,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.885525188176,
+        599.9997290137107
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        56,
+        46
+      ],
+      "selects": 102,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 88,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 44,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999911602994,
+        599.8937017041026
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        11,
+        54
+      ],
+      "selects": 65,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 89,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 44,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9314531020937,
+        599.9999538640259
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        32,
+        7
+      ],
+      "selects": 39,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 90,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 45,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999044918804,
+        599.8796006889897
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        14,
+        51
+      ],
+      "selects": 65,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 91,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 45,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9145421640715,
+        599.9998162969714
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        42,
+        29
+      ],
+      "selects": 71,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 92,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 46,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8062220671563,
+        599.9996561791049
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        83,
+        54
+      ],
+      "selects": 137,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 93,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 46,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998029510607,
+        599.8425811468624
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        27,
+        69
+      ],
+      "selects": 96,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 94,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 47,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8854705300182,
+        599.9999085879535
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        51,
+        10
+      ],
+      "selects": 61,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 95,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 47,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997718950035,
+        599.8440952710225
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        30,
+        72
+      ],
+      "selects": 102,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 96,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 48,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999138489948,
+        599.9326702510589
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        14,
+        31
+      ],
+      "selects": 45,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 97,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 48,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9162726709037,
+        599.9999738800107
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        37,
+        2
+      ],
+      "selects": 39,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 98,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 49,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.894059051876,
+        599.9998752649408
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        50,
+        17
+      ],
+      "selects": 67,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 99,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 49,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999303770019,
+        599.9248019250226
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        9,
+        34
+      ],
+      "selects": 43,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 100,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 50,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997550229309,
+        599.794237088121
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        38,
+        98
+      ],
+      "selects": 136,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 101,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 50,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9078349737683,
+        599.9999111639336
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        42,
+        14
+      ],
+      "selects": 56,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 102,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 51,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8892668221379,
+        599.9997873930843
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        55,
+        34
+      ],
+      "selects": 89,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 103,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 51,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999723480432,
+        599.9511710069492
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        3,
+        26
+      ],
+      "selects": 29,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 104,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 52,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997435879777,
+        599.8568049577298
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        43,
+        62
+      ],
+      "selects": 105,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 105,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 52,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8777094458928,
+        599.9998586967704
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        55,
+        23
+      ],
+      "selects": 78,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 106,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 53,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997993471916,
+        599.8527020171168
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        33,
+        72
+      ],
+      "selects": 105,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 107,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 53,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9474362741457,
+        599.9999599750154
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        28,
+        5
+      ],
+      "selects": 33,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 108,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 54,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999589740182,
+        599.9366120960331
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        5,
+        31
+      ],
+      "selects": 36,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 109,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 54,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8760485757375,
+        599.9998215438682
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        56,
+        27
+      ],
+      "selects": 83,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 110,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 55,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9565020048758,
+        599.9999778280035
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        24,
+        2
+      ],
+      "selects": 26,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 111,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 55,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999157919665,
+        599.9434356720885
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        12,
+        25
+      ],
+      "selects": 37,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 112,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 56,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8107470871182,
+        599.9998047621339
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        89,
+        32
+      ],
+      "selects": 121,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 113,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 56,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9991253790213,
+        599.7061764401733
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        134,
+        119
+      ],
+      "selects": 253,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 114,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 57,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997627672274,
+        599.8615789908217
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        36,
+        64
+      ],
+      "selects": 100,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 115,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 57,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9674708378734,
+        599.9999458079692
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        18,
+        7
+      ],
+      "selects": 25,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 116,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 58,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998777608853,
+        599.91910896427
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        16,
+        37
+      ],
+      "selects": 53,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 117,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 58,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8767347029061,
+        599.9999540930148
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        53,
+        4
+      ],
+      "selects": 57,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 118,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 59,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997760718688,
+        599.8428407854517
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        29,
+        68
+      ],
+      "selects": 97,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 119,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 59,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8569321220275,
+        599.9998491948354
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        69,
+        22
+      ],
+      "selects": 91,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 120,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 60,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999334840104,
+        599.9037043101271
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        9,
+        46
+      ],
+      "selects": 55,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 121,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 60,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8849536310299,
+        599.9998617629753
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        54,
+        22
+      ],
+      "selects": 76,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 122,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 61,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999238460441,
+        599.9461175489123
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        11,
+        26
+      ],
+      "selects": 37,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 123,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 61,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8103041636059,
+        599.9995973246987
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        86,
+        70
+      ],
+      "selects": 156,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 124,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 62,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9357441199827,
+        599.9999715670128
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        29,
+        3
+      ],
+      "selects": 32,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 125,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 62,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999281141208,
+        599.9038857459091
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        9,
+        46
+      ],
+      "selects": 55,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 126,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 63,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9034156639827,
+        599.9999032890191
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        45,
+        12
+      ],
+      "selects": 57,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 127,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 63,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997563299839,
+        599.8562189091463
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        40,
+        61
+      ],
+      "selects": 101,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 128,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 64,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9996671510162,
+        599.8597743431455
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        57,
+        64
+      ],
+      "selects": 121,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 129,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 64,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9187423497788,
+        599.9998817979358
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        40,
+        18
+      ],
+      "selects": 58,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 130,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 65,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8619258952676,
+        599.9997737659723
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        68,
+        39
+      ],
+      "selects": 107,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 131,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 65,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998911878793,
+        599.91317810904
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        18,
+        43
+      ],
+      "selects": 61,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 132,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 66,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998696069815,
+        599.9029143108637
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        20,
+        43
+      ],
+      "selects": 63,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 133,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 66,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8684875562903,
+        599.9997656430933
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        67,
+        39
+      ],
+      "selects": 106,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 134,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 67,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8298354259459,
+        599.999729835894
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        79,
+        44
+      ],
+      "selects": 123,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 135,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 67,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998758179718,
+        599.8509618042153
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        18,
+        70
+      ],
+      "selects": 88,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 136,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 68,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9030418480397,
+        599.9998649478657
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        48,
+        22
+      ],
+      "selects": 70,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 137,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 68,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999307999387,
+        599.9556456790306
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        7,
+        15
+      ],
+      "selects": 22,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 138,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 69,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8539199362276,
+        599.9998269850621
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        71,
+        25
+      ],
+      "selects": 96,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 139,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 69,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999937493063,
+        599.8988790693111
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        8,
+        49
+      ],
+      "selects": 57,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 140,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 70,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.873390434077,
+        599.9997248968575
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        60,
+        45
+      ],
+      "selects": 105,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 141,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 70,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999072969658,
+        599.9384536612197
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        15,
+        33
+      ],
+      "selects": 48,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 142,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 71,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998795440188,
+        599.9380228180089
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        17,
+        30
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 143,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 71,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8262444690336,
+        599.9996683512
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        72,
+        54
+      ],
+      "selects": 126,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 144,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 72,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8750875202822,
+        599.9998500389629
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        52,
+        20
+      ],
+      "selects": 72,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 145,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 72,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998021897627,
+        599.863529599912
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        31,
+        65
+      ],
+      "selects": 96,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 146,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 73,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9531957319123,
+        599.9999468210735
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        25,
+        7
+      ],
+      "selects": 32,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 147,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 73,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997719650273,
+        599.8395459887688
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        34,
+        76
+      ],
+      "selects": 110,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 148,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 74,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9996785908588,
+        599.8546247640625
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        56,
+        66
+      ],
+      "selects": 122,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 149,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 74,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7935465302435,
+        599.9995798099553
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        92,
+        80
+      ],
+      "selects": 172,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 150,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 75,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.900415471755,
+        599.9999178260332
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        51,
+        14
+      ],
+      "selects": 65,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 151,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 75,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999652660335,
+        599.9532767110504
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        5,
+        25
+      ],
+      "selects": 30,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 152,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 76,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.84403066308,
+        599.9997546258382
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        82,
+        43
+      ],
+      "selects": 125,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 153,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 76,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997641828959,
+        599.8639090500074
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        43,
+        66
+      ],
+      "selects": 109,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 154,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 77,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997973400168,
+        599.853826474864
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        35,
+        72
+      ],
+      "selects": 107,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 155,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 77,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7356523036724,
+        599.9997058833251
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        117,
+        47
+      ],
+      "selects": 164,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 156,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 78,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9994401601143,
+        599.6981061158585
+      ],
+      "result": "draw",
+      "reward": 0.0,
+      "seat_selects": [
+        94,
+        131
+      ],
+      "selects": 225,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 157,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 78,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7216428143438,
+        599.9997183697415
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        132,
+        46
+      ],
+      "selects": 178,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 158,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 79,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998648370965,
+        599.8924048884073
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        23,
+        53
+      ],
+      "selects": 76,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 159,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 79,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8968343248707,
+        599.9998021568754
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        56,
+        30
+      ],
+      "selects": 86,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 160,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 80,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8885069982498,
+        599.9998418859905
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        63,
+        30
+      ],
+      "selects": 93,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 161,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 80,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999886575155,
+        599.9069070488913
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        21,
+        48
+      ],
+      "selects": 69,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 162,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 81,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9996930651832,
+        599.7754176899907
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        56,
+        107
+      ],
+      "selects": 163,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 163,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 81,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.7686844225973,
+        599.9997088549426
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        112,
+        47
+      ],
+      "selects": 159,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 164,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 82,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9258988581714,
+        599.9999445270514
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        38,
+        8
+      ],
+      "selects": 46,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 165,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 82,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999503369327,
+        599.918635454087
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        7,
+        40
+      ],
+      "selects": 47,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 166,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 83,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8484720151755,
+        599.9997572448337
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        69,
+        43
+      ],
+      "selects": 112,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 167,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 83,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998007580289,
+        599.8533970788703
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        34,
+        73
+      ],
+      "selects": 107,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 168,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 84,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9391064653173,
+        599.9999627409852
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        34,
+        4
+      ],
+      "selects": 38,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 169,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 84,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997695288039,
+        599.798176812008
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        33,
+        87
+      ],
+      "selects": 120,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 170,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 85,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8074701530277,
+        599.9997257120558
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        97,
+        46
+      ],
+      "selects": 143,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 171,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 85,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998216909007,
+        599.8665091838338
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        29,
+        66
+      ],
+      "selects": 95,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 172,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 86,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8797797362204,
+        599.9997259742813
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        63,
+        52
+      ],
+      "selects": 115,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 173,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 86,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997220910154,
+        599.8457630047924
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        51,
+        78
+      ],
+      "selects": 129,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 174,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 87,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999205820495,
+        599.8823184578796
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        12,
+        59
+      ],
+      "selects": 71,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 175,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 87,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9249163900386,
+        599.999950037105
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        37,
+        8
+      ],
+      "selects": 45,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 176,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 88,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8707297511864,
+        599.9998389760731
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        59,
+        28
+      ],
+      "selects": 87,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 177,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 88,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.999952120008,
+        599.9287768478971
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        6,
+        34
+      ],
+      "selects": 40,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 178,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 89,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9623951388639,
+        599.9999796519987
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        22,
+        2
+      ],
+      "selects": 24,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 179,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 89,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999675289728,
+        599.9559602180962
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        4,
+        19
+      ],
+      "selects": 23,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 180,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 90,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998333448311,
+        599.8660652608378
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        25,
+        70
+      ],
+      "selects": 95,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 181,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 90,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.951633213961,
+        599.9999578610295
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        28,
+        6
+      ],
+      "selects": 34,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 182,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 91,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8799718559021,
+        599.9998597429367
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        55,
+        23
+      ],
+      "selects": 78,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 183,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 91,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999404889531,
+        599.9482424079324
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        10,
+        28
+      ],
+      "selects": 38,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 184,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 92,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999583420577,
+        599.9434866968077
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        6,
+        29
+      ],
+      "selects": 35,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 185,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 92,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.88767332118,
+        599.9998880989733
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        54,
+        19
+      ],
+      "selects": 73,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 186,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 93,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998376938747,
+        599.8953014739091
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        29,
+        52
+      ],
+      "selects": 81,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 187,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 93,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9097317469423,
+        599.9998275448452
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        43,
+        32
+      ],
+      "selects": 75,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 188,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 94,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8616590419551,
+        599.999760680832
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        63,
+        42
+      ],
+      "selects": 105,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 189,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 94,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9991717027151,
+        599.7440712728421
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        126,
+        99
+      ],
+      "selects": 225,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 190,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 95,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8870639294619,
+        599.9998934199102
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        57,
+        16
+      ],
+      "selects": 73,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 191,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 95,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999561500154,
+        599.9734552089358
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        7,
+        17
+      ],
+      "selects": 24,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 192,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 96,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997877249261,
+        599.8547258480103
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        40,
+        75
+      ],
+      "selects": 115,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 193,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 96,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9255604869686,
+        599.9999512959039
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        35,
+        6
+      ],
+      "selects": 41,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 194,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 97,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9997241176898,
+        599.8480969229131
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        46,
+        70
+      ],
+      "selects": 116,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 195,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 97,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8418608861393,
+        599.9997935132706
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        75,
+        34
+      ],
+      "selects": 109,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 196,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 98,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9999102819129,
+        599.9083384471014
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        10,
+        41
+      ],
+      "selects": 51,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 197,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 98,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9364653680241,
+        599.9999454079662
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        32,
+        8
+      ],
+      "selects": 40,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 198,
+      "infrastructure_error": null,
+      "learner_seat": 0,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 99,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.8808836039971,
+        599.9997918712907
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        57,
+        36
+      ],
+      "selects": 93,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "agent_error": null,
+      "engine_error": null,
+      "episode_id": 199,
+      "infrastructure_error": null,
+      "learner_seat": 1,
+      "opponent_key": "grimmsnarl/random-legal",
+      "pair_id": 99,
+      "reason": "engine_terminal",
+      "remaining_time_s": [
+        599.9998116677743,
+        599.8620823319652
+      ],
+      "result": "win",
+      "reward": 1.0,
+      "seat_selects": [
+        31,
+        63
+      ],
+      "selects": 94,
+      "terminated": true,
+      "truncated": false
+    }
+  ],
+  "result_sha256": "1552bb40816a6b673da03bf06301c432e3f38d0b6d99e66f80b64d56423e9bb9",
+  "schema": "ptcg.md-v4.experimental-random-smoke-result.v1",
+  "smoke_lock_sha256": "eef5f61ec661d87cfd79906d81d8ccd70eb4cf532d0baaf3da966a8074a08249",
+  "summary": {
+    "by_matchup": {
+      "grimmsnarl/random-legal": {
+        "draw": 1,
+        "loss": 1,
+        "win": 198
+      }
+    },
+    "by_seat": {
+      "seat0/loss": 1,
+      "seat0/win": 99,
+      "seat1/draw": 1,
+      "seat1/win": 99
+    },
+    "controller": {
+      "calls": 11390,
+      "latency_ms": {
+        "max": 15.134252025745809,
+        "mean": 2.1358112009155095,
+        "p50": 1.4260340249165893,
+        "p95": 3.853596979752183
+      },
+      "md_v4": {
+        "counters": {
+          "calls": 5267,
+          "eligible_calls": 5267,
+          "load_attempts": 1,
+          "load_successes": 1,
+          "routes": 5267
+        },
+        "enabled_by_default": true,
+        "load_attempted": true,
+        "loaded": true,
+        "target_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+        "weights_file_sha256": "5ecfbece28822545102f046450d8b8008837d135875542ddf991ad4021a45d1f",
+        "weights_mapping_sha256": "e9042f980581355bf172f6aafb9b2fd9752b9e1873157d3feb22be17e21b7e01"
+      },
+      "model_calls": 11390,
+      "model_none": 0,
+      "name": "md-v4/exact-tarball-random-smoke",
+      "repairs": 0
+    },
+    "draws": 1,
+    "gate_valid": true,
+    "invalid": 0,
+    "losses": 1,
+    "scheduled_games": 200,
+    "score": 0.9925,
+    "score_ci95": [
+      0.9681713228615482,
+      0.9982660306568442
+    ],
+    "tag": "md-v4-exact-tarball-random-smoke",
+    "wins": 198
+  }
+}

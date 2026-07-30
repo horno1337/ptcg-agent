@@ -1,0 +1,34 @@
+{
+  "archive": {
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-md-v4-experimental-unsigned.tar.gz",
+    "sha256": "f6c62e09b3c3eaf2e570ace7d6a4eb6cd5664de1986517a12d63345f4cd896e9"
+  },
+  "created_at_utc": "2026-07-30T17:06:04.032343+00:00",
+  "identity": {
+    "decoded_action_mismatches": 0,
+    "feature_array_conversion_failures": 0,
+    "inference_exceptions": 0,
+    "logit_bit_mismatches": 0,
+    "maximum_absolute_logit_delta": 0.0,
+    "maximum_absolute_value_delta": 0.0,
+    "passed": true,
+    "torch_imports_in_vendored_sources": 0,
+    "value_bit_mismatches": 0,
+    "weights_mapping_sha256": "e9042f980581355bf172f6aafb9b2fd9752b9e1873157d3feb22be17e21b7e01"
+  },
+  "passed": true,
+  "population": {
+    "callbacks": 99946,
+    "expected_callbacks": 99946,
+    "expected_games": 2090,
+    "full_population": true,
+    "games": 2090,
+    "limit": null,
+    "passed": true,
+    "split": "fixed MD-v4 validation"
+  },
+  "promotion_authority": false,
+  "result_sha256": "a2386a293ca0950b600f36455e33f6adbc25cfd6e072555d0952231e7c3466b3",
+  "schema": "ptcg.md-v4.experimental-vendor-conformance.v1",
+  "upload_authority": false
+}

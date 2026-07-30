@@ -1,0 +1,372 @@
+{
+  "archive": {
+    "members": [
+      "agent",
+      "agent/__init__.py",
+      "agent/cards.py",
+      "agent/features.py",
+      "agent/ismcts.py",
+      "agent/lethal.py",
+      "agent/md_v1.py",
+      "agent/md_v1_weights.npz",
+      "agent/md_v2_card.py",
+      "agent/md_v2_card_weights.npz",
+      "agent/md_v4.py",
+      "agent/md_v4_features.py",
+      "agent/md_v4_model.py",
+      "agent/md_v4_weights.npz",
+      "agent/meta_decks.json",
+      "agent/model.py",
+      "agent/obsview.py",
+      "agent/policy.py",
+      "agent/qu_v2_features.py",
+      "agent/safety.py",
+      "agent/search_policy.py",
+      "agent/turn_search.py",
+      "agent/weights.npz",
+      "cg",
+      "cg/libcg.so",
+      "data",
+      "data/attacks.json",
+      "data/cards.json",
+      "decks",
+      "decks/deck.csv",
+      "main.py"
+    ],
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-md-v4-experimental-unsigned.tar.gz",
+    "sha256": "f6c62e09b3c3eaf2e570ace7d6a4eb6cd5664de1986517a12d63345f4cd896e9"
+  },
+  "cohort": {
+    "prompt_count": 64,
+    "prompt_observations_sha256": "1645c9abeaef4af181af00f54ab0d9db97139f28fd901a9760958bc696474660",
+    "replay_directory": "/home/horn/Desktop/ptcg_official_2026-07-28",
+    "selection_rule": "sorted JSON path, then validated callback order; exact target deck seat; nonempty ST_MAIN; first 64 callbacks",
+    "sources": [
+      {
+        "path": "/home/horn/Desktop/ptcg_official_2026-07-28/88529412.json",
+        "selected_callbacks": 64,
+        "sha256": "2d48bc9c5fe8e39426ac16aa9d3a3d950f1e95f59f8d49b36584fc1af21cf77d"
+      }
+    ]
+  },
+  "created_at": "2026-07-30T18:28:22.530079+00:00",
+  "gate_passed": true,
+  "promotion_authority": false,
+  "question": "does the exact extracted Torch-free tarball execute the intended MD-v4 ST_MAIN policy as a non-owner UID?",
+  "reference": {
+    "actions_sha256": "349fccf5829a751c3ae6c424e7ed166159905e7916899851236f421514cf2de4",
+    "diagnostics": {
+      "calls": 64,
+      "candidate_attempts": 64,
+      "candidate_fallback_reasons": {},
+      "candidate_fallbacks": 0,
+      "candidate_routes": 64,
+      "card_routes": 0,
+      "exceptions": {},
+      "fallback_reasons": {},
+      "fallbacks": 0,
+      "latency_ms": {
+        "max": 12.224965961650014,
+        "mean": 2.573322220086993,
+        "p50": 2.2973685117904097,
+        "p95": 3.5824209131533267,
+        "total": 164.69262208556756
+      },
+      "main_routes": 64,
+      "name": "md-v4/exact-tarball-reference",
+      "off_deck_card_routes": 0,
+      "off_deck_main_routes": 0,
+      "overlay_enabled": true,
+      "parent_main_routes": 0,
+      "qu_routes": 0,
+      "registered_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+      "repairs": 0,
+      "select_types": {
+        "0": 64
+      }
+    }
+  },
+  "result_sha256": "efffc84ea052a07b223b7dfedd9e01abaff53200b0d9ec71ef613919d5169428",
+  "runtime": {
+    "actions": [
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ],
+      [
+        4
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        6
+      ],
+      [
+        9
+      ],
+      [
+        4
+      ],
+      [
+        4
+      ],
+      [
+        1
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ],
+      [
+        4
+      ],
+      [
+        4
+      ],
+      [
+        3
+      ],
+      [
+        2
+      ],
+      [
+        0
+      ],
+      [
+        9
+      ],
+      [
+        8
+      ],
+      [
+        8
+      ],
+      [
+        8
+      ],
+      [
+        10
+      ],
+      [
+        8
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ],
+      [
+        3
+      ],
+      [
+        3
+      ],
+      [
+        2
+      ],
+      [
+        2
+      ],
+      [
+        0
+      ],
+      [
+        10
+      ],
+      [
+        11
+      ],
+      [
+        10
+      ]
+    ],
+    "effective_gid": 1,
+    "effective_uid": 1,
+    "overlay_calls": 64,
+    "overlay_diagnostics": {
+      "counters": {
+        "calls": 64,
+        "eligible_calls": 64,
+        "load_attempts": 1,
+        "load_successes": 1,
+        "routes": 64
+      },
+      "enabled_by_default": true,
+      "load_attempted": true,
+      "loaded": true,
+      "target_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+      "weights_file_sha256": "5ecfbece28822545102f046450d8b8008837d135875542ddf991ad4021a45d1f",
+      "weights_mapping_sha256": "e9042f980581355bf172f6aafb9b2fd9752b9e1873157d3feb22be17e21b7e01"
+    },
+    "overlay_exceptions": {},
+    "overlay_none": 0,
+    "overlay_routes": 64,
+    "registered_deck": [
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      7,
+      104,
+      104,
+      112,
+      112,
+      112,
+      112,
+      646,
+      646,
+      646,
+      646,
+      647,
+      647,
+      647,
+      648,
+      648,
+      648,
+      860,
+      860,
+      1079,
+      1079,
+      1079,
+      1080,
+      1086,
+      1086,
+      1086,
+      1086,
+      1097,
+      1097,
+      1097,
+      1122,
+      1137,
+      1152,
+      1152,
+      1152,
+      1152,
+      1182,
+      1182,
+      1219,
+      1219,
+      1219,
+      1219,
+      1227,
+      1227,
+      1227,
+      1227,
+      1231,
+      1259,
+      1259,
+      1259,
+      1259
+    ],
+    "repairs": 0
+  },
+  "schema": "ptcg.md-v4.experimental-exact-tarball-audit.v1",
+  "strength_claim": false
+}

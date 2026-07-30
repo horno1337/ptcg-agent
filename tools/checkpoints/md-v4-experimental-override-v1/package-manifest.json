@@ -1,0 +1,77 @@
+{
+  "authorization": {
+    "promotion_authority": false,
+    "required_before_upload": [
+      "full research-vs-vendored callback conformance",
+      "tests/test_safety.py against exact extracted archive",
+      "200-game random smoke with zero faults/fallbacks/repairs",
+      "exact-extracted-tarball audit under non-owner UID",
+      "user-supplied tag and explicit upload approval"
+    ],
+    "research_package_only": true,
+    "upload_authority": false
+  },
+  "builder": {
+    "feature_source": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/md_v4_features.py",
+      "sha256": "ff4bfd59bf1621240ae7eb07de7e6015f176dba35e7173291f42db139d8716c6"
+    },
+    "model_source": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/md_v4_vendor_model.py",
+      "sha256": "7a23800afea00503176427a3e6eeea78f9b325a4c026cfd6a7e828f7708b115f"
+    },
+    "overlay_source": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/md_v4_vendor_overlay.py",
+      "sha256": "bacaa9c3612b95828a1db50c6f088648eaf7831c32aee02ac44ef423fb59c2ac"
+    },
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/build_md_v4_experimental_submission.py",
+    "sha256": "c4f09bbc8d929432ebe48f8b0fdd641b96bb84920ae4e96e4ee1eeb5e9d633ce"
+  },
+  "candidate": {
+    "added_files": [
+      "agent/md_v4.py",
+      "agent/md_v4_features.py",
+      "agent/md_v4_model.py",
+      "agent/md_v4_weights.npz"
+    ],
+    "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-md-v4-experimental-unsigned.tar.gz",
+    "modified_files": [
+      "agent/policy.py"
+    ],
+    "original_member_byte_mismatches_outside_policy": 0,
+    "removed_files": [],
+    "runtime_change": "default-on, exact-deck ST_MAIN MD-v4 NumPy overlay ahead of byte-frozen MD-v3 main; fail-soft to frozen MD-v3",
+    "sha256": "f6c62e09b3c3eaf2e570ace7d6a4eb6cd5664de1986517a12d63345f4cd896e9",
+    "torch_free_vendor_sources": true,
+    "weights_file_sha256": "5ecfbece28822545102f046450d8b8008837d135875542ddf991ad4021a45d1f",
+    "weights_mapping_sha256": "e9042f980581355bf172f6aafb9b2fd9752b9e1873157d3feb22be17e21b7e01"
+  },
+  "created_at_utc": "2026-07-30T16:57:38.084486+00:00",
+  "evidence": {
+    "failed_behavior_disagreement_rate": 0.023772837332159368,
+    "failed_behavior_minimum": 0.03,
+    "failed_gate_result_file_sha256": "62f14e86428d283abb7dad6df1f258097d05962cef310e6df4f7d483d2955436",
+    "failed_gate_result_sha256": "4c3ddc4abfe5fc087f2d563b7660272465be07db870bde20c966edbe48c25fb9",
+    "recovery_file_sha256": "ab1f7bd03939e9d6dba6356086a17402b232575922c5312b9150c8c8d2b01dad",
+    "recovery_state_dict_sha256": "6f3ba4bdb3f34e5397a5d5988e97161a0629d3f88a5a3560a66ad31d6bf2d908",
+    "weights_file_sha256": "5ecfbece28822545102f046450d8b8008837d135875542ddf991ad4021a45d1f",
+    "weights_mapping_sha256": "e9042f980581355bf172f6aafb9b2fd9752b9e1873157d3feb22be17e21b7e01"
+  },
+  "gate_status": {
+    "experimental_user_override": true,
+    "preregistered_behavior_size_gate_passed": false,
+    "promotion_claim": false
+  },
+  "manifest_sha256": "f35a8e09be38f6e0024a6be2d5fb594c31c27b1a1447d5e126d6e176d3113523",
+  "parent": {
+    "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-md-v2-card-v1-experimental-unsigned.tar.gz",
+    "description": "exact live frozen MD-v3 archive",
+    "sha256": "adb0e8c1da13a56468f6855bee197eab3d4b58f378e0a0a9b1ea6cc8b604ac42"
+  },
+  "safety_contract": {
+    "fail_soft_to_frozen_md_v3": true,
+    "upload_authorized": false,
+    "user_authorized_experimental_packaging": true
+  },
+  "schema": "ptcg.md-v4.experimental-override-package.v1"
+}
