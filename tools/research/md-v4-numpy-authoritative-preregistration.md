@@ -39,21 +39,22 @@ No tensor may change. There is no retraining, resume, alternate epoch, seed,
 quantization, calibration, TF32 emulation, output rounding, action override,
 or validation-selected implementation. The optimizer state is ineligible.
 
-There is one explicit Torch reference implementation and one evaluation
+There is one explicit CPU Torch reference implementation and one evaluation
 attempt. Its GRU must directly execute the original reset/update/new equations
-with float32 Torch operations and `torch.backends.cuda.matmul.allow_tf32=False`.
-It may not call `nn.GRU.forward`, a cuDNN RNN operation, the failed TF32 NumPy
-repair, or any sample-specific numerical path. All non-GRU operations remain
-the original MD-v4 Torch implementation. Source, tests, artifact identities,
-and this contract must be committed and prospectively sealed before the
-official validation population is opened.
+with float32 Torch operations. It may not call `nn.GRU.forward`, a cuDNN RNN
+operation, the failed TF32 NumPy repair, or any sample-specific numerical path.
+All non-GRU operations remain the original MD-v4 Torch implementation. Source,
+tests, artifact identities, and this contract must be committed and
+prospectively sealed before the official validation population is opened.
 
 ## Complete deployment-parity gate
 
 The official cohort is every one of the 99,946 eligible callbacks from all
 2,090 games in the already locked validation split, in canonical order.
-For every callback, the explicit Torch FP32 reference and the unmodified
-deployable NumPy candidate must satisfy:
+The explicit Torch reference is evaluated one callback at a time, matching the
+submission runtime's batch size of one; batched Torch output is not accepted as
+the conformance oracle. For every callback, the explicit Torch FP32 reference
+and the unmodified deployable NumPy candidate must satisfy:
 
 - valid policy logits: NumPy `allclose(atol=3e-5, rtol=1e-5)`;
 - value-head absolute difference strictly below `2e-5`; and
@@ -69,9 +70,10 @@ definition. Their mismatch cannot reject or rescue this policy.
 
 ## Unchanged offline rejection gates
 
-Only after complete deployment parity passes, run the fixed epoch-4 weights
-through the explicit FP32 reference on the same complete validation population
-with the original equal-per-game estimator. Require:
+During the complete pass, compute offline metrics directly from the
+authoritative NumPy candidate and the already cached frozen-parent logits using
+the original equal-per-game estimator. Open those metrics as gates only after
+complete deployment parity passes. Require:
 
 - game-normalized `KL(parent || candidate) <= 0.02`;
 - deterministic full-action disagreement from frozen MD-v3 at least 3%; and
