@@ -374,6 +374,15 @@ def load_lock(
             raise NumpyAuthoritativeLockError(
                 "lock artifact map is invalid"
             )
+        expected_artifacts = {
+            path.resolve().relative_to(ROOT).as_posix():
+                PRIOR_LOCK.artifact(path)
+            for path in _code_paths()
+        }
+        if artifacts != expected_artifacts:
+            raise NumpyAuthoritativeLockError(
+                "lock artifact set or identity drifted"
+            )
         for label, row in artifacts.items():
             if (
                 not isinstance(row, Mapping)
