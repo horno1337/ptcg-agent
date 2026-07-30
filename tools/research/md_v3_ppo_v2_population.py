@@ -8,16 +8,18 @@ or writes a runtime artifact.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 import hashlib
 import json
 from pathlib import Path
+import time
 from typing import Any, Mapping, Sequence
 
 import numpy as np
 
-from agent import model
-from tools import eval_ab as EVAL
+from agent import model, policy, safety
+from agent.obsview import ObsView
 from tools.research import eval_md_v2_card_v1_gameplay as LAYERED
 from tools.rl_env import OpponentSpec
 
@@ -35,6 +37,80 @@ PILOT_MASS = {
 
 class PopulationError(ValueError):
     pass
+
+
+class DiagnosticRulesController:
+    """The existing safe rules policy with observable fail-soft diagnostics."""
+
+    def __init__(self, name: str):
+        self.name = str(name)
+        self.calls = 0
+        self.fallbacks = 0
+        self.repairs = 0
+        self.exceptions: Counter[str] = Counter()
+        self.fallback_reasons: Counter[str] = Counter()
+        self.select_types: Counter[str] = Counter()
+        self.latency_ms: list[float] = []
+
+    @staticmethod
+    def _same_action(left: Any, right: Any) -> bool:
+        try:
+            return list(left) == list(right)
+        except (TypeError, ValueError):
+            return left == right
+
+    def move(self, obs: dict, rng: Any) -> list[int]:
+        del rng
+        started = time.monotonic()
+        self.calls += 1
+        try:
+            self.select_types[str(ObsView(obs).select_type)] += 1
+        except Exception:
+            self.select_types["unknown"] += 1
+        try:
+            action = policy.decide_rules(obs)
+            repaired = safety._repair(action, obs)
+            if not self._same_action(action, repaired):
+                self.repairs += 1
+            return repaired
+        except Exception as error:
+            key = type(error).__name__
+            self.exceptions[key] += 1
+            self.fallbacks += 1
+            self.fallback_reasons[f"rules:{key}"] += 1
+            return safety._fallback(obs)
+        finally:
+            self.latency_ms.append((time.monotonic() - started) * 1000.0)
+
+    def diagnostics(self) -> dict[str, Any]:
+        latency = np.asarray(self.latency_ms, dtype=np.float64)
+        return {
+            "name": self.name,
+            "calls": self.calls,
+            "main_routes": 0,
+            "card_routes": 0,
+            "qu_routes": 0,
+            "off_deck_main_routes": 0,
+            "off_deck_card_routes": 0,
+            "fallbacks": self.fallbacks,
+            "fallback_reasons": dict(self.fallback_reasons),
+            "exceptions": dict(self.exceptions),
+            "repairs": self.repairs,
+            "select_types": dict(self.select_types),
+            "latency_ms": {
+                "mean": float(latency.mean()) if latency.size else 0.0,
+                "p50": (
+                    float(np.percentile(latency, 50))
+                    if latency.size else 0.0
+                ),
+                "p95": (
+                    float(np.percentile(latency, 95))
+                    if latency.size else 0.0
+                ),
+                "max": float(latency.max()) if latency.size else 0.0,
+                "total": float(latency.sum()) if latency.size else 0.0,
+            },
+        }
 
 
 def file_sha256(path: Path) -> str:
@@ -90,7 +166,9 @@ def _field_rows(path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
 @dataclass
 class FrozenPopulation:
     opponents: list[OpponentSpec]
-    controllers: dict[str, LAYERED.LayeredMirrorCardController]
+    controllers: dict[
+        str, LAYERED.LayeredMirrorCardController | DiagnosticRulesController
+    ]
     manifest: dict[str, Any]
 
 
@@ -166,10 +244,15 @@ def build_population(
             policy_id=field_controller.name,
             schedule_group="field_qu_v2b",
         ))
+        rules_key = f"field_rules/{archetype}"
+        rules_controller = DiagnosticRulesController(
+            f"population/rules/{archetype}",
+        )
+        controllers[rules_key] = rules_controller
         opponents.append(OpponentSpec(
             key=f"{archetype}/rules",
             deck=opponent_deck,
-            move=EVAL.safe_rules_move,
+            move=rules_controller.move,
             weight=PILOT_MASS["field_rules"] * conditional,
             policy_id="rules-v1",
             schedule_group="field_rules",

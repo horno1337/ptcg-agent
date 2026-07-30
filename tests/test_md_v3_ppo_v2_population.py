@@ -43,3 +43,28 @@ def test_pilot_mass_is_normalized_and_split_evenly_by_scope():
     )
     assert np.isclose(mirror, 0.5)
     assert np.isclose(field, 0.5)
+
+
+def test_rules_controller_preserves_safe_rules_semantics_and_reports_faults(
+    monkeypatch,
+):
+    controller = POP.DiagnosticRulesController("test/rules")
+    monkeypatch.setattr(POP.policy, "decide_rules", lambda obs: [0])
+    monkeypatch.setattr(POP.safety, "_repair", lambda action, obs: [1])
+    monkeypatch.setattr(POP.safety, "_fallback", lambda obs: [2])
+    assert controller.move({}, None) == [1]
+    first = controller.diagnostics()
+    assert first["calls"] == 1
+    assert first["repairs"] == 1
+    assert first["fallbacks"] == 0
+
+    def fail(_obs):
+        raise RuntimeError("rules failed")
+
+    monkeypatch.setattr(POP.policy, "decide_rules", fail)
+    assert controller.move({}, None) == [2]
+    final = controller.diagnostics()
+    assert final["calls"] == 2
+    assert final["repairs"] == 1
+    assert final["fallbacks"] == 1
+    assert final["exceptions"] == {"RuntimeError": 1}
