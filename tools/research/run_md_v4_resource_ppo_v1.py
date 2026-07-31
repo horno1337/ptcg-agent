@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import json
 import math
@@ -78,10 +80,50 @@ ATTEMPT_FILE = "ATTEMPT-CONSUMED.json"
 RETIREMENT_FILE = "RETIRED.json"
 COMPLETION_FILE = "COMPLETED.json"
 RESUME_CONSUMPTION_FILE = "RESUME-CONSUMED.json"
+WORKER_LOCK_SUFFIX = ".WORKER.lock"
 
 
 class ResourcePPORunnerError(RuntimeError):
     """The locked resource-aware PPO run violated its contract."""
+
+
+def _worker_lock_path(output: Path) -> Path:
+    output = output.expanduser().resolve()
+    return output.parent / f".{output.name}{WORKER_LOCK_SUFFIX}"
+
+
+@contextmanager
+def _exclusive_worker(output: Path):
+    """Hold one kernel-backed worker lease for the complete run lifecycle."""
+    output = _assert_output(output, must_not_exist=False)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = _worker_lock_path(output)
+    descriptor = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+    try:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise ResourcePPORunnerError(
+                f"another official worker holds {lock_path}"
+            ) from error
+        metadata = json.dumps(
+            {
+                "candidate": LOCK.CANDIDATE,
+                "output": _display_path(output),
+                "pid": os.getpid(),
+                "acquired_at_utc": datetime.now(timezone.utc).isoformat(),
+            },
+            sort_keys=True,
+        ).encode("utf-8")
+        os.ftruncate(descriptor, 0)
+        os.write(descriptor, metadata)
+        os.fsync(descriptor)
+        yield
+    finally:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+        finally:
+            os.close(descriptor)
 
 
 def _hash_training_object(value: Any) -> str:
@@ -463,6 +505,19 @@ def _load_attempt(
     ):
         raise ResourcePPORunnerError("official attempt marker drifted")
     return attempt
+
+
+def _assert_attempt_open(output: Path) -> None:
+    """Reject work after any terminal lifecycle marker becomes visible."""
+    terminal = tuple(
+        name
+        for name in (RETIREMENT_FILE, COMPLETION_FILE, "result.json")
+        if (output / name).exists()
+    )
+    if terminal:
+        raise ResourcePPORunnerError(
+            "official attempt is no longer open: " + ", ".join(terminal)
+        )
 
 
 def _write_retirement(
@@ -2033,6 +2088,7 @@ def _execute_training_body(
     started = time.time()
     last_decisions: list[ResourceDecision] = []
     for update in range(completed + 1, LOCK.UPDATES + 1):
+        _assert_attempt_open(output)
         schedule = enforce_schedule(lock, population, update=update)
         update_started = time.time()
         last_decisions, rollout = collect_population_games(
@@ -2129,11 +2185,15 @@ def _execute_training_body(
 
     if len(update_rows) != LOCK.UPDATES or not last_decisions:
         raise ResourcePPORunnerError("fixed terminal update was not reached")
+    _assert_attempt_open(output)
     _assert_parent_unchanged(net, parent_before)
     terminal_dir = output / "terminal-update-24-candidate"
     terminal_dir.mkdir(parents=True, exist_ok=False)
     weights_path = terminal_dir / "candidate-md-v4-resource-ppo-weights.npz"
-    exported = MM.export_numpy_weights(net)
+    exported = {
+        name: np.array(value, copy=True, order="C")
+        for name, value in MM.export_numpy_weights(net).items()
+    }
     if not all(np.asarray(value).flags.c_contiguous for value in exported.values()):
         raise ResourcePPORunnerError("terminal export is not C-contiguous")
     PPO_V1.atomic_npz(weights_path, exported)
@@ -2256,57 +2316,52 @@ def execute_training(
         )
     output = output_dir.expanduser().resolve()
     lock_sha256 = str(lock["lock_sha256"])
-    resume_consumption: dict[str, Any] | None = None
-    if resume_from is None:
-        attempt = _create_attempt(output, lock_sha256=lock_sha256)
-    else:
-        output = _assert_output(output, must_not_exist=False)
-        if (
-            not output.is_dir()
-            or (output / RETIREMENT_FILE).exists()
-            or (output / COMPLETION_FILE).exists()
-            or (output / "result.json").exists()
-        ):
-            raise ResourcePPORunnerError(
-                "official attempt is absent, retired, or complete"
+    with _exclusive_worker(output):
+        resume_consumption: dict[str, Any] | None = None
+        if resume_from is None:
+            attempt = _create_attempt(output, lock_sha256=lock_sha256)
+        else:
+            output = _assert_output(output, must_not_exist=False)
+            if not output.is_dir():
+                raise ResourcePPORunnerError("official attempt is absent")
+            _assert_attempt_open(output)
+            attempt = _load_attempt(output, lock_sha256=lock_sha256)
+            resume_consumption = _consume_resume(
+                output,
+                resume_from,
+                lock_sha256=lock_sha256,
+                attempt_sha256=str(attempt["attempt_sha256"]),
             )
-        attempt = _load_attempt(output, lock_sha256=lock_sha256)
-        resume_consumption = _consume_resume(
-            output,
-            resume_from,
-            lock_sha256=lock_sha256,
-            attempt_sha256=str(attempt["attempt_sha256"]),
-        )
-    attempt_sha256 = str(attempt["attempt_sha256"])
-    try:
-        result = _execute_training_body(
-            lock,
-            paths,
-            output,
-            device=device,
-            resume_from=resume_from,
-            attempt_sha256=attempt_sha256,
-            resume_consumption=resume_consumption,
-        )
-        _write_completion(
-            output,
-            lock_sha256=lock_sha256,
-            attempt_sha256=attempt_sha256,
-            result=result,
-        )
-        return result
-    except BaseException as error:
-        _write_retirement(
-            output,
-            lock_sha256=lock_sha256,
-            attempt_sha256=attempt_sha256,
-            error=error,
-            resume_consumption_sha256=(
-                str(resume_consumption["resume_consumption_sha256"])
-                if resume_consumption is not None else None
-            ),
-        )
-        raise
+        attempt_sha256 = str(attempt["attempt_sha256"])
+        try:
+            result = _execute_training_body(
+                lock,
+                paths,
+                output,
+                device=device,
+                resume_from=resume_from,
+                attempt_sha256=attempt_sha256,
+                resume_consumption=resume_consumption,
+            )
+            _write_completion(
+                output,
+                lock_sha256=lock_sha256,
+                attempt_sha256=attempt_sha256,
+                result=result,
+            )
+            return result
+        except BaseException as error:
+            _write_retirement(
+                output,
+                lock_sha256=lock_sha256,
+                attempt_sha256=attempt_sha256,
+                error=error,
+                resume_consumption_sha256=(
+                    str(resume_consumption["resume_consumption_sha256"])
+                    if resume_consumption is not None else None
+                ),
+            )
+            raise
 
 
 def main(argv: Sequence[str] | None = None) -> None:
