@@ -363,6 +363,64 @@ def test_attempt_is_single_use_and_mapping_requires_c_order(tmp_path: Path):
     assert mismatches == ["weight"]
 
 
+def test_worker_lease_rejects_concurrent_process_and_allows_stale_file(
+    tmp_path: Path,
+):
+    output = tmp_path / "training"
+    lock_path = RUN._worker_lock_path(output)
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path.write_text("stale metadata", encoding="utf-8")
+
+    with RUN._exclusive_worker(output):
+        with pytest.raises(
+            RUN.ResourcePPORunnerError,
+            match="another official worker holds",
+        ):
+            with RUN._exclusive_worker(output):
+                pass
+
+    with RUN._exclusive_worker(output):
+        assert lock_path.is_file()
+
+
+def test_attempt_open_rejects_every_terminal_marker(tmp_path: Path):
+    output = tmp_path / "training"
+    output.mkdir()
+    RUN._assert_attempt_open(output)
+    for marker in (
+        RUN.RETIREMENT_FILE,
+        RUN.COMPLETION_FILE,
+        "result.json",
+    ):
+        path = output / marker
+        path.write_text("{}", encoding="utf-8")
+        with pytest.raises(
+            RUN.ResourcePPORunnerError,
+            match="official attempt is no longer open",
+        ):
+            RUN._assert_attempt_open(output)
+        path.unlink()
+
+
+def test_terminal_export_canonicalization_preserves_mapping_identity():
+    actor, _ = _actor_and_critic()
+    raw = RUN.MM.export_numpy_weights(actor)
+    assert any(
+        not np.asarray(value).flags.c_contiguous
+        for value in raw.values()
+    )
+    canonical = {
+        name: np.array(value, copy=True, order="C")
+        for name, value in raw.items()
+    }
+    assert all(
+        np.asarray(value).flags.c_contiguous
+        for value in canonical.values()
+    )
+    assert RUN.MM._mapping_sha256(canonical) == RUN.MM._mapping_sha256(raw)
+    RUN.MM.NumpyMDV4(canonical)
+
+
 def test_terminal_checkpoint_is_actor_only():
     actor, critic = _actor_and_critic()
     _, scopes = RUN.make_optimizer(

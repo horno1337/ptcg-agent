@@ -29,9 +29,14 @@ if str(ROOT) not in sys.path:
 from tools.rl_env import OpponentSpec, build_paired_schedule, schedule_manifest
 
 
-SCHEMA = "ptcg.md-v4.resource-ppo-training-lock.v1"
+GENERATION = os.environ.get("PTCG_RESOURCE_PPO_GENERATION", "v1")
+if GENERATION not in {"v1", "v2", "v3", "v4"}:
+    raise RuntimeError(
+        "PTCG_RESOURCE_PPO_GENERATION must be v1, v2, v3, or v4"
+    )
+SCHEMA = f"ptcg.md-v4.resource-ppo-training-lock.{GENERATION}"
 POPULATION_SCHEMA = "ptcg.md-v4.resource-ppo-population.v1"
-CANDIDATE = "md-v4-resource-ppo-v1"
+CANDIDATE = f"md-v4-resource-ppo-{GENERATION}"
 
 UPDATES = 24
 GAMES_PER_UPDATE = 768
@@ -39,7 +44,12 @@ TOTAL_GAMES = 18_432
 PAIRS_PER_UPDATE = 384
 SEATS_PER_UPDATE = {"0": 384, "1": 384}
 FAMILY_PAIRS_PER_UPDATE = {"field": 192, "mirror": 192}
-ROLLOUT_SEED_BASE = 2_026_073_201
+ROLLOUT_SEED_BASE = {
+    "v1": 2_026_073_201,
+    "v2": 2_026_073_107,
+    "v3": 2_026_073_108,
+    "v4": 2_026_073_109,
+}[GENERATION]
 SEED_STRIDE = 1_000_003
 ROLLOUT_SEEDS = tuple(
     ROLLOUT_SEED_BASE + index * SEED_STRIDE
@@ -156,13 +166,17 @@ DIRECT_PAIR_SEED = 2_026_073_202
 DIRECT_PAIRS = 1_280
 DIRECT_GAMES = 2_560
 
-RUN_ROOT = ROOT / "tools/checkpoints/md-v4-resource-ppo-v1"
+RUN_ROOT = ROOT / f"tools/checkpoints/md-v4-resource-ppo-{GENERATION}"
 DEFAULT_OUTPUT = RUN_ROOT / "training-lock.json"
 OFFICIAL_TRAINING_OUTPUT = RUN_ROOT / "training"
 
 DEFAULT_ARTIFACT_PATHS: dict[str, Path] = {
     "preregistration": (
-        ROOT / "tools/research/md-v4-resource-ppo-v1-preregistration.md"
+        ROOT / (
+            "tools/research/md-v4-resource-ppo-v1-preregistration.md"
+            if GENERATION == "v1"
+            else f"tools/research/md-v4-resource-ppo-{GENERATION}-preregistration.md"
+        )
     ),
     "lock_builder": ROOT / "tools/research/lock_md_v4_resource_ppo_v1.py",
     "runner": ROOT / "tools/research/run_md_v4_resource_ppo_v1.py",
