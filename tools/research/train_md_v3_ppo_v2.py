@@ -79,6 +79,7 @@ class Decision:
     episode_id: int
     decision_index: int
     learner_select_index: int
+    public_potential: float = 0.0
     transition_steps: int = 0
     reward: float = 0.0
     terminal: bool = False
@@ -191,6 +192,7 @@ def compute_smdp_gae(
     *,
     gamma: float,
     gae_lambda: float,
+    reward_contract: str = "terminal",
 ) -> list[GAETarget]:
     """Compute episode-local TD(lambda) targets on ST_MAIN macro-transitions.
 
@@ -202,6 +204,8 @@ def compute_smdp_gae(
         raise ValueError("gamma must be in (0, 1]")
     if not 0.0 <= gae_lambda <= 1.0:
         raise ValueError("gae_lambda must be in [0, 1]")
+    if reward_contract not in ("terminal", "potential"):
+        raise ValueError("unknown reward contract")
     if not decisions:
         raise PPOV2Error("cannot compute GAE for an empty rollout")
     grouped: dict[int, list[tuple[int, Decision]]] = defaultdict(list)
@@ -239,10 +243,11 @@ def compute_smdp_gae(
                 row.old_logp, row.old_value, row.reward,
             )):
                 raise PPOV2Error("decision contains non-finite rollout values")
-            if not row.terminal and row.reward != 0.0:
-                raise PPOV2Error("terminal-only reward appeared before game end")
-            if row.terminal and row.reward not in (-1.0, 0.0, 1.0):
-                raise PPOV2Error("terminal reward must be win/draw/loss")
+            if reward_contract == "terminal":
+                if not row.terminal and row.reward != 0.0:
+                    raise PPOV2Error("terminal-only reward appeared before game end")
+                if row.terminal and row.reward not in (-1.0, 0.0, 1.0):
+                    raise PPOV2Error("terminal reward must be win/draw/loss")
 
         next_advantage = 0.0
         for reverse_index in range(len(indexed) - 1, -1, -1):
@@ -474,6 +479,7 @@ def ppo_update(
     parent_kl_coefficient: float,
     gamma: float,
     gae_lambda: float,
+    reward_contract: str = "terminal",
 ) -> dict[str, float]:
     """Apply PPO with disjoint actor/critic graphs using a caller-owned optimizer."""
     if not decisions:
@@ -490,6 +496,7 @@ def ppo_update(
     _validate_optimizer(optimizer, scopes)
     targets = compute_smdp_gae(
         decisions, gamma=gamma, gae_lambda=gae_lambda,
+        reward_contract=reward_contract,
     )
     raw_advantages = torch.tensor(
         [target.advantage for target in targets], dtype=torch.float32,
