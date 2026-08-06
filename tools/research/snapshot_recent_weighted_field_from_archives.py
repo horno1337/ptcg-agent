@@ -134,11 +134,16 @@ def build(inventory_path: Path) -> dict[str, Any]:
             "archive_sha256": actual_hash,
             "episodes": member_count,
             "registered_seats": 2 * member_count,
+            "manifest_rows": int(raw.get("manifest_rows", member_count)),
+            "manifest_missing_replays": int(
+                raw.get("manifest_missing_replays", 0)
+            ),
         })
 
     if total_members != int(inventory.get("total_unique_episodes", -1)):
         raise SnapshotError("aggregate episode count differs from inventory")
     total = sum(counts.values())
+    dates = sorted(daily)
     included = []
     excluded = []
     for label, count in counts.most_common():
@@ -170,7 +175,10 @@ def build(inventory_path: Path) -> dict[str, Any]:
             "archives": sources,
             "episode_files": total_members,
             "registered_seats": total,
-            "date_contract": "complete official daily archives 2026-07-29 through 2026-07-31",
+            "date_contract": (
+                f"official daily archives {dates[0]} through {dates[-1]}; "
+                "available replay JSON only; manifest gaps recorded in inventory"
+            ),
             "read_contract": "first 65536 bytes per JSON member; registration only",
         },
         "selection": {

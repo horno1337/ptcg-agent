@@ -2,6 +2,8 @@
 
 This inventory validates every ZIP member and ``manifest.csv`` row, binds the
 archive and member identities, and rejects duplicate episode IDs across days.
+Manifest-only episode IDs remain fatal unless the explicit gap policy is used;
+under that policy their count and identity hash are sealed in the inventory.
 It deliberately does not read replay JSON bytes; later cohort construction is
 therefore separated from source completeness and deduplication.
 """
@@ -10,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from datetime import date as calendar_date, timedelta
 import hashlib
 import io
 import json
@@ -59,7 +62,12 @@ def _safe_member(name: str) -> PurePosixPath:
     return member
 
 
-def inspect_archive(date: str, path: Path) -> tuple[dict[str, Any], set[int]]:
+def inspect_archive(
+    date: str,
+    path: Path,
+    *,
+    allow_manifest_gaps: bool = False,
+) -> tuple[dict[str, Any], set[int]]:
     path = path.expanduser().resolve()
     if not path.is_file() or path.is_symlink():
         raise InventoryError(f"archive is not a regular file: {path}")
@@ -94,7 +102,14 @@ def inspect_archive(date: str, path: Path) -> tuple[dict[str, Any], set[int]]:
                 raise InventoryError(f"{date} manifest episode IDs are invalid") from error
             if len(manifest_ids) != len(set(manifest_ids)):
                 raise InventoryError(f"{date} manifest has duplicate episode IDs")
-            if set(manifest_ids) != episode_ids:
+            manifest_set = set(manifest_ids)
+            replay_only = sorted(episode_ids - manifest_set)
+            missing_replays = sorted(manifest_set - episode_ids)
+            if replay_only:
+                raise InventoryError(
+                    f"{date} has replay JSON absent from manifest: {replay_only[0]}"
+                )
+            if missing_replays and not allow_manifest_gaps:
                 raise InventoryError(f"{date} manifest/replay inventory differs")
             member_rows = [
                 {
@@ -114,6 +129,11 @@ def inspect_archive(date: str, path: Path) -> tuple[dict[str, Any], set[int]]:
         "archive_sha256": _sha256(path),
         "manifest_sha256": hashlib.sha256(manifest_raw).hexdigest(),
         "episodes": len(episode_ids),
+        "manifest_rows": len(manifest_ids),
+        "manifest_missing_replays": len(missing_replays),
+        "manifest_missing_replay_ids_sha256": hashlib.sha256(
+            _canonical(missing_replays)
+        ).hexdigest(),
         "minimum_episode_id": min(episode_ids),
         "maximum_episode_id": max(episode_ids),
         "compressed_member_bytes": sum(row["compressed_bytes"] for row in member_rows),
@@ -122,13 +142,19 @@ def inspect_archive(date: str, path: Path) -> tuple[dict[str, Any], set[int]]:
     }, episode_ids)
 
 
-def build(specs: Sequence[tuple[str, Path]]) -> dict[str, Any]:
+def build(
+    specs: Sequence[tuple[str, Path]],
+    *,
+    allow_manifest_gaps: bool = False,
+) -> dict[str, Any]:
     if not specs or len({date for date, _ in specs}) != len(specs):
         raise InventoryError("archive dates must be non-empty and unique")
     records: list[dict[str, Any]] = []
     seen: dict[int, str] = {}
     for date, path in sorted(specs):
-        record, episode_ids = inspect_archive(date, path)
+        record, episode_ids = inspect_archive(
+            date, path, allow_manifest_gaps=allow_manifest_gaps
+        )
         overlap = sorted(episode_id for episode_id in episode_ids if episode_id in seen)
         if overlap:
             raise InventoryError(
@@ -136,15 +162,30 @@ def build(specs: Sequence[tuple[str, Path]]) -> dict[str, Any]:
             )
         seen.update({episode_id: date for episode_id in episode_ids})
         records.append(record)
+    latest_date = max(
+        calendar_date.fromisoformat(record["date"]) for record in records
+    )
     payload = {
         "schema": SCHEMA,
         "archives": records,
         "dates": [record["date"] for record in records],
         "total_unique_episodes": len(seen),
+        "total_manifest_rows": sum(record["manifest_rows"] for record in records),
+        "manifest_missing_replays": sum(
+            record["manifest_missing_replays"] for record in records
+        ),
+        "manifest_gap_policy": (
+            "manifest-only episode IDs recorded and excluded"
+            if allow_manifest_gaps
+            else "no manifest/replay gaps allowed"
+        ),
         "episode_id_overlap": 0,
         "replay_json_opened": False,
         "development_use_authorized": True,
-        "next_temporal_reservation": "first complete official day on or after 2026-08-01",
+        "next_temporal_reservation": (
+            "first complete official day on or after "
+            f"{latest_date + timedelta(days=1)}"
+        ),
         "promotion_authority": False,
         "upload_authority": False,
     }
@@ -160,6 +201,10 @@ def _parse_spec(value: str) -> tuple[str, Path]:
     date, raw_path = value.split("=", 1)
     if len(date) != 10 or date[4] != "-" or date[7] != "-" or not raw_path:
         raise argparse.ArgumentTypeError("archive must be DATE=PATH")
+    try:
+        calendar_date.fromisoformat(date)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("archive date is invalid") from error
     return date, Path(raw_path)
 
 
@@ -185,9 +230,19 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archives", nargs="+", type=_parse_spec, metavar="DATE=PATH")
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument(
+        "--allow-manifest-gaps",
+        action="store_true",
+        help=(
+            "permit manifest rows whose replay JSON is absent; record and bind "
+            "the gaps while still rejecting replay JSON absent from the manifest"
+        ),
+    )
     args = parser.parse_args()
     try:
-        payload = build(args.archives)
+        payload = build(
+            args.archives, allow_manifest_gaps=args.allow_manifest_gaps
+        )
         _atomic_json(args.output, payload)
     except InventoryError as error:
         parser.error(str(error))
