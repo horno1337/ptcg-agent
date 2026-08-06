@@ -35,8 +35,8 @@ from agent import qu_v2_features as PROD_QF  # noqa: E402
 from agent.obsview import ObsView, ST_MAIN  # noqa: E402
 
 
-METRICS_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.behavior-metrics.v1"
-RESULT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.behavior-screen-result.v1"
+METRICS_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.behavior-metrics.v1"
+RESULT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.behavior-screen-result.v1"
 
 
 class BehaviorScreenError(RuntimeError):
@@ -118,6 +118,9 @@ def _verified_results(
         or training.get("cohort_lock_sha256") != lock["lock_sha256"]
         or training.get("extraction_result_sha256")
         != extraction["result_sha256"]
+        or training.get("parent_logit_authority")
+        != lock["training"]["parent_logit_authority"]
+        or training.get("research_production_feature_twin_audit") is not True
     ):
         raise BehaviorScreenError("extraction/training provenance failed")
     if (
@@ -765,18 +768,17 @@ def run(lock_path: Path = LOCK.OUTPUT) -> dict[str, Any]:
     extraction, training = _verified_results(lock)
     metrics = compute_metrics(lock, extraction, training)
     result = assess_metrics_payload(metrics, lock, extraction, training)
-    metrics_written = False
+    published: list[Path] = []
     try:
-        LOCK.write_new(LOCK.BEHAVIOR_METRICS, metrics)
-        metrics_written = True
+        LOCK.write_new(LOCK.BEHAVIOR_METRICS, metrics, published)
         result["metrics_file_sha256"] = LOCK.sha256_file(
             LOCK.BEHAVIOR_METRICS
         )
         result["result_sha256"] = LOCK.canonical_sha256(result)
-        LOCK.write_new(LOCK.SCREEN_RESULT, result)
-    except Exception:
-        if metrics_written:
-            LOCK.BEHAVIOR_METRICS.unlink(missing_ok=True)
+        LOCK.write_new(LOCK.SCREEN_RESULT, result, published)
+    except BaseException:
+        for path in reversed(published):
+            path.unlink(missing_ok=True)
         raise
     print(json.dumps(result, indent=2, sort_keys=True))
     return result

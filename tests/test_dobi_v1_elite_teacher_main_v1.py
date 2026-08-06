@@ -137,6 +137,10 @@ def test_persistent_cohort_and_provenance_bindings_are_frozen():
     )
     receipt = LOCK.DEFAULT_COHORT / ".done_subs.json"
     assert LOCK.sha256_file(receipt) == LOCK.COHORT_RECEIPT_SHA256
+    assert set(LOCK._aborted_v1_artifacts()) == {
+        "abort_receipt", "cohort_lock", "extraction_result",
+        "preferences", "preservation",
+    }
     assert all(path.is_file() for path in LOCK.TRANSITIVE_DEPENDENCIES.values())
 
 
@@ -151,6 +155,31 @@ def test_parent_checkpoint_enforces_transitive_model_contract():
         }
     assert set(actual) == set(expected)
     assert all(np.array_equal(actual[name], expected[name]) for name in expected)
+    assert isinstance(TRAIN._load_parent_runtime(parent), PROD_MODEL.QuV2Net)
+
+
+def test_training_parent_logits_use_authoritative_production_runtime():
+    torch_parent, _ = TRAIN._load_parent()
+    runtime = TRAIN._load_parent_runtime(torch_parent)
+    deck = LOCK.target_deck()
+    observation = _view().obs
+    observation["current"]["players"][1]["hand"] = None
+    production_features = PROD_QF.encode_public_observation(observation, deck)
+    research_features = RESEARCH_QF.encode_public_observation(observation, deck)
+    logits, _ = runtime.forward(production_features)
+    n_options = len(observation["select"]["option"])
+    parent_action = tuple(PROD_MODEL.decode_qu_v2(
+        logits[:n_options + 1], n_options, 1, 1,
+    ))
+    state = TRAIN.PolicyState(
+        research_features, parent_action, n_options, 1, 1,
+        "train", 1, "synthetic", False,
+        production_features=production_features,
+    )
+    TRAIN.attach_parent_logits(runtime, [state])
+    np.testing.assert_array_equal(
+        state.parent_logits, logits[:n_options + 1],
+    )
 
 
 def test_candidate_loader_requires_exact_checkpoint_numpy_export(tmp_path):
@@ -438,6 +467,26 @@ def test_arm_publication_rolls_back_partial_links_on_interrupt(
     assert not output.exists()
 
 
+def test_extraction_publication_rolls_back_post_link_interrupt(
+    tmp_path, monkeypatch,
+):
+    temporary = tmp_path / "temporary"
+    temporary.write_bytes(b"complete")
+    output = tmp_path / "published"
+    ownership: list[Path] = []
+    real_link = os.link
+
+    def interrupted_link(source, destination):
+        real_link(source, destination)
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(PREP.os, "link", interrupted_link)
+    with pytest.raises(KeyboardInterrupt):
+        PREP._publish_new(temporary, output, ownership)
+    assert not output.exists()
+    assert ownership == []
+
+
 def test_write_new_keeps_complete_output_if_temp_cleanup_fails(
     tmp_path, monkeypatch,
 ):
@@ -452,3 +501,19 @@ def test_write_new_keeps_complete_output_if_temp_cleanup_fails(
     monkeypatch.setattr(Path, "unlink", cleanup_failure)
     LOCK.write_new(output, {"complete": True})
     assert output.read_text(encoding="utf-8") == '{\n  "complete": true\n}\n'
+
+
+def test_write_new_rolls_back_if_ledger_append_is_interrupted(tmp_path):
+    output = tmp_path / "artifact.json"
+
+    class InterruptingLedger(list):
+        def append(self, value):
+            super().append(value)
+            raise KeyboardInterrupt
+
+    ledger = InterruptingLedger()
+    with pytest.raises(KeyboardInterrupt):
+        LOCK.write_new(output, {"complete": True}, ledger)
+    assert not output.exists()
+    # A caller may safely unlink the recorded name again during its rollback.
+    assert ledger == [output]
