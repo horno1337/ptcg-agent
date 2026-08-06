@@ -1,10 +1,23 @@
-# Dobi-v1 elite-teacher ST_MAIN residual v1
+# Dobi-v1 elite-teacher ST_MAIN residual v1b
 
 Status: locked after the preregistered 300-game comparison and exploratory
 prompt sizing, but before the formal locked extraction, candidate training,
 behavioral evaluation, or gameplay outcomes.
 
 Date: 2026-08-06 (Europe/Warsaw).
+
+V1b repair amendment: 2026-08-07 (Europe/Warsaw), before the v1b lock or any
+v1b optimizer/candidate outcome. The materialized v1 lock
+`d9bdbd5cfa185e2ded561f45721495b3ded1dc56a2dd4f3a3fcb9b5c5b896c33`
+completed extraction, then stopped before its first optimizer step because the
+research Torch twin decoded differently from the byte-exact production NumPy
+parent on 49/12,414 preservation prompts (39 train, 10 validation) and 4/1,299
+preference rows. The exact maximum observed absolute logit difference was
+`9.5367431640625e-06`, at essentially tied actions. V1b preserves the exact cohort, split
+domain, labels, weights, thresholds, arms, seed, and gameplay gates. Its sole
+scientific repair is to compute parent-relative logits from the exact shipped
+production NumPy runtime that produced the locked rejected actions. No v1
+candidate, training metric, behavior result, or gameplay outcome exists.
 
 Amendment: before the cohort lock was materialized or any extraction/training
 outcome existed, an independent code audit found that the original phrase
@@ -88,6 +101,12 @@ publicly identified mirror by this experiment.
 ## Parent preservation
 
 - Initialization and rejected-action policy: frozen Dobi-v1 ST_MAIN.
+- Parent preference/KL logits are computed by the exact production
+  `agent.qu_v2_features` + `agent.model.QuV2Net` runtime from the bound Dobi-v1
+  NPZ. The Torch checkpoint initializes the trainable candidate but is not
+  treated as authoritative parent behavior. Research and production encoders
+  are both run on every training row and every public feature array must match
+  exactly before optimization.
 - Trainable modules: option/context/policy head only. Public feature encoder,
   embedding, board/state trunk, value output, decoder, ST_CARD specialist, and
   Qu-v2B residual remain frozen.

@@ -33,7 +33,7 @@ from tools import analyze_ladder_replays as LADDER  # noqa: E402
 from tools import il_dataset, index_corpus  # noqa: E402
 
 
-RUN = ROOT / "tools/checkpoints/dobi-v1-elite-teacher-main-v1"
+RUN = ROOT / "tools/checkpoints/dobi-v1-elite-teacher-main-v1b"
 OUTPUT = RUN / "cohort-lock.json"
 DEFAULT_COHORT = ROOT / (
     "tools/checkpoints/dobi-v1-top-grim-comparison-v1/replays/sixth-sense"
@@ -47,6 +47,21 @@ EXTRACTION_RESULT = RUN / "extraction-result.json"
 TRAINING_RESULT = RUN / "training-result.json"
 BEHAVIOR_METRICS = RUN / "behavior-metrics.json"
 SCREEN_RESULT = RUN / "behavior-screen-result.json"
+ABORTED_V1_RUN = ROOT / (
+    "tools/checkpoints/dobi-v1-elite-teacher-main-v1"
+)
+ABORTED_V1_RECEIPT = ROOT / (
+    "tools/research/dobi-v1-elite-teacher-main-v1-abort.json"
+)
+ABORTED_V1_RECEIPT_SHA256 = (
+    "7d2e2ebb2989ce0dda7fe69dd1dcd2037579e6790ce9df38d37928fd5def3ebf"
+)
+ABORTED_V1_FILE_SHA256 = {
+    "cohort_lock": "b5deb50a715246799337e67ea4acc13605d9601b7656a5ba226028e65018a08f",
+    "extraction_result": "1dd29911c747b5f1d1819d08ef418f4eddf1cff5756ba1c8951b87cc4a31cb21",
+    "preferences": "144b3245dc49c1672670fdbc9d7171e15cce2f3bf21489a56c4edd1087b1774f",
+    "preservation": "be23159f518e9bf6acc0777de843c95628d3696df6d11f8a134aba04039d6e1e",
+}
 
 TEAM = "Sixth Sense"
 SUBMISSION_ID = 55_138_264
@@ -100,7 +115,7 @@ EXPECTED_DRAWS = 0
 EXPECTED_EXACT_MIRRORS = 53
 EXPECTED_EXACT_MIRROR_WINS = 33
 SPLIT_DOMAIN = "ptcg.dobi-v1.elite-teacher-main-v1.split.v1"
-LOCK_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.cohort-lock.v1"
+LOCK_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.cohort-lock.v1"
 
 
 class LockError(RuntimeError):
@@ -151,7 +166,10 @@ def runtime_environment() -> dict[str, Any]:
     }
 
 
-def write_new(path: Path, payload: Mapping[str, Any]) -> None:
+def write_new(
+    path: Path, payload: Mapping[str, Any],
+    ownership_ledger: list[Path] | None = None,
+) -> None:
     """Publish one JSON artifact without overwriting prior evidence."""
     if path.exists():
         raise LockError(f"refusing to overwrite {path}")
@@ -168,6 +186,8 @@ def write_new(path: Path, payload: Mapping[str, Any]) -> None:
             handle.flush()
             os.fsync(handle.fileno())
         os.link(temporary, path)
+        if ownership_ledger is not None:
+            ownership_ledger.append(path)
     except BaseException:
         # If an asynchronous interruption lands immediately after link(2),
         # remove only the target that shares our temporary inode.  Never
@@ -313,8 +333,80 @@ def _artifact(path: Path, expected: str | None = None) -> dict[str, str]:
     return {"path": str(path.resolve()), "sha256": digest}
 
 
+def _aborted_v1_artifacts() -> dict[str, dict[str, str]]:
+    """Verify and bind the immutable pre-optimizer v1 abort lineage."""
+    paths = {
+        "cohort_lock": ABORTED_V1_RUN / "cohort-lock.json",
+        "extraction_result": ABORTED_V1_RUN / "extraction-result.json",
+        "preferences": ABORTED_V1_RUN / "preferences.jsonl.gz",
+        "preservation": ABORTED_V1_RUN / "teacher-preservation.jsonl.gz",
+    }
+    artifacts = {
+        name: _artifact(path, ABORTED_V1_FILE_SHA256[name])
+        for name, path in paths.items()
+    }
+    receipt_artifact = _artifact(
+        ABORTED_V1_RECEIPT, ABORTED_V1_RECEIPT_SHA256,
+    )
+    try:
+        receipt = json.loads(ABORTED_V1_RECEIPT.read_text(encoding="utf-8"))
+        old_lock = json.loads(paths["cohort_lock"].read_text(encoding="utf-8"))
+        old_extraction = json.loads(
+            paths["extraction_result"].read_text(encoding="utf-8")
+        )
+    except (OSError, TypeError, ValueError) as error:
+        raise LockError("aborted v1 lineage is unreadable") from error
+    old_lock_body = {
+        key: value for key, value in old_lock.items() if key != "lock_sha256"
+    }
+    old_extraction_body = {
+        key: value for key, value in old_extraction.items()
+        if key != "result_sha256"
+    }
+    if (
+        receipt.get("schema")
+        != "ptcg.dobi-v1.elite-teacher-main-v1.abort-receipt.v1"
+        or receipt.get("source_commit")
+        != "ecea398837608d51de571ae0b3212ebbfd45b093"
+        or receipt.get("optimizer_steps") != 0
+        or receipt.get("candidate_artifacts_created") != 0
+        or receipt.get("cohort_lock_file_sha256")
+        != ABORTED_V1_FILE_SHA256["cohort_lock"]
+        or receipt.get("extraction_result_file_sha256")
+        != ABORTED_V1_FILE_SHA256["extraction_result"]
+        or receipt.get("preferences_file_sha256")
+        != ABORTED_V1_FILE_SHA256["preferences"]
+        or receipt.get("preservation_file_sha256")
+        != ABORTED_V1_FILE_SHA256["preservation"]
+        or old_lock.get("schema")
+        != "ptcg.dobi-v1.elite-teacher-main-v1.cohort-lock.v1"
+        or old_lock.get("lock_sha256")
+        != canonical_sha256(old_lock_body)
+        or old_lock.get("lock_sha256") != receipt.get("cohort_lock_sha256")
+        or old_extraction.get("result_sha256")
+        != canonical_sha256(old_extraction_body)
+        or old_extraction.get("result_sha256")
+        != receipt.get("extraction_result_sha256")
+        or old_extraction.get("cohort_lock_sha256")
+        != old_lock.get("lock_sha256")
+        or old_extraction.get("preferences", {}).get("compressed_sha256")
+        != ABORTED_V1_FILE_SHA256["preferences"]
+        or old_extraction.get("teacher_preservation", {}).get(
+            "compressed_sha256"
+        ) != ABORTED_V1_FILE_SHA256["preservation"]
+    ):
+        raise LockError("aborted v1 lineage contract failed")
+    absent = receipt.get("required_absent_relative_paths")
+    if not isinstance(absent, list) or any(
+        (ABORTED_V1_RUN / str(relative)).exists() for relative in absent
+    ):
+        raise LockError("aborted v1 unexpectedly contains candidate outcomes")
+    return {"abort_receipt": receipt_artifact, **artifacts}
+
+
 def build_lock(cohort_dir: Path = DEFAULT_COHORT) -> dict[str, Any]:
     deck = target_deck()
+    aborted_v1 = _aborted_v1_artifacts()
     cohort_dir = cohort_dir.expanduser().resolve()
     receipt = cohort_dir / ".done_subs.json"
     try:
@@ -413,6 +505,10 @@ def build_lock(cohort_dir: Path = DEFAULT_COHORT) -> dict[str, Any]:
             "exact_mirror_opponent_never_supervised": True,
         },
         "artifacts": {
+            **{
+                f"aborted_v1_{name}": descriptor
+                for name, descriptor in aborted_v1.items()
+            },
             "cohort_acquisition_receipt": _artifact(
                 receipt, COHORT_RECEIPT_SHA256,
             ),
@@ -438,7 +534,7 @@ def build_lock(cohort_dir: Path = DEFAULT_COHORT) -> dict[str, Any]:
             "games": frozen_rows,
         },
         "preference_extraction": {
-            "schema": "ptcg.dobi-v1.elite-teacher-main-v1.preference.v1",
+            "schema": "ptcg.dobi-v1.elite-teacher-main-v1b.preference.v1",
             "supervised_seat": "the explicit Sixth Sense seat only",
             "supervised_outcome": "win only",
             "select_type": 0,
@@ -467,6 +563,12 @@ def build_lock(cohort_dir: Path = DEFAULT_COHORT) -> dict[str, Any]:
             ),
             "initial_checkpoint": "frozen Dobi-v1",
             "parent": "same frozen Dobi-v1",
+            "parent_logit_authority": (
+                "bound production agent.qu_v2_features + "
+                "agent.model.QuV2Net NumPy runtime; Torch checkpoint only "
+                "initializes candidate parameters; research/production "
+                "feature arrays must match exactly on every row"
+            ),
             "parent_kl_states": (
                 "every valid ST_MAIN prompt from the explicit teacher seat in "
                 "the 240 training-split locked games, including wins and "

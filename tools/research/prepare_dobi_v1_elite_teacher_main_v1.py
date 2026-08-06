@@ -48,10 +48,10 @@ from tools import analyze_ladder_replays as LADDER, il_dataset, index_corpus  # 
 from tools.research import lock_dobi_v1_elite_teacher_main_v1 as LOCK  # noqa: E402
 
 
-RESULT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.extraction-result.v1"
-PREFERENCE_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.preference.v1"
+RESULT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.extraction-result.v1"
+PREFERENCE_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.preference.v1"
 PRESERVATION_SCHEMA = (
-    "ptcg.dobi-v1.elite-teacher-main-v1.teacher-preservation.v1"
+    "ptcg.dobi-v1.elite-teacher-main-v1b.teacher-preservation.v1"
 )
 BOSS_ORDERS_CARD_ID = 1182
 FUNGIBLE_COPY_AREAS = frozenset((
@@ -261,14 +261,24 @@ class _GzipJsonl:
             self.path.unlink(missing_ok=True)
 
 
-def _publish_new(temporary: Path, output: Path) -> None:
+def _publish_new(
+    temporary: Path, output: Path, ownership_ledger: list[Path],
+) -> None:
     if output.exists():
         raise ExtractionError(f"refusing to overwrite {output}")
     output.parent.mkdir(parents=True, exist_ok=True)
     try:
         os.link(temporary, output)
+        ownership_ledger.append(output)
     except FileExistsError as error:
         raise ExtractionError(f"refusing to overwrite {output}") from error
+    except BaseException:
+        try:
+            if output.exists() and os.path.samefile(temporary, output):
+                output.unlink()
+        except OSError:
+            pass
+        raise
 
 
 def _locked_game_map(lock: Mapping[str, Any]) -> list[Mapping[str, Any]]:
@@ -503,10 +513,10 @@ def extract(lock_path: Path = LOCK.OUTPUT) -> dict[str, Any]:
             preference_writer.write(enriched)
         preference_writer.close()
 
-        _publish_new(preservation_writer.path, LOCK.PRESERVATION)
-        published.append(LOCK.PRESERVATION)
-        _publish_new(preference_writer.path, LOCK.PREFERENCES)
-        published.append(LOCK.PREFERENCES)
+        _publish_new(
+            preservation_writer.path, LOCK.PRESERVATION, published,
+        )
+        _publish_new(preference_writer.path, LOCK.PREFERENCES, published)
 
         counts["preferences"] = len(preferences)
         counts["preference_games"] = len(preference_games)
@@ -559,8 +569,7 @@ def extract(lock_path: Path = LOCK.OUTPUT) -> dict[str, Any]:
             "upload_authority": False,
         }
         result["result_sha256"] = LOCK.canonical_sha256(result)
-        LOCK.write_new(LOCK.EXTRACTION_RESULT, result)
-        published.append(LOCK.EXTRACTION_RESULT)
+        LOCK.write_new(LOCK.EXTRACTION_RESULT, result, published)
     except BaseException:
         for path in reversed(published):
             # These files were created in this invocation and the result was

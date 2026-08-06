@@ -1,0 +1,37 @@
+{
+  "schema": "ptcg.dobi-v1.elite-teacher-main-v1.abort-receipt.v1",
+  "recorded_date": "2026-08-07",
+  "source_commit": "ecea398837608d51de571ae0b3212ebbfd45b093",
+  "cohort_lock_sha256": "d9bdbd5cfa185e2ded561f45721495b3ded1dc56a2dd4f3a3fcb9b5c5b896c33",
+  "cohort_lock_file_sha256": "b5deb50a715246799337e67ea4acc13605d9601b7656a5ba226028e65018a08f",
+  "extraction_result_sha256": "2b6b28139029ec0649b68ef4c1a349f7ea6a48d9dc668882328949cff5d28aa5",
+  "extraction_result_file_sha256": "1dd29911c747b5f1d1819d08ef418f4eddf1cff5756ba1c8951b87cc4a31cb21",
+  "preferences_file_sha256": "144b3245dc49c1672670fdbc9d7171e15cce2f3bf21489a56c4edd1087b1774f",
+  "preservation_file_sha256": "be23159f518e9bf6acc0777de843c95628d3696df6d11f8a134aba04039d6e1e",
+  "failure_stage": "parent-logit attachment before arm construction",
+  "optimizer_steps": 0,
+  "candidate_artifacts_created": 0,
+  "torch_numpy_decode_mismatches": {
+    "preferences": {
+      "all": 4,
+      "train": 4,
+      "validation": 0,
+      "total_prompts": 1299
+    },
+    "preservation": {
+      "all": 49,
+      "train": 39,
+      "validation": 10,
+      "total_prompts": 12414
+    }
+  },
+  "required_absent_relative_paths": [
+    "training-result.json",
+    "behavior-metrics.json",
+    "behavior-screen-result.json",
+    "arms/kl1",
+    "arms/kl3"
+  ],
+  "promotion_authority": false,
+  "upload_authority": false
+}

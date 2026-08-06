@@ -40,10 +40,12 @@ from tools.research import prepare_dobi_v1_elite_teacher_main_v1 as PREP  # noqa
 from tools.research import qu_v2a_features as QF  # noqa: E402
 from tools.research import qu_v2a_model as QM  # noqa: E402
 from tools.research import train_qu_v2a as TRAIN  # noqa: E402
+from agent import model as PROD_MODEL  # noqa: E402
+from agent import qu_v2_features as PROD_QF  # noqa: E402
 
 
-RESULT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.training-result.v1"
-CHECKPOINT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1.checkpoint.v1"
+RESULT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.training-result.v1"
+CHECKPOINT_SCHEMA = "ptcg.dobi-v1.elite-teacher-main-v1b.checkpoint.v1"
 TRAINABLE_PREFIXES = ("option1.", "context1.", "policy.")
 ARM_FILENAMES = (
     "checkpoint.pt", "candidate-qu-v2a-weights.npz", "training-history.json",
@@ -66,6 +68,7 @@ class PolicyState:
     matchup: str
     exact_mirror: bool
     parent_logits: np.ndarray | None = None
+    production_features: PROD_QF.PublicFeatures | None = None
 
 
 @dataclass
@@ -262,6 +265,27 @@ def _load_parent() -> tuple[QM.TorchQuV2A, tuple[int, ...]]:
     return net, architecture
 
 
+def _load_parent_runtime(parent: QM.TorchQuV2A) -> PROD_MODEL.QuV2Net:
+    """Load the authoritative Dobi runtime and prove full export parity."""
+    if LOCK.sha256_file(LOCK.PARENT_NPZ) != LOCK.PARENT_NPZ_SHA256:
+        raise EliteTrainingError("frozen Dobi-v1 NumPy artifact drifted")
+    with np.load(LOCK.PARENT_NPZ, allow_pickle=False) as archive:
+        arrays = {
+            name: np.array(archive[name], copy=True) for name in archive.files
+        }
+    expected = QM.export_numpy_weights(parent.eval())
+    if set(arrays) != set(expected) or any(
+        arrays[name].dtype != expected[name].dtype
+        or arrays[name].shape != expected[name].shape
+        or not np.array_equal(arrays[name], expected[name])
+        for name in expected
+    ):
+        raise EliteTrainingError(
+            "frozen Dobi-v1 checkpoint and NumPy artifact disagree"
+        )
+    return PROD_MODEL.QuV2Net(arrays)
+
+
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     with gzip.open(path, "rt", encoding="utf-8") as handle:
@@ -348,6 +372,24 @@ def _expected_prefixed_counts(
     }
 
 
+def _encode_feature_twins(
+    observation: Mapping[str, Any], target_deck: tuple[int, ...],
+) -> tuple[QF.PublicFeatures, PROD_QF.PublicFeatures]:
+    """Encode both implementations and require byte-identical public arrays."""
+    research = QF.encode_public_observation(observation, target_deck)
+    production = PROD_QF.encode_public_observation(observation, target_deck)
+    research_arrays = research.arrays()
+    production_arrays = production.arrays()
+    if set(research_arrays) != set(production_arrays) or any(
+        research_arrays[name].dtype != production_arrays[name].dtype
+        or research_arrays[name].shape != production_arrays[name].shape
+        or not np.array_equal(research_arrays[name], production_arrays[name])
+        for name in research_arrays
+    ):
+        raise EliteTrainingError("research and production public features differ")
+    return research, production
+
+
 def load_states(
     extraction: Mapping[str, Any], target_deck: tuple[int, ...],
     lock: Mapping[str, Any],
@@ -405,8 +447,11 @@ def load_states(
         for family in families:
             preference_families[family] += 1
             preference_family_games.setdefault(family, set()).add(episode_id)
+        research_features, production_features = _encode_feature_twins(
+            row["observation"], target_deck,
+        )
         preferences.append(PreferenceState(
-            features=QF.encode_public_observation(row["observation"], target_deck),
+            features=research_features,
             parent_action=rejected,
             n_options=n_options,
             min_count=min_count,
@@ -419,6 +464,7 @@ def load_states(
             rejected=rejected,
             weight=weight,
             families=families,
+            production_features=production_features,
         ))
 
     preservation_keys: set[tuple[int, int]] = set()
@@ -445,8 +491,11 @@ def load_states(
         preservation_splits[str(row["supervision_split"])] += 1
         preservation_matchups[str(row["matchup"])] += 1
         preservation_outcomes[str(row["teacher_outcome"])] += 1
+        research_features, production_features = _encode_feature_twins(
+            row["observation"], target_deck,
+        )
         preservation.append(PolicyState(
-            features=QF.encode_public_observation(row["observation"], target_deck),
+            features=research_features,
             parent_action=parent_action,
             n_options=n_options,
             min_count=min_count,
@@ -455,6 +504,7 @@ def load_states(
             episode_id=episode_id,
             matchup=str(row["matchup"]),
             exact_mirror=bool(row["exact_mirror"]),
+            production_features=production_features,
         ))
     if not preferences or not preservation:
         raise EliteTrainingError("locked extraction produced an empty training pool")
@@ -521,29 +571,25 @@ def load_states(
 
 
 def attach_parent_logits(
-    parent: QM.TorchQuV2A,
+    parent: PROD_MODEL.QuV2Net,
     states: Sequence[PolicyState],
-    device: torch.device,
-    batch_size: int = 256,
 ) -> None:
-    parent.eval()
-    with torch.no_grad():
-        for start in range(0, len(states), batch_size):
-            group = states[start:start + batch_size]
-            logits, _ = parent(QM.collate(
-                [state.features for state in group], device=device,
-            ))
-            for index, state in enumerate(group):
-                value = logits[index, :state.n_options + 1].detach().cpu().numpy()
-                value = np.asarray(value, dtype=np.float32)
-                decoded = tuple(QM.decode_sequential(
-                    value, state.n_options, state.min_count, state.max_count,
-                ))
-                if decoded != state.parent_action:
-                    raise EliteTrainingError(
-                        "Torch parent disagrees with locked NumPy parent action"
-                    )
-                state.parent_logits = value
+    """Attach logits from the exact production parent used to extract actions."""
+    for state in states:
+        if state.production_features is None:
+            raise EliteTrainingError("production public features are missing")
+        logits, _ = parent.forward(state.production_features)
+        value = np.asarray(
+            logits[:state.n_options + 1], dtype=np.float32,
+        )
+        decoded = tuple(PROD_MODEL.decode_qu_v2(
+            value, state.n_options, state.min_count, state.max_count,
+        ))
+        if decoded != state.parent_action:
+            raise EliteTrainingError(
+                "production NumPy parent disagrees with locked parent action"
+            )
+        state.parent_logits = value
 
 
 def epoch_orders(
@@ -848,7 +894,7 @@ def _train_arm(
             QM.export_numpy_weights(net), temporary / ARM_FILENAMES[1],
         )
         TRAIN._atomic_json({
-            "schema": "ptcg.dobi-v1.elite-teacher-main-v1.history.v1",
+            "schema": "ptcg.dobi-v1.elite-teacher-main-v1b.history.v1",
             "arm": dict(arm),
             "history": history,
         }, temporary / ARM_FILENAMES[2])
@@ -924,14 +970,16 @@ def train(lock_path: Path = LOCK.OUTPUT, device_name: str = "auto") -> dict[str,
         raise EliteTrainingError("locked CUDA training device is unavailable")
     TRAIN._seed_everything(int(lock["training"]["seed"]))
     parent, architecture = _load_parent()
+    parent_runtime = _load_parent_runtime(parent)
+    attach_parent_logits(parent_runtime, preferences)
+    attach_parent_logits(parent_runtime, preservation)
     parent = parent.to(device)
-    attach_parent_logits(parent, preferences, device)
-    attach_parent_logits(parent, preservation, device)
     orders = epoch_orders(
         len(train_preferences), len(train_preservation),
         int(lock["training"]["epochs"]), int(lock["training"]["seed"]),
     )
     outputs: list[dict[str, Any]] = []
+    published_results: list[Path] = []
     try:
         for arm in arms:
             outputs.append(_train_arm(
@@ -955,13 +1003,19 @@ def train(lock_path: Path = LOCK.OUTPUT, device_name: str = "auto") -> dict[str,
                 row.weight for row in train_preferences
             ),
             "same_data_and_order_across_arms": True,
+            "parent_logit_authority": lock["training"][
+                "parent_logit_authority"
+            ],
+            "research_production_feature_twin_audit": True,
             "arms": outputs,
             "promotion_authority": False,
             "upload_authority": False,
         }
         result["result_sha256"] = LOCK.canonical_sha256(result)
-        LOCK.write_new(LOCK.TRAINING_RESULT, result)
+        LOCK.write_new(LOCK.TRAINING_RESULT, result, published_results)
     except BaseException:
+        for path in reversed(published_results):
+            path.unlink(missing_ok=True)
         for output in outputs:
             output_dir = arm_output_dir(str(output["name"]))
             _remove_published_arm(output_dir)
