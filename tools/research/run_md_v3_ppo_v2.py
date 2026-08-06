@@ -53,6 +53,10 @@ from tools.rl_env import (  # noqa: E402
 RESULT_SCHEMA = "ptcg.md-v3.st-main-ppo-v2-training-result.v1"
 RECOVERY_SCHEMA = "ptcg.md-v3.st-main-ppo-v2-recovery.v1"
 RECOVERY_MANIFEST_SCHEMA = "ptcg.md-v3.st-main-ppo-v2-recovery-manifest.v1"
+ROLLOUT_POTENTIAL: Callable[[Mapping[str, Any]], float] | None = None
+TRAJECTORY_FINALIZER: Callable[..., None] = PPO._finish_trajectory
+REWARD_CONTRACT = "terminal"
+TERMINAL_DIRECTORY = "terminal-update-16-candidate"
 EXPECTED_UPDATES = 16
 EXPECTED_GAMES_PER_UPDATE = 768
 EXPECTED_TOTAL_GAMES = 12_288
@@ -456,6 +460,10 @@ def collect_population_games(
                         episode_id=episode.episode_id,
                         decision_index=len(trajectory),
                         learner_select_index=learner_select_index,
+                        public_potential=(
+                            float(ROLLOUT_POTENTIAL(raw))
+                            if ROLLOUT_POTENTIAL is not None else 0.0
+                        ),
                     ))
                     action = picks
                 else:
@@ -478,7 +486,7 @@ def collect_population_games(
             if not trajectory:
                 zero_main_games += 1
                 continue
-            PPO._finish_trajectory(
+            TRAJECTORY_FINALIZER(
                 trajectory,
                 final_learner_selects=int(
                     info["seat_selects"][episode.learner_seat],
@@ -954,6 +962,7 @@ def execute_training(
             parent_kl_coefficient=float(config["parent_kl_coefficient"]),
             gamma=float(config["gamma"]),
             gae_lambda=float(config["gae_lambda"]),
+            reward_contract=REWARD_CONTRACT,
         )
         if id(optimizer) != optimizer_identity:
             raise RunnerError("PPO-v2 replaced its persistent optimizer")
@@ -1027,7 +1036,7 @@ def execute_training(
     ):
         raise RunnerError("terminal PPO-v2 actor/frozen delta gate failed")
 
-    terminal_dir = output / "terminal-update-16-candidate"
+    terminal_dir = output / TERMINAL_DIRECTORY
     weights_path, checkpoint_path = PPO.write_candidate_checkpoint(
         terminal_dir,
         net,

@@ -141,6 +141,20 @@ def test_smdp_gae_uses_next_decision_without_cross_episode_leakage():
     assert abs(targets[1].value_target - (-1.0)) < 1e-7
 
 
+def test_potential_reward_contract_accepts_dense_macro_rewards_only_explicitly():
+    rows = [
+        _decision(9, 0, 0.2, steps=2, reward=0.1),
+        _decision(9, 1, 0.4, steps=1, reward=0.9, terminal=True),
+    ]
+    with np.testing.assert_raises(PPO.PPOV2Error):
+        PPO.compute_smdp_gae(rows, gamma=0.9, gae_lambda=0.8)
+    targets = PPO.compute_smdp_gae(
+        rows, gamma=0.9, gae_lambda=0.8, reward_contract="potential",
+    )
+    assert len(targets) == 2
+    assert all(np.isfinite(target.advantage) for target in targets)
+
+
 def test_trajectory_finalizer_places_reward_only_on_last_main_decision():
     rows = [
         _decision(3, 0, 0.0, steps=1),
