@@ -142,7 +142,11 @@ def _search_score(view: ObsView, card_id: int | None) -> float:
     space = _bench_space(view)
 
     if card_id == FESTIVAL_GROUNDS:
-        return 1200 if not festival else 180
+        # A second Boom Boom Groove can happen before the first searched
+        # Stadium is played.  Treat the copy already in hand as satisfying
+        # the link so the next search can find Energy or another missing
+        # combo piece instead of wasting the activation on a duplicate.
+        return 1200 if not festival and hand[FESTIVAL_GROUNDS] == 0 else 180
     if card_id == THWACKEY:
         return 1120 if board[GROOKEY] > board[THWACKEY] else 360
     if card_id == DIPPLIN:
@@ -256,6 +260,136 @@ def _main_score(view: ObsView, option: dict) -> float:
     if option_type == OT_END:
         return 0
     return 200
+
+
+def _backup_dipplin_energy_override(view: ObsView) -> list[int] | None:
+    """Power a benched Dipplin once the current Festival attacker is ready."""
+    active = _active(view)
+    if (
+        not active
+        or active.get("id") not in FESTIVAL_LEADERS
+        or not _has_energy(active)
+    ):
+        return None
+    for index, option in enumerate(view.options):
+        if (
+            option.get("type") != OT_ATTACH
+            or view.semantic_option_card_id(option) != GRASS
+            or option.get("inPlayArea") != AREA_BENCH
+        ):
+            continue
+        target = _target(view, option)
+        if target and target.get("id") == DIPPLIN and not _has_energy(target):
+            return [index]
+    return None
+
+
+def _prize_value(entry: dict | None) -> int:
+    info = cards.card((entry or {}).get("id")) or {}
+    if info.get("megaEx"):
+        return 3
+    return 2 if info.get("ex") else 1
+
+
+def _blocks_attack_damage(entry: dict | None) -> bool:
+    info = cards.card((entry or {}).get("id")) or {}
+    text = " ".join(
+        str(skill.get("text", "")).lower()
+        for skill in info.get("skills", [])
+        if isinstance(skill, dict)
+    )
+    return "prevent all damage" in text or "can't be damaged" in text
+
+
+def _festival_attack_damage(view: ObsView, target: dict | None = None) -> int:
+    """Conservative one-hit damage from the current powered attacker."""
+    active = _active(view)
+    if not active or not _has_energy(active):
+        return 0
+    if active.get("id") == DIPPLIN:
+        damage = 20 * len((view.me or {}).get("bench") or [])
+    elif active.get("id") == SEAKING:
+        damage = 60
+    else:
+        return 0
+    active_info = cards.card(active.get("id")) or {}
+    target_info = cards.card((target or {}).get("id")) or {}
+    if target_info.get("resistance") == active_info.get("pokemonType"):
+        damage = max(damage - 30, 0)
+    return damage
+
+
+def _reachable_ko(view: ObsView, target: dict | None) -> bool:
+    if not target or _blocks_attack_damage(target):
+        return False
+    hp = target.get("hp")
+    return isinstance(hp, (int, float)) and 0 < hp <= _festival_attack_damage(view, target)
+
+
+def _boss_knockout_override(view: ObsView) -> list[int] | None:
+    """Play Boss only for a visible one-hit KO that improves the Prize line."""
+    active = _active(view)
+    expected_attack = (
+        DO_THE_WAVE if active and active.get("id") == DIPPLIN
+        else RAPID_DRAW if active and active.get("id") == SEAKING
+        else None
+    )
+    if expected_attack is None or not any(
+        option.get("type") == OT_ATTACK
+        and option.get("attackId") == expected_attack
+        for option in view.options
+    ):
+        return None
+    boss = next((
+        index for index, option in enumerate(view.options)
+        if option.get("type") == OT_PLAY
+        and view.semantic_option_card_id(option) == BOSS
+    ), None)
+    if boss is None:
+        return None
+    candidates = [
+        entry for entry in (view.opp or {}).get("bench") or []
+        if isinstance(entry, dict) and _reachable_ko(view, entry)
+    ]
+    if not candidates:
+        return None
+    best = max(candidates, key=lambda entry: (_prize_value(entry), -int(entry.get("hp", 0))))
+    current = _active(view, opponent=True)
+    prizes = (view.me or {}).get("prize")
+    prizes_left = len(prizes) if isinstance(prizes, list) else 6
+    wins_now = _prize_value(best) >= prizes_left
+    improves_line = not _reachable_ko(view, current) or _prize_value(best) > _prize_value(current)
+    return [boss] if wins_now or improves_line else None
+
+
+def boss_target_override(view: ObsView) -> list[int] | None:
+    """Choose the best visible KO target after the guarded Boss play."""
+    if (
+        view.select_type != ST_CARD
+        or view.context != CTX_SWITCH
+        or view.effect_card_id != BOSS
+    ):
+        return None
+    candidates = []
+    for index, option in enumerate(view.options):
+        if option.get("playerIndex", view.my_index) == view.my_index:
+            continue
+        entry = view.option_board_entry(option)
+        if entry and _reachable_ko(view, entry):
+            candidates.append((index, entry))
+    if not candidates:
+        return None
+    return [max(
+        candidates,
+        key=lambda item: (_prize_value(item[1]), -int(item[1].get("hp", 0))),
+    )[0]]
+
+
+def hybrid_main_override(view: ObsView) -> list[int] | None:
+    """Small evidence-backed guards that may pre-empt the Festival BC head."""
+    if view.select_type != ST_MAIN:
+        return None
+    return _boss_knockout_override(view) or _backup_dipplin_energy_override(view)
 
 
 def choose_main(view: ObsView) -> list[int]:

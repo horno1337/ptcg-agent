@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from datetime import datetime, timezone
 import json
 import os
@@ -131,16 +132,23 @@ def execute(command: list[str], cwd: Path, environment: dict[str, str]) -> dict[
 
 
 def main() -> int:
-    if OUTPUT.exists():
-        raise SystemExit(f"refusing to overwrite {OUTPUT}")
-    if COMMON.file_sha256(ARCHIVE) != ARCHIVE_SHA256:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--archive", type=Path, default=ARCHIVE)
+    parser.add_argument("--output", type=Path, default=OUTPUT)
+    parser.add_argument("--archive-sha256", default=ARCHIVE_SHA256)
+    args = parser.parse_args()
+    archive = args.archive.expanduser().resolve()
+    output = args.output.expanduser().resolve()
+    if output.exists():
+        raise SystemExit(f"refusing to overwrite {output}")
+    if COMMON.file_sha256(archive) != args.archive_sha256:
         raise SystemExit("archive identity drifted")
     prompts, sources, families = collect_prompts()
     with tempfile.TemporaryDirectory(prefix="festival-exact-audit-") as temporary:
         root = Path(temporary); root.chmod(0o755)
         extracted = root / "submission"; extracted.mkdir()
         interpreter_mount = root / "python-environment"
-        members = BASE._safe_extract(ARCHIVE, extracted)
+        members = BASE._safe_extract(archive, extracted)
         payload = root / "prompts.json"
         payload.write_text(json.dumps({"observations": prompts}, separators=(",", ":")), encoding="utf-8")
         payload.chmod(0o644)
@@ -168,7 +176,7 @@ def main() -> int:
     result: dict[str, Any] = {
         "schema": "ptcg.festival-lead.bc-v1.exact-tarball-audit.v1",
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "archive": {"path": str(ARCHIVE.resolve()), "sha256": ARCHIVE_SHA256, "members": members},
+        "archive": {"path": str(archive), "sha256": args.archive_sha256, "members": members},
         "cohort": {
             "prompt_count": count, "families": families, "sources": sources,
             "observations_sha256": COMMON.canonical_sha256(prompts),
@@ -177,8 +185,8 @@ def main() -> int:
         "gate_passed": passed, "strength_claim": False,
     }
     result["result_sha256"] = COMMON.canonical_sha256(result)
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    with OUTPUT.open("x", encoding="utf-8") as handle:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("x", encoding="utf-8") as handle:
         json.dump(result, handle, indent=2, sort_keys=True, allow_nan=False); handle.write("\n")
     print(json.dumps({"gate_passed": passed, "families": families, "result_sha256": result["result_sha256"]}))
     return 0 if passed else 1

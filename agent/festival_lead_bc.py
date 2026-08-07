@@ -66,6 +66,12 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
         return None
     if not view.options:
         return None
+    forced = RULES.hybrid_main_override(view)
+    if forced is not None:
+        return forced
+    forced = RULES.boss_target_override(view)
+    if forced is not None:
+        return forced
     head = None
     if view.select_type == ST_MAIN:
         head = "main"

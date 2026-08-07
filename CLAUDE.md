@@ -22,9 +22,10 @@ they conflict.  Historical sections remain for research provenance.
   recent-field gate passed noninferiority at +0.752 pp with CI95
   [-0.926,+2.430] pp.  Exact-tarball non-owner audit passed.
 - `festival-test-1` was submitted once on 2026-08-07 as a deliberately weak
-  ladder data-collection probe, not as a champion or promotion.  Kaggle's CLI
-  accepted the upload; no status polling, monitoring, or automatic resubmission
-  was started, and no submission ID was returned in the immediate response.
+  ladder data-collection probe, not as a champion or promotion.  It is Kaggle
+  submission `55324473`, completed at public score `559.2`.  A single frozen
+  snapshot contains 25 exact-seat games: 12 wins and 13 losses.  No automatic
+  monitoring or resubmission was started.
   Exact archive:
   `submission-festival-lead-bc-v1-experimental-unsigned.tar.gz`, SHA-256
   `03f3f7cc1bd03f29e29c332cd518d37277dbe8bca3dbaa6c606f5df3c702aadd`.
@@ -48,6 +49,32 @@ they conflict.  Historical sections remain for research provenance.
   675/2,048 = 32.96% for generic Qu-v2B.  Paired gain +8.15 pp, CI95
   [+5.25,+11.05] pp, with zero faults, repairs, fallbacks, or invalid games.
   This proves deck-specific improvement only; 41% is not competitive strength.
+- The 25-game `festival-test-1` analysis found the actionable failure pattern:
+  wins used Dipplin for 42/56 attacks versus 19/45 in losses; five losses never
+  reached a full Bench versus one win.  Grimmsnarl was 2-4 and Mega Lucario
+  2-3.  Promotions were generally sound (Dipplin chosen 14/16 times when
+  available in losses); the failure was earlier attacker/Energy preparation.
+  One zero-attack Grim loss proved a duplicate second Thwackey search for
+  Festival Grounds already held.  Reusable analysis is
+  `tools/research/analyze_festival_ladder_probe.py`; ignored evidence is under
+  `tools/checkpoints/festival-test-1-55324473/`.
+- Current source contains three exact-deck ladder-fix-v2 guards: suppress the
+  duplicate held Festival search, power a benched Dipplin once the Active
+  Festival attacker is powered, and play/target Boss only for a visible
+  one-hit Prize improvement.  The Boss guard fails closed unless the attack is
+  currently legal and counts Mega Evolution ex as three Prizes.  Seaking,
+  opening-lead order, and promotion behavior were intentionally left intact.
+- The first v2 screen (seed `202608087`) preceded the final legal-attack
+  safeguard and its package is retired.  Its exact scores were 41.99%
+  candidate versus 40.72% v1; do not use that result for release authority.
+  The final safety-bound gate is the authority:
+  `tools/checkpoints/festival-ladder-fix-v2-safe/result.json`, result SHA-256
+  `e4b1fcc4...f306c7`.  It was valid and fault-free over 1,024 games per arm,
+  scoring 41.65% versus 41.02% (+0.63 pp), but failed the predeclared gate
+  because CI95 [-3.43,+4.70] pp crossed the -3.0 pp noninferiority margin.
+  Therefore no final safe v2 package was built or uploaded.  One attempted
+  upload command for the earlier package was rejected before network execution;
+  no `festival-test-2` submission exists.  Do not upload the retired archive.
 - The deterministic unsigned package rebuilt byte-identically, passed the
   200-game exact-archive smoke, passed a 64-prompt owner/non-owner audit across
   main/card/Thwackey/rule routes, and the final runtime suite passed 24/24.
@@ -57,12 +84,12 @@ they conflict.  Historical sections remain for research provenance.
   locked four-update, 1,536-game ST_MAIN PPO pilot remained near its parent
   (final KL about 0.00026) and then scored 41.55% versus v1's 41.85% over a
   separate 1,024-game development field screen.  Do not scale that PPO run.
-- Next useful evidence is real `festival-test-1` ladder replay behavior.  Wait
-  for an explicit user status request; do not idle-monitor.  Once replays are
-  available, resolve the exact learner seat, verify that both BC heads loaded,
-  classify losses by route and matchup, and treat logged losing actions as
-  observations rather than hard negative labels.  Do not upload a second
-  Festival probe without a new user-chosen name and explicit approval.
+- Next decision is whether to retire ladder-fix-v2 as inconclusive or authorize
+  a separately predeclared higher-powered confirmation.  Do not repeat the
+  consumed gate or change its margin post hoc.  Any eventual upload still
+  requires a passing bound gate plus a fresh explicit user message authorizing
+  the exact name `festival-test-2`; the external-action approval layer rejected
+  inference of upload authority from the implementation request.
 
 ### Repository and artifact handoff
 
