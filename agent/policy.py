@@ -395,6 +395,23 @@ def _model_decide(view: ObsView) -> list[int] | None:
                     pass
             sample = _qu_v2_features.encode_public_observation(
                 view.obs, registration)
+            # Selective Dobi ST_CARD correction.  The worktree is default-off,
+            # and the module independently requires an exact packaged artifact
+            # hash, exact own deck, public opposing Grim signature, and one of
+            # eight fixed semantic families.  Any miss/fault falls through to
+            # the already-deployed frozen MD-v2 ST_CARD specialist below.
+            if (
+                view.select_type == ST_CARD
+                and os.environ.get("PTCG_DOBI_V1_CARD") == "1"
+            ):
+                try:
+                    from . import dobi_v1_card as _dobi_v1_card
+                    dobi_card_action = _dobi_v1_card.decide(
+                        sample, view, registration)
+                    if dobi_card_action is not None:
+                        return dobi_card_action
+                except Exception:
+                    pass
             # Candidate-only exact-deck ST_CARD overlay.  It is default-off and
             # additionally requires a publicly revealed opposing Grimmsnarl
             # evolution line; every failure leaves the existing MD-v2/Qu-v2B
@@ -489,6 +506,24 @@ def decide(obs: dict) -> list[int]:
     view = ObsView(obs)
     if view.is_deck_selection:
         return load_deck()
+
+    # Exact-list Festival Lead controller.  Its own deck check makes this a
+    # no-op for every existing Alakazam/Grimmsnarl package, while a Festival
+    # package gets a complete rule-first policy rather than an off-deck net.
+    if os.environ.get("PTCG_FESTIVAL_LEAD", "1") == "1":
+        try:
+            from . import festival_lead_bc as _festival_lead_bc
+            festival_action = _festival_lead_bc.decide(view, load_deck())
+            if festival_action is not None:
+                return festival_action
+        except Exception:
+            try:
+                from . import festival_lead as _festival_lead
+                festival_action = _festival_lead.decide(view, load_deck())
+                if festival_action is not None:
+                    return festival_action
+            except Exception:
+                pass
 
     # Deterministic KO: override the net ONLY on a provable Powerful Hand lethal.
     # Fail soft into the net on any error (paranoid, like the rest of the stack).
