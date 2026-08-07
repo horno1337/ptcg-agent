@@ -186,9 +186,22 @@ def run(lock: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def main() -> int:
+    global RUN, ARCHIVE, MANIFEST, LOCK, ATTEMPT, RESULT, ARCHIVE_SHA256
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", choices=("lock", "run"), required=True)
+    parser.add_argument("--archive", type=Path, default=ARCHIVE)
+    parser.add_argument("--manifest", type=Path, default=MANIFEST)
+    parser.add_argument("--run-root", type=Path, default=RUN)
+    parser.add_argument("--archive-sha256", default=ARCHIVE_SHA256)
     args = parser.parse_args()
+    RUN = args.run_root.expanduser().resolve()
+    ARCHIVE = args.archive.expanduser().resolve()
+    MANIFEST = args.manifest.expanduser().resolve()
+    LOCK, ATTEMPT, RESULT = (
+        RUN / "random-smoke-lock.json", RUN / "random-smoke-attempt.json",
+        RUN / "random-smoke-result.json",
+    )
+    ARCHIVE_SHA256 = args.archive_sha256
     try:
         if args.stage == "lock":
             value = build_lock(); write_new(LOCK, value)

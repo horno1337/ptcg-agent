@@ -25,6 +25,8 @@ MAIN_WEIGHTS = ROOT / "tools/checkpoints/festival-lead-bc-v1/main/model/candidat
 CARD_WEIGHTS = ROOT / "tools/checkpoints/festival-lead-bc-v1/card/model/candidate-qu-v2a-weights.npz"
 OUTPUT = ROOT / "submission-festival-lead-bc-v1-experimental-unsigned.tar.gz"
 MANIFEST = ROOT / "tools/checkpoints/festival-lead-bc-v1/package-manifest.json"
+V2_LOCK = ROOT / "tools/checkpoints/festival-ladder-fix-v2-safe/lock.json"
+V2_RESULT = ROOT / "tools/checkpoints/festival-ladder-fix-v2-safe/result.json"
 
 MAIN_SHA256 = "d6cfd897e93ef80048f4134aa03faddcf358b5bd3674f3f25cf4f83ab411a71d"
 CARD_SHA256 = "c714260dfd8d4986804ac64c29ef000f11ee06cac7e16bfbe9105ce0499ac8d1"
@@ -82,7 +84,7 @@ def load_self(path: Path, schema: str, key: str) -> dict:
     return value
 
 
-def build(output: Path, manifest: Path) -> dict:
+def build(output: Path, manifest: Path, *, ladder_fix_v2: bool = False) -> dict:
     output = output.expanduser().resolve()
     manifest = manifest.expanduser().resolve()
     if output.exists() or manifest.exists():
@@ -100,6 +102,25 @@ def build(output: Path, manifest: Path) -> dict:
         or field_lock.get("upload_authority") is not False
     ):
         raise BuildError("passing bound field evidence is absent")
+    v2_lock = v2_result = None
+    if ladder_fix_v2:
+        v2_lock = load_self(
+            V2_LOCK, "ptcg.festival-lead.ladder-fix-v2.lock.v1", "lock_sha256",
+        )
+        v2_result = load_self(
+            V2_RESULT, "ptcg.festival-lead.ladder-fix-v2.result.v1", "result_sha256",
+        )
+        if (
+            v2_result.get("lock_sha256") != v2_lock["lock_sha256"]
+            or v2_result.get("decision", {}).get("valid") is not True
+            or v2_result.get("decision", {}).get("passed") is not True
+            or v2_lock.get("upload_authority") is not False
+        ):
+            raise BuildError("passing bound Festival ladder-fix-v2 evidence is absent")
+        artifacts = v2_lock.get("artifacts", {})
+        for name, path in (("rules", RULES), ("hybrid", HYBRID)):
+            if artifacts.get(name, {}).get("sha256") != sha256(path):
+                raise BuildError(f"Festival ladder-fix-v2 {name} drifted after gate")
     output.parent.mkdir(parents=True, exist_ok=True)
     manifest.parent.mkdir(parents=True, exist_ok=True)
     partial = output.with_name(f".{output.name}.partial")
@@ -159,9 +180,15 @@ def build(output: Path, manifest: Path) -> dict:
     finally:
         partial.unlink(missing_ok=True)
     payload = {
-        "schema": "ptcg.festival-lead.bc-v1.package.v1",
+        "schema": (
+            "ptcg.festival-lead.ladder-fix-v2.package.v1"
+            if ladder_fix_v2 else "ptcg.festival-lead.bc-v1.package.v1"
+        ),
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "name": "festival-lead-bc-v1-experimental-unsigned",
+        "name": (
+            "festival-lead-ladder-fix-v2-unsigned"
+            if ladder_fix_v2 else "festival-lead-bc-v1-experimental-unsigned"
+        ),
         "parent": {"archive": str(BASE.resolve()), "sha256": BASE_SHA256},
         "candidate": {
             "archive": str(output), "sha256": sha256(output),
@@ -184,6 +211,15 @@ def build(output: Path, manifest: Path) -> dict:
         "authorization": {"upload_authorized": False, "competition_name_approved": False},
         "required_release_audits": ["exact-archive smoke", "non-owner exact-archive runtime audit"],
     }
+    if ladder_fix_v2:
+        payload["evidence"]["ladder_fix_v2"] = {
+            "lock": {"path": str(V2_LOCK.resolve()), "sha256": sha256(V2_LOCK)},
+            "result": {"path": str(V2_RESULT.resolve()), "sha256": sha256(V2_RESULT)},
+            "control_score": v2_result["control"]["score"],
+            "candidate_score": v2_result["candidate"]["score"],
+            "paired_delta": v2_result["candidate_minus_control"]["mean_delta"],
+            "ci95": v2_result["candidate_minus_control"]["ci95"],
+        }
     payload["manifest_sha256"] = canonical(payload)
     with manifest.open("x", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True, allow_nan=False)
@@ -195,9 +231,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=OUTPUT)
     parser.add_argument("--manifest", type=Path, default=MANIFEST)
+    parser.add_argument("--ladder-fix-v2", action="store_true")
     args = parser.parse_args()
     try:
-        value = build(args.output, args.manifest)
+        value = build(args.output, args.manifest, ladder_fix_v2=args.ladder_fix_v2)
     except (BuildError, OSError, ValueError, tarfile.TarError) as error:
         parser.error(str(error))
     print(json.dumps(value, sort_keys=True))
