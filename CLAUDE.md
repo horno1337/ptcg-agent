@@ -5,6 +5,95 @@ the architecture, tag lineage, post-mortems (research log), and workflows —
 read it before proposing strategy changes; every rule below was paid for on
 the ladder.
 
+## Current handoff — 2026-08-07
+
+This section supersedes older "active direction" statements below whenever
+they conflict.  Historical sections remain for research provenance.
+
+### What is live
+
+- `dobi-v2` was uploaded earlier as Kaggle submission `55320800`.  Last known
+  state in this workspace was the immediate post-upload response; do not infer
+  a current score without an explicit status request.  Exact archive:
+  `submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz`, SHA-256
+  `409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4`.
+  Its selective ST_CARD weights are `2aa044bd...6e870e`.  The direct mirror
+  gate passed at 52.24% over 10,240 games (Wilson CI95 51.27–53.21%); the
+  recent-field gate passed noninferiority at +0.752 pp with CI95
+  [-0.926,+2.430] pp.  Exact-tarball non-owner audit passed.
+- `festival-test-1` was submitted once on 2026-08-07 as a deliberately weak
+  ladder data-collection probe, not as a champion or promotion.  Kaggle's CLI
+  accepted the upload; no status polling, monitoring, or automatic resubmission
+  was started, and no submission ID was returned in the immediate response.
+  Exact archive:
+  `submission-festival-lead-bc-v1-experimental-unsigned.tar.gz`, SHA-256
+  `03f3f7cc1bd03f29e29c332cd518d37277dbe8bca3dbaa6c606f5df3c702aadd`.
+  Authorization and receipt are under
+  `tools/checkpoints/festival-lead-bc-v1/` on the originating machine.
+
+### Festival Lead agent standing
+
+- Target exact-deck hash:
+  `2617a1c612d86947bb078c0c5ae752007dc9320754905a4bf7d553f44d1ba667`.
+  The deck is `decks/festival_lead_majkel1337.csv`.
+- Runtime architecture is deliberately hybrid and exact-deck locked:
+  ST_MAIN uses the Festival main BC head; ordinary ST_CARD uses the Festival
+  card BC head; Boom Boom Groove searches and every residual prompt use
+  deterministic `agent/festival_lead.py` rules.  `agent/festival_lead_bc.py`
+  verifies both packaged weight hashes and fails soft to rules.
+- Source data: all 68 public Majkel Festival replays from submission `55307654`;
+  49/8/11 train/validation/test games.  Main weights SHA-256
+  `d6cfd897...11a71d`; card weights SHA-256 `c714260d...9ac8d1`.
+- Locked recent-field result: 842/2,048 = 41.11% for the hybrid versus
+  675/2,048 = 32.96% for generic Qu-v2B.  Paired gain +8.15 pp, CI95
+  [+5.25,+11.05] pp, with zero faults, repairs, fallbacks, or invalid games.
+  This proves deck-specific improvement only; 41% is not competitive strength.
+- The deterministic unsigned package rebuilt byte-identically, passed the
+  200-game exact-archive smoke, passed a 64-prompt owner/non-owner audit across
+  main/card/Thwackey/rule routes, and the final runtime suite passed 24/24.
+- Two local improvement ideas were rejected and must not be revived without
+  new evidence.  Resource-aware duplicate avoidance in Thwackey search scored
+  41.11% versus packaged v1's 42.43% over 1,024 games and was reverted.  A
+  locked four-update, 1,536-game ST_MAIN PPO pilot remained near its parent
+  (final KL about 0.00026) and then scored 41.55% versus v1's 41.85% over a
+  separate 1,024-game development field screen.  Do not scale that PPO run.
+- Next useful evidence is real `festival-test-1` ladder replay behavior.  Wait
+  for an explicit user status request; do not idle-monitor.  Once replays are
+  available, resolve the exact learner seat, verify that both BC heads loaded,
+  classify losses by route and matchup, and treat logged losing actions as
+  observations rather than hard negative labels.  Do not upload a second
+  Festival probe without a new user-chosen name and explicit approval.
+
+### Repository and artifact handoff
+
+- Branch at this handoff is `main`.  The tidy-up commit leaves it six commits
+  ahead of `origin/main`; the five pre-handoff local commits are `5365629`,
+  `11424f7`, `2b1dc6b`, `ecea398`, and `3e9f82b`.
+- `tools/checkpoints/`, `submission-*.tar.gz`, and `agent/weights.npz` are
+  intentionally gitignored.  They will not appear on another machine after a
+  normal clone.  Transfer the exact archives/checkpoints separately if byte
+  reproduction is required; otherwise the tracked source and this debrief are
+  sufficient to continue analysis after downloading new Kaggle replays.
+- Durable active tests are `tests/test_dobi_v1_card_runtime.py`,
+  `tests/test_festival_lead.py`, `tests/test_qu_v2_deployment.py`, and
+  `tests/test_safety.py`.  The three ignored
+  `test_dobi_v1_elite_teacher_card_*` files are completed one-off gate harnesses
+  tied to local ignored evidence, not the maintained runtime suite.
+- Fast validation:
+
+  ```bash
+  ~/.venvs/ptcg-rl/bin/python -m pytest -q \
+    tests/test_qu_v2_deployment.py tests/test_dobi_v1_card_runtime.py \
+    tests/test_festival_lead.py tests/test_safety.py
+  ```
+
+- Exact Festival evidence entry points are
+  `tools/research/eval_festival_lead_bc_v1_field.py`,
+  `tools/build_festival_lead_bc_v1_submission.py`,
+  `tools/research/smoke_festival_lead_bc_v1.py`, and
+  `tools/research/audit_festival_lead_bc_v1.py`.  The rejected development
+  screens are retained so the same dead ends are not repeated.
+
 ## Rules of the codebase
 
 - Behavior lives in five files: `agent/policy.py` (dispatcher + rules),

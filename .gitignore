@@ -12,3 +12,10 @@ engine/
 .claude/settings.local.json
 tools/checkpoints/
 agent/weights.npz
+
+# Completed one-off Dobi-v2 elite-teacher experiment harnesses.  Keep the
+# reusable runtime regression test; these artifact-lineage/gate tests depend
+# on ignored local checkpoint trees and are obsolete for ongoing development.
+/tests/test_dobi_v1_elite_teacher_card_lineage.py
+/tests/test_dobi_v1_elite_teacher_card_v1.py
+/tests/test_dobi_v1_elite_teacher_card_v1_field.py
