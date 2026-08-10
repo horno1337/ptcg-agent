@@ -5,7 +5,68 @@ the architecture, tag lineage, post-mortems (research log), and workflows —
 read it before proposing strategy changes; every rule below was paid for on
 the ladder.
 
-## Current handoff — 2026-08-07
+## Current handoff — 2026-08-11
+
+This section supersedes older active-direction statements below.  The full
+2026-08-07 handoff remains as historical provenance.
+
+### Multi-deck Day-1 standing
+
+- The validated Day-1 exact-deck BC specialists are Lucario, Froslass, and
+  Dragapult.  Their diagnostic equal-weight scores against the two frozen
+  Grimmsnarl champions were 26.03%, 54.69%, and 23.34%, respectively.  Only
+  Froslass cleared its independent direct and field release gates.
+- The unsigned Froslass package is
+  `submission-froslass-test-1-unsigned.tar.gz`, SHA-256
+  `2ea844f944603e80e19feb7bbf059f629f5d7981e16660e430e93b88117c6aed`.
+  It passed a 200-game zero-fault smoke and owner/non-owner runtime audit.  A
+  Kaggle upload attempt was rejected by the daily five-submission cap before a
+  submission was created.  No retry timer or monitor remains.  Upload only
+  after a fresh explicit user request supplies the intended submission name.
+- The current Lucario specialist remains the Day-1 MAIN+CARD pair under
+  `tools/checkpoints/day1-lucario-froslass-20260810/`.  Its direct Dobi score
+  was 23.54% over 512 games; a fresh 2,048-game control measured 26.90%
+  (550-1,496-2).  The larger control is the better local reference.
+
+### Rejected Lucario exact-matchup BC
+
+- `lucario-grim-exact-v2` used 239 exact Lucario-versus-Dobi games, split
+  194/25/20 with the test sealed.  It was materially different from the older
+  failed Qu-v2B matchup-weighting arms: initialization and KL anchor were the
+  current Day-1 Lucario MAIN, only ST_MAIN was trainable, the backbone was
+  frozen, wins had weight 1.0 and losses 0.05, and CARD remained unchanged.
+- Offline behavior passed strongly: winner-test NLL improved by 0.10493 and
+  all-game weighted NLL by 0.10288 versus the current Lucario parent.  This did
+  not translate to play.  The independently locked direct gate scored 23.73%
+  for the scoped correction (483-1,559-6) versus 26.90% for the current
+  specialist (550-1,496-2), paired delta -3.1738 pp with CI95
+  [-5.8694,-0.4783] pp over 2,048 games per arm.  Both arms were zero-fault.
+- The candidate is rejected: do not integrate, package, upload, retune after
+  its test, or repeat winner-weighted exact-matchup BC.  The result is direct
+  evidence that logged-action NLL is not a sufficient Lucario/Grim objective.
+  Future Lucario work needs an outcome-optimized pilot or specific causal rule
+  analysis, always compared against the unchanged Day-1 specialist.
+- Durable experiment entry points are
+  `tools/research/run_lucario_grim_exact_v2.py`,
+  `tools/research/evaluate_lucario_grim_exact_v2.py`, and
+  `tools/research/eval_lucario_grim_exact_v2_gameplay.py`; ignored locks,
+  checkpoints, raw replays, and results live under
+  `tools/checkpoints/lucario-grim-exact-v2/`.
+
+### Dragapult next step
+
+- Refreshing submissions `55404558` and `55411079` produced a deduplicated
+  1,141-game combined corpus with 139 exact-list Dragapult games.  Only 24 are
+  against exact Dobi (16 train / 4 validation / 4 test); the refresh added five
+  unique Dragapult games and zero new Dobi matchups.  A live top-20 scout found
+  only one exact-list Dragapult submission in the current top 20.
+- Do not rerun nominal or matchup BC on 24 games.  The next bounded experiment
+  should be a small KL-anchored ST_MAIN PPO pilot initialized from the current
+  Dragapult MAIN specialist, with CARD and representation frozen, trained
+  primarily against frozen Dobi and guarded on a disjoint field screen.  It
+  remains research-only until prospective direct and field gates pass.
+
+## Prior handoff — 2026-08-07
 
 This section supersedes older "active direction" statements below whenever
 they conflict.  Historical sections remain for research provenance.
