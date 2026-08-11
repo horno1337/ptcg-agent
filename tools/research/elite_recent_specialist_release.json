@@ -1,0 +1,84 @@
+{
+  "adjudication_sha256": "3782a55f1a421fd439f2ee1ac0a08140ff8a2e325f67816c77935366fbd10d6a",
+  "behavior": {
+    "arms": {
+      "dragapult-card": {
+        "candidate_minus_parent_nll": -0.0224009393791198,
+        "candidate_parent_disagreements": 108,
+        "candidate_logged_actions": 983,
+        "decisions": 1388,
+        "disagreement_logged_candidate": 48,
+        "disagreement_logged_parent": 31,
+        "parent_logged_actions": 966,
+        "passed": true
+      },
+      "dragapult-main": {
+        "candidate_minus_parent_nll": -0.05060422171111689,
+        "candidate_parent_disagreements": 155,
+        "candidate_logged_actions": 730,
+        "decisions": 1355,
+        "disagreement_logged_candidate": 69,
+        "disagreement_logged_parent": 32,
+        "parent_logged_actions": 693,
+        "passed": true
+      },
+      "lucario-main": {
+        "candidate_minus_parent_nll": -0.025124171028262587,
+        "candidate_parent_disagreements": 32,
+        "candidate_logged_actions": 337,
+        "decisions": 574,
+        "disagreement_logged_candidate": 12,
+        "disagreement_logged_parent": 9,
+        "parent_logged_actions": 334,
+        "passed": true
+      }
+    },
+    "result_sha256": "1e02e1fb0759821996dc9cda98fe67575478a43b2e75474a4cac567831fb7721"
+  },
+  "gameplay": {
+    "profiles": {
+      "dragapult": {
+        "candidate_minus_control_ci95": [
+          0.005366929840665932,
+          0.08935963265933407
+        ],
+        "candidate_minus_control_mean": 0.04736328125,
+        "key_slice": "Mega Lucario",
+        "key_slice_mean": 0.08333333333333333,
+        "paired_units": 1024,
+        "passed": true,
+        "valid": true
+      },
+      "lucario": {
+        "candidate_minus_control_ci95": [
+          -0.02161843796820171,
+          0.05286843796820171
+        ],
+        "candidate_minus_control_mean": 0.015625,
+        "key_slice": "Dragapult",
+        "key_slice_mean": 0.031007751937984496,
+        "paired_units": 1024,
+        "passed": true,
+        "valid": true
+      }
+    },
+    "result_sha256": "9f85eb6f11770b6c4a31e7cea3efad1b099d5f5978f6480b5149c3bdfd151d61"
+  },
+  "packages": {
+    "dragapult": {
+      "archive_sha256": "599b6d6e872c420f699f536088ccbf9fbbdb59d0b978a13cc73c1ab72531762e",
+      "kaggle_submission_id": 55439643,
+      "name": "dragapult-elite-1",
+      "receipt_status": "PENDING"
+    },
+    "lucario": {
+      "archive_sha256": "358c46b44dbc3070b099787a33829c2a669d287b55edd5351e5561196e37f95b",
+      "kaggle_submission_id": 55439638,
+      "name": "lucario-elite-1",
+      "receipt_status": "PENDING"
+    }
+  },
+  "release_sha256": "8a7024d15d7219de1469db8d5c4462b4f590b2e473a86d0a02af8a26cd5fe5d0",
+  "schema": "ptcg.elite-recent-specialist-bc.release.v1",
+  "training_lock_sha256": "09b5ba107f915cc2204e839b299204cd8bc576f28edcd3271bcca3e247b5b759"
+}
