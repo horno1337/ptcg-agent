@@ -8,11 +8,13 @@ from typing import Sequence
 
 from . import cards, model, qu_v2_features
 from .obsview import (
+    AREA_ACTIVE,
     CTX_DAMAGE_COUNTER_ANY,
     CTX_SWITCH,
     OT_ABILITY,
     OT_ATTACH,
     OT_ATTACK,
+    OT_END,
     OT_PLAY,
     ST_CARD,
     ST_MAIN,
@@ -60,6 +62,8 @@ ENGINE_TARGETS = frozenset((DRAKLOAK, 131, 132, 133, 326))
 # out of the shipped decision path after the paired gameplay gate rejected
 # the combined energy/Boss intervention. Phantom allocation remains active.
 ENABLE_EXPERIMENTAL_ROUTE_GUARDS = False
+ENABLE_PHANTOM_COMPLETION_GUARD = True
+ENABLE_PHANTOM_TARGET_GUARD = False
 
 
 def supports_deck(registered_deck: Sequence[int]) -> bool:
@@ -235,6 +239,64 @@ def _apply_main_route_guards(view: ObsView, logits, picks: list[int]) -> list[in
         masked, len(view.options), view.min_count, view.max_count,
     )
     return picks if any(index in blocked for index in replacement) else replacement
+
+
+def _phantom_completion_options(view: ObsView) -> list[int]:
+    """Return legal manual attachments that make the Active Phantom-ready."""
+    if view.select_type != ST_MAIN:
+        return []
+    active = _active(view.me)
+    if not isinstance(active, dict) or active.get("id") != DRAGAPULT_EX:
+        return []
+    energy = _energy_ids(active)
+    missing = [
+        kind for kind in (FIRE_ENERGY, PSYCHIC_ENERGY)
+        if kind not in energy
+    ]
+    if len(missing) != 1:
+        return []
+    needed = missing[0]
+    result = []
+    for index, option in enumerate(view.options):
+        area = option.get("inPlayArea", option.get("area"))
+        if (
+            option.get("type") == OT_ATTACH
+            and area == AREA_ACTIVE
+            and option.get("playerIndex", view.my_index) == view.my_index
+            and view.semantic_option_card_id(option) == needed
+        ):
+            target = _option_target(view, option)
+            if isinstance(target, dict) and target.get("id") == DRAGAPULT_EX:
+                result.append(index)
+    return result
+
+
+def _guard_phantom_completion(view: ObsView, picks: list[int]) -> list[int]:
+    """Prevent a turn commitment that strands an immediately ready attacker.
+
+    Free setup and sequencing actions remain learned.  Intervention occurs
+    only when the decoded action would spend the manual attachment elsewhere,
+    use Jet Headbutt, or end the turn despite a legal complementary Energy
+    attachment to the Active Dragapult.
+    """
+    if view.select_type != ST_MAIN or len(picks) != 1:
+        return picks
+    chosen = picks[0]
+    if not isinstance(chosen, int) or not 0 <= chosen < len(view.options):
+        return picks
+    completing = _phantom_completion_options(view)
+    if not completing or chosen in completing:
+        return picks
+    option = view.options[chosen]
+    commits_turn = (
+        option.get("type") == OT_ATTACH
+        or option.get("type") == OT_END
+        or (
+            option.get("type") == OT_ATTACK
+            and option.get("attackId") == JET_HEADBUTT
+        )
+    )
+    return [completing[0]] if commits_turn else picks
 
 
 def _stadium_id(view: ObsView) -> int | None:
@@ -460,7 +522,15 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
             view.select_type == ST_MAIN
             and ENABLE_EXPERIMENTAL_ROUTE_GUARDS
         ):
-            return _apply_main_route_guards(view, logits, picks)
-        return _guard_phantom_dive_target(view, picks)
+            picks = _apply_main_route_guards(view, logits, picks)
+        if view.select_type == ST_MAIN:
+            return (
+                _guard_phantom_completion(view, picks)
+                if ENABLE_PHANTOM_COMPLETION_GUARD else picks
+            )
+        return (
+            _guard_phantom_dive_target(view, picks)
+            if ENABLE_PHANTOM_TARGET_GUARD else picks
+        )
     except Exception:
         return None
