@@ -60,11 +60,23 @@ This section supersedes older active-direction statements below.  The full
   against exact Dobi (16 train / 4 validation / 4 test); the refresh added five
   unique Dragapult games and zero new Dobi matchups.  A live top-20 scout found
   only one exact-list Dragapult submission in the current top 20.
-- Do not rerun nominal or matchup BC on 24 games.  The next bounded experiment
-  should be a small KL-anchored ST_MAIN PPO pilot initialized from the current
-  Dragapult MAIN specialist, with CARD and representation frozen, trained
-  primarily against frozen Dobi and guarded on a disjoint field screen.  It
-  remains research-only until prospective direct and field gates pass.
+- Do not rerun nominal or matchup BC on 24 games.  A bounded KL-anchored
+  ST_MAIN PPO pilot has now also been completed: four updates, 256 games per
+  update, 75% frozen Dobi / 25% frozen top-20 field, actor LR 3e-6, with CARD
+  and representation frozen.  The terminal checkpoint stayed close to its
+  parent (mean KL 0.001395) but failed the fixed direct development screen:
+  21.68% (222-802) versus the current Dragapult's 22.56% (230-792-2), paired
+  delta -0.8789 pp with CI95 [-4.4017,+2.6439] pp over 1,024 games per arm.
+  The run was zero-fault but missed its required positive point estimate, so
+  the field guard was not opened.  Do not scale, integrate, package, or upload
+  this pilot.  Durable entry points are
+  `tools/research/run_dragapult_grim_ppo_pilot_v1.py` and
+  `tools/research/eval_dragapult_grim_ppo_pilot_v1.py`; ignored evidence is
+  under `tools/checkpoints/dragapult-grim-ppo-pilot-v1/`.
+- Further Dragapult work needs substantially more exact-matchup expert data or
+  a concrete causal/rule hypothesis from replay analysis.  Repeating small
+  terminal-reward PPO or lowering the consumed pilot threshold is not an
+  authorized direction.
 
 ## Prior handoff — 2026-08-07
 
