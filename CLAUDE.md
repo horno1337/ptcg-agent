@@ -138,6 +138,24 @@ This section supersedes older active-direction statements below.  The full
   result `a9a75ed3...efd`.  The broader Qu-v2 deployment suite also passed.
   The package manifest deliberately records `upload_authorized=false`: do not
   upload until the user approves an exact Kaggle submission name.
+- The user approved the exact name `dragapult-v2`; tag `dragapult-v2` points to
+  commit `112f4d5` and is pushed.  The first Kaggle submission attempt uploaded
+  the blob but submission creation returned HTTP 400, and a receipt read
+  confirmed that no new submission exists.  Five submissions already occupied
+  the current Kaggle UTC day, so treat `dragapult-v2` as **not uploaded** until
+  a later explicit receipt contains a new submission ID; do not invent one.
+- The locked direct Grim diagnostic for the exact `dragapult-v2` stack is
+  complete and zero-fault (`tools/checkpoints/dragapult-v2-vs-grim-champions-20260812/`).
+  Over 512 seat-balanced games per opponent it scored **31.05% (159-353)**
+  against frozen MD-v1, CI95 [27.20%,35.19%], and **26.76% (137-375)** against
+  frozen Dobi-v1, CI95 [23.11%,30.76%].  Both are clear losses.  Equal-weight
+  aggregate was 28.91% (296-728), CI95 [26.21%,31.76%]; completion fired 179
+  and 170 times respectively.  Lock `5e54a934...35877`; result
+  `7fe94d45...358fa`.  This is directionally better than the old Day-1
+  Dragapult's 24.22% MD / 22.46% Dobi / 23.34% aggregate, but that historical
+  comparison combines elite-head and completion changes and uses a different
+  schedule.  It does not isolate the completion rule or make the matchup
+  competitive.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a

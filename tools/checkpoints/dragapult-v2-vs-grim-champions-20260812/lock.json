@@ -1,0 +1,102 @@
+{
+  "artifacts": {
+    "dobi_card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/md_v2_card_weights.npz",
+      "sha256": "1aef7068130072dd00afe0e85d6485d9749c6326351597339c1bd33d6d239cf7"
+    },
+    "dobi_main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-mirror-league-100k-v2/training/terminal-update-16-candidate/candidate-qu-v2a-weights.npz",
+      "sha256": "bf93b3b7c114c0f406dea549ea8b7ac0aa783e0e80b3814fa4ea42ac412f679c"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_v2_vs_grim_champions.py",
+      "sha256": "b0ef4c349b4e99b365733b231dd8abb929e6728ce288ba2b70e8566e93cd8143"
+    },
+    "grim_deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/md_v1_grimmsnarl.csv",
+      "sha256": "92b92bac9f9163ecff933b3dc39294d2cc154c8684f3c8497877661419ebc59d"
+    },
+    "learner_card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "learner_controller": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_route_guards.py",
+      "sha256": "2ffca06749d5960daf6a9c3f53e5153707f84b7e6eaea717b13b44d242b54d29"
+    },
+    "learner_deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "learner_main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "md_weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v1/md-v1-weights.npz",
+      "sha256": "5784b7ea693d2adc3a8cf0b7422b6940481042181051ef2941b982094dabe78c"
+    },
+    "package": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-completion-1-unsigned.tar.gz",
+      "sha256": "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "qu_weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    }
+  },
+  "candidate": "dragapult-v2: exact 07bed elite MAIN/CARD heads plus only the Phantom-completion MAIN guard; Qu-v2B residual",
+  "created_at": "2026-08-11T22:27:51.175997+00:00",
+  "lock_sha256": "5e54a934bade91b87fc5d58b1a0ea876d58e8c825e6e61a65da040f61fc35877",
+  "opponents": {
+    "dobi-v1": "frozen MD-v3 PPO ST_MAIN plus selective MD-v2 ST_CARD plus Qu-v2B residual",
+    "md-v1": "frozen MD-v1 ST_MAIN plus Qu-v2B residual",
+    "registered_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af"
+  },
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "diagnostic_only": true,
+    "games_per_opponent": 512,
+    "interval": "ordinary two-sided Wilson CI95 per opponent",
+    "no_interim_stopping": true,
+    "one_schedule_one_attempt": true,
+    "paired_seat_schedule": true,
+    "score": "wins + 0.5*draws over all scheduled games",
+    "seat_counts_per_opponent": {
+      "0": 256,
+      "1": 256
+    },
+    "seed": 2026081221,
+    "total_games": 1024,
+    "verdict": {
+      "clear_loss": "valid and CI95 upper < 0.50",
+      "clear_win": "valid and CI95 lower > 0.50",
+      "competitive_inconclusive": "valid and interval overlaps 0.50"
+    },
+    "zero_faults": true
+  },
+  "schedules": {
+    "dobi-v1": {
+      "manifest_sha256": "32414af0837450defd701feac9ed62cf66393670aed469fb9dc3706d75ba3135",
+      "seat_counts": {
+        "0": 256,
+        "1": 256
+      }
+    },
+    "md-v1": {
+      "manifest_sha256": "864f97eb7193b2af29fb54601ea5c18d292310bc32548da95c967726dd8e9ab3",
+      "seat_counts": {
+        "0": 256,
+        "1": 256
+      }
+    }
+  },
+  "schema": "ptcg.dragapult-v2-vs-grim-champions.lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}
