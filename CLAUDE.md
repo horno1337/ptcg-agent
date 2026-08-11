@@ -56,6 +56,39 @@ This section supersedes older active-direction statements below.  The full
   one-shot behavior comparison against frozen Qu-v2B, followed only for
   behavior-passing arms by independent paired gameplay evaluation.
 
+### Expanded specialist behavior, league, and PPO standing
+
+- The one-shot sealed behavior readout is complete.  All eight MAIN/CARD arms
+  achieved lower weighted test NLL than frozen Qu-v2B on the same prompts;
+  every available exact-mirror diagnostic also improved.  Festival had no
+  exact mirror in its 12-game sealed test, so its mirror diagnostic is null.
+  Result SHA-256: `76112b92...41e312`.  This establishes improved imitation
+  only; Qu-v2B was not treated as a competitive gameplay benchmark.
+- The locked local specialist league completed 2,048 valid games: 256
+  paired-seat games for each cross-deck pair plus 128 self-mirror games per
+  deck.  Cross-only standings were Lucario 64.19%, Froslass 60.29%, Dragapult
+  47.98%, and Festival Lead 27.54%.  All four self-mirror CI95 intervals
+  included 50%.  Result SHA-256: `d1575676...31a0d`.  The standings measure
+  policy-plus-deck performance and are matchup-confounded; self-mirrors are
+  runtime/symmetry diagnostics and do not rank agents.
+- A conservative frozen-peer PPO league then completed for all four agents.
+  Each agent independently received four 256-game ST_MAIN updates against the
+  other three frozen BC stacks; CARD, representation, and residual routes
+  stayed frozen.  All 4,096 rollout games were clean.  Maximum reported mean
+  parent KL was 0.000175 Froslass, 0.000141 Dragapult, 0.000185 Lucario, and
+  0.000123 Festival, far below the locked 0.02 ceiling.  Result SHA-256:
+  `2f5c7378...68df2`.
+- PPO rollout scores are not a promotion metric because actions were sampled
+  during collection.  No PPO candidate is integrated or preferred yet.  The
+  required next gate is a separately locked deterministic paired evaluation
+  of each terminal PPO candidate against its unchanged BC parent on identical
+  frozen-peer schedules.
+- Durable entry points are `tools/research/evaluate_day2_expanded_bc.py`,
+  `tools/research/eval_day2_specialist_league.py`, and
+  `tools/research/run_day2_specialist_ppo_league.py`.  Locks, results, weights,
+  and replay-derived evidence remain ignored under
+  `tools/checkpoints/day2-expanded-bc-20260811/`.
+
 ### Rejected Lucario exact-matchup BC
 
 - `lucario-grim-exact-v2` used 239 exact Lucario-versus-Dobi games, split
