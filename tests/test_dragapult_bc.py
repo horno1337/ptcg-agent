@@ -4,6 +4,7 @@ import numpy as np
 
 from agent import dragapult_bc as BC
 from agent.obsview import (
+    AREA_ACTIVE,
     AREA_BENCH,
     CTX_DAMAGE_COUNTER_ANY,
     CTX_SWITCH,
@@ -140,8 +141,25 @@ def test_decide_applies_guard_after_card_head(monkeypatch):
         lambda _obs, _deck: object(),
     )
     monkeypatch.setattr(BC.model, "decode_qu_v2", lambda *_args: [0])
+    monkeypatch.setattr(BC, "ENABLE_PHANTOM_TARGET_GUARD", True)
 
     assert BC.decide(_view([0, 30, 10]), BC.TARGET_DECK) == [2]
+
+
+def test_rejected_phantom_target_guard_is_disabled_by_default(monkeypatch):
+    class _Net:
+        def forward(self, _sample):
+            return object(), None
+
+    monkeypatch.setattr(BC, "_load_head", lambda _name: _Net())
+    monkeypatch.setattr(
+        BC.qu_v2_features, "encode_public_observation",
+        lambda _obs, _deck: object(),
+    )
+    monkeypatch.setattr(BC.model, "decode_qu_v2", lambda *_args: [0])
+    monkeypatch.setattr(BC, "ENABLE_PHANTOM_TARGET_GUARD", False)
+
+    assert BC.decide(_view([0, 30, 10]), BC.TARGET_DECK) == [0]
 
 
 def _energy_route_view(*, ready=True, backup_energy=(), deck_count=30,
@@ -224,6 +242,59 @@ def test_dark_to_munk_is_allowed_after_early_setup_window():
     view = _energy_route_view(turn=BC.EARLY_SETUP_LAST_TURN + 1)
     logits = np.asarray([10.0, 9.0, 2.0, 1.0, 0.0], dtype=np.float32)
     assert BC._apply_main_route_guards(view, logits, [0]) == [0]
+
+
+def _completion_view(*, energy=(BC.FIRE_ENERGY,)):
+    return _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320, energy=energy),
+        bench=[_pokemon(BC.DREEPY, 70), _pokemon(BC.MUNKIDORI, 110)],
+        hand=[BC.PSYCHIC_ENERGY, BC.DARK_ENERGY],
+        options=[
+            {
+                "type": OT_ATTACH,
+                "index": 0,
+                "inPlayArea": AREA_ACTIVE,
+                "inPlayIndex": 0,
+            },
+            {
+                "type": OT_ATTACH,
+                "index": 0,
+                "inPlayArea": AREA_BENCH,
+                "inPlayIndex": 0,
+            },
+            {
+                "type": OT_ATTACH,
+                "index": 1,
+                "inPlayArea": AREA_BENCH,
+                "inPlayIndex": 1,
+            },
+            {"type": OT_ABILITY, "area": AREA_BENCH, "index": 0},
+            {"type": OT_ATTACK, "attackId": BC.JET_HEADBUTT},
+            {"type": OT_END},
+        ],
+    )
+
+
+def test_phantom_completion_redirects_conflicting_commitments():
+    view = _completion_view()
+    assert BC._phantom_completion_options(view) == [0]
+    assert BC._guard_phantom_completion(view, [1]) == [0]
+    assert BC._guard_phantom_completion(view, [2]) == [0]
+    assert BC._guard_phantom_completion(view, [4]) == [0]
+    assert BC._guard_phantom_completion(view, [5]) == [0]
+
+
+def test_phantom_completion_preserves_free_sequencing_and_completed_choice():
+    view = _completion_view()
+    assert BC._guard_phantom_completion(view, [0]) == [0]
+    assert BC._guard_phantom_completion(view, [3]) == [3]
+
+
+def test_phantom_completion_requires_exactly_one_missing_energy_type():
+    assert BC._guard_phantom_completion(_completion_view(energy=()), [4]) == [4]
+    assert BC._guard_phantom_completion(
+        _completion_view(energy=(BC.FIRE_ENERGY, BC.PSYCHIC_ENERGY)), [4],
+    ) == [4]
 
 
 def _boss_main_view(*, active_hp=250, bench=()):

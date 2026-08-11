@@ -86,12 +86,14 @@ class GuardedController:
         use_energy_guard: bool,
         use_boss_guard: bool,
         use_phantom_guard: bool,
+        use_completion_guard: bool = False,
     ):
         self.main, self.card, self.qu = main, card, qu
         self.deck, self.name = tuple(deck), name
         self.use_energy_guard = use_energy_guard
         self.use_boss_guard = use_boss_guard
         self.use_phantom_guard = use_phantom_guard
+        self.use_completion_guard = use_completion_guard
         self.counts: Counter[str] = Counter()
         self.exceptions: Counter[str] = Counter()
         self.latency_ms: list[float] = []
@@ -121,6 +123,10 @@ class GuardedController:
                         GUARDS._apply_main_route_guards(view, logits, base)
                         if self.use_energy_guard else base
                     )
+                    if self.use_completion_guard:
+                        completed = GUARDS._guard_phantom_completion(view, action)
+                        self.counts["completion_guards"] += int(completed != action)
+                        action = completed
                     if action != base:
                         if base and GUARDS._is_dark_to_munkidori(
                             view, view.options[base[0]],

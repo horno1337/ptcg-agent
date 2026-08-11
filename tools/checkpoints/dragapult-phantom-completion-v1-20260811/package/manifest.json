@@ -1,0 +1,54 @@
+{
+  "authorization": {
+    "basis": "candidate package prepared; Kaggle upload requires explicit approval",
+    "suggested_kaggle_message": "dragapult-completion-1",
+    "upload_authorized": false
+  },
+  "benchmark_only": true,
+  "candidate": {
+    "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-completion-1-unsigned.tar.gz",
+    "card_weights_sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43",
+    "main_weights_sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0",
+    "modified_files": [
+      "agent/dragapult_bc.py"
+    ],
+    "packaged_module_sha256": "f9504f0a73240588d696544b14480a1d123cbe03417ce10955ab3a1240133782",
+    "repository_module_sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6",
+    "runtime": "exact 07bed elite MAIN/CARD BC plus the completion-only MAIN guard; Boss, early-Dark, and Phantom-target experiments disabled",
+    "sha256": "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+  },
+  "created_at": "2026-08-11T21:55:03.437728+00:00",
+  "determinism": {
+    "gid": 0,
+    "gzip_mtime": 0,
+    "sorted_members": true,
+    "tar_mtime": 0,
+    "uid": 0
+  },
+  "evidence": {
+    "candidate_score": 0.654296875,
+    "completion_guard_fires": 394,
+    "control_score": 0.595703125,
+    "games_per_arm": 1024,
+    "lock_sha256": "af1a1eaef3dc2ad688bc3d87a8aa475ab47546ef5c405782a0e71df096531c31",
+    "paired_ci95": [
+      0.018494397774094444,
+      0.09869310222590555
+    ],
+    "paired_delta": 0.05859375,
+    "result_sha256": "8546f98f5bd37550d21e4bd59c5aecbb935fdb4d699b3425dc0f170e045e3546"
+  },
+  "manifest_sha256": "1fb01504e87ac2f12165e6b164cb50a8d2770ac4e7d36fc537606d6e5df3ac2a",
+  "parent": {
+    "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-elite-1-unsigned.tar.gz",
+    "sha256": "599b6d6e872c420f699f536088ccbf9fbbdb59d0b978a13cc73c1ab72531762e"
+  },
+  "required_release_audits": [
+    "deployment tests",
+    "200-game exact-archive route smoke",
+    "non-owner exact-archive runtime parity",
+    "deterministic rebuild parity"
+  ],
+  "schema": "ptcg.dragapult-completion-1.package.v1",
+  "submission_name": "dragapult-completion-1"
+}

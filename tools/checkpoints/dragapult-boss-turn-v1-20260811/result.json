@@ -1,0 +1,40 @@
+{
+  "created_at": "2026-08-11T22:00:24.608821+00:00",
+  "integration_authority": false,
+  "lock_sha256": "e370b8bee9688e68b80104806208b7b2c21a882f4f7d66989a1d8bba5727ca3d",
+  "package_authority": false,
+  "passed": false,
+  "result_sha256": "5773b75e0713290a0f326f8e8970d82cb5c07057f3493f3ca047eac111d9fc7e",
+  "schema": "ptcg.dragapult-boss-turn-training-result.v1",
+  "selection": {
+    "l2": 0.1,
+    "positive_weight": 1.0,
+    "threshold": 0.5,
+    "validation": {
+      "accuracy": 0.7037037037037037,
+      "false_positive_rate": 0.09090909090909091,
+      "fn": 13,
+      "fp": 3,
+      "n": 54,
+      "positive": 21,
+      "precision": 0.7272727272727273,
+      "recall": 0.38095238095238093,
+      "tn": 30,
+      "tp": 8
+    }
+  },
+  "test": {
+    "accuracy": 0.6341463414634146,
+    "false_positive_rate": 0.17391304347826086,
+    "fn": 22,
+    "fp": 8,
+    "n": 82,
+    "positive": 36,
+    "precision": 0.6363636363636364,
+    "recall": 0.3888888888888889,
+    "tn": 38,
+    "tp": 14
+  },
+  "upload_authority": false,
+  "weights_sha256": "78eece3520bc0085acb4334eb33b1a3ede85cce54652ce6eaeddb6059de0e3ee"
+}

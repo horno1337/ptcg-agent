@@ -180,7 +180,7 @@ def configure(profile: str) -> None:
         MAIN_SHA256 = "bbc77e95f9c2184a118d4a7d9b537f58e604e3f267e517f5080817d7129e5d5b"
         RANDOM_SEED = 2026081141
         return
-    if requested not in {"dragapult", "dragapult-elite"}:
+    if requested not in {"dragapult", "dragapult-elite", "dragapult-completion"}:
         raise ValidationError(f"unknown validation profile: {profile}")
     ARCHIVE = ROOT / "submission-dragapult-benchmark-1-unsigned.tar.gz"
     REPLAYS = ROOT / "tools/checkpoints/dragapult-bc-20260810/raw"
@@ -201,6 +201,16 @@ def configure(profile: str) -> None:
         MAIN_SHA256 = "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
         CARD_SHA256 = "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
         RANDOM_SEED = 2026081142
+    elif requested == "dragapult-completion":
+        ARCHIVE = ROOT / "submission-dragapult-completion-1-unsigned.tar.gz"
+        OUTPUT = ROOT / (
+            "tools/checkpoints/dragapult-phantom-completion-v1-20260811/"
+            "package/exact-archive-validation.json"
+        )
+        ARCHIVE_SHA256 = "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+        MAIN_SHA256 = "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+        CARD_SHA256 = "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+        RANDOM_SEED = 2026081211
     AUDIT_SCRIPT = AUDIT_SCRIPT.replace("lucario", "dragapult")
     RANDOM_SCRIPT = RANDOM_SCRIPT.replace("lucario", "dragapult")
 
@@ -222,7 +232,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--profile",
-        choices=("lucario", "dragapult", "lucario-elite", "dragapult-elite"),
+        choices=(
+            "lucario", "dragapult", "lucario-elite", "dragapult-elite",
+            "dragapult-completion",
+        ),
         default="lucario",
     )
     args = parser.parse_args()

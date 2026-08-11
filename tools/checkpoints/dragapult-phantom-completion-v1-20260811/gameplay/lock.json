@@ -1,0 +1,118 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "controller": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_route_guards.py",
+      "sha256": "2ffca06749d5960daf6a9c3f53e5153707f84b7e6eaea717b13b44d242b54d29"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_phantom_completion.py",
+      "sha256": "2f40472e13246dbaf6bb9b8e0257da8bf1c0537dbdf9258f239b4a2fe84776da"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "tests": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tests/test_dragapult_bc.py",
+      "sha256": "30825574220e84837c3e252f067cbbdf4e8c11d4c762a7054712a70acf0faafe"
+    }
+  },
+  "candidate": "uploaded elite MAIN/CARD baseline plus completion-only MAIN guard",
+  "control": "uploaded elite MAIN/CARD baseline; no completion, Boss, early-Dark, or Phantom-target guards",
+  "created_at": "2026-08-11T21:45:32.687884+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "intervention": "when Active Dragapult lacks exactly one Fire/Psychic type and the complementary manual attachment is legal, redirect only another attachment, Jet Headbutt, or END; preserve free sequencing",
+  "lock_sha256": "af1a1eaef3dc2ad688bc3d87a8aa475ab47546ef5c405782a0e71df096531c31",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "games_per_arm": 1024,
+    "identical_schedule": true,
+    "key_slices": "Dragapult and Mega Lucario point delta >= -0.05",
+    "one_schedule_one_attempt": true,
+    "primary": "point delta >= 0 and CI95 lower > -0.025",
+    "seed": 2026081164,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "478c2e0bb47b91a4211d8416e6b4ba123534b9cb4da4e5ad32c462eae3286f26",
+  "schema": "ptcg.dragapult-phantom-completion.gameplay-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

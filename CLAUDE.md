@@ -5,7 +5,7 @@ the architecture, tag lineage, post-mortems (research log), and workflows —
 read it before proposing strategy changes; every rule below was paid for on
 the ladder.
 
-## Current handoff — 2026-08-11
+## Current handoff — 2026-08-12
 
 This section supersedes older active-direction statements below.  The full
 2026-08-07 handoff remains as historical provenance.
@@ -78,6 +78,66 @@ This section supersedes older active-direction statements below.  The full
   `a58c5947...bcf0555`; durable evaluator:
   `tools/research/eval_dragapult_route_guards.py`.  Do not package or upload
   these guards enabled without a new causal refinement and independent gate.
+- A fresh exact-list Dragapult behavior audit supersedes the broad-rule
+  hypothesis.  It uses 162 replays through 2026-08-11 20:38 UTC from live
+  rank-2 `やる気元気ミワハルキ` and rank-11 `flg`; both register the identical
+  `07bed` 60-card list.  Across 171 exact-list seats they went 108-63.  Their
+  17,616 MAIN/CARD decisions agree with our elite heads only 57.4% (MAIN
+  50.5%, CARD 64.0%); 64.9% of MAIN disagreements are same-turn sequencing,
+  while 35.1% are genuinely different plans.  The coherent plan gap is
+  offense versus utility: experts use Ultra Ball, Boss, Fire/Psychic
+  attachment, and Phantom Dive more often, while our head overuses Munkidori,
+  Recon, Crushing Hammer, and additional Dreepy setup.
+- The sharpest high-confidence root is Phantom readiness.  On 79 expert turns
+  where the Active Dragapult was exactly one legal Fire/Psychic attachment
+  from Phantom Dive, the expert completed it 70 times (88.6%).  In 28
+  comparable non-mirror `dragapult-elite-1` turns, our submitted policy did so
+  only 13 times (46.4%).  Current ladder examples attach the complementary
+  Energy to Dreepy/Drakloak or attach Darkness elsewhere, then use Jet
+  Headbutt.  The next candidate may redirect only a conflicting attachment,
+  Jet Headbutt, or END to the completing Active attachment; it must preserve
+  free utility/search ordering and be tested alone.
+- Do not describe the top-pilot replay as exact uploaded-runtime parity.  The
+  uploaded archive SHA `599b6d6e...1762e` contains elite MAIN/CARD heads but
+  predates the Phantom dead-target allocator.  Replaying with current source
+  plus that allocator is suitable for behavior comparison, but not package
+  provenance.  The allocator would override 214/3,204 (6.7%) top-pilot
+  Phantom choices, 179 of them in wins, and should be disabled in the next
+  package unless independently justified.
+- Boss is a turn-level reranking problem, not the retired immediate-KO rule.
+  Experts played Boss 163 times and attacked later that turn 144 times; our
+  elite head ranked their Boss option first only 3 times but top-five 100
+  times.  The retired guard matched only 35/163 expert gusts and fired mostly
+  where the expert did not gust.  Build a replay/game-disjoint turn-level
+  classifier whose label is whether Boss is used later that turn, and allow a
+  high-confidence override only when Boss is already near the head's top.
+  Test it separately after the complementary-Energy candidate.  Ultra Ball is
+  a third independent intervention, not part of either candidate.
+- The complementary-Energy intervention passed its immutable 1,024-game/arm
+  current-field gate with zero faults.  The candidate scored **65.43%
+  (670-354)** versus **59.57%
+  (610-414)** for the exact elite-head control, paired +5.86 pp, CI95
+  [+1.85,+9.87].  It fired 394 times.  Dragapult mirror was +1.16 pp (CI95
+  [-6.41,+8.73]) and Mega Lucario +17.16 pp (CI95 [+7.97,+26.34]); both met
+  the preregistered slice guard.  Lock `af1a1eae...31c31`; result
+  `8546f98f...e3546`.  This is the locally promoted Dragapult candidate.
+- The prospectively locked Boss turn classifier was rejected and must not be
+  integrated or retuned on its opened test.  Its game-disjoint test precision
+  was 63.64%, recall 38.89%, and false-positive rate 17.39%, missing the locked
+  >=65%, >=15%, <=15% requirements.  Simple Ultra Ball conditions were also
+  insufficiently selective: even the strongest common public-state trigger
+  matched expert use only about 63.6%.  Do not force either action with a broad
+  rule; the next attempt needs a new causal condition and new confirmation.
+- `tools/build_dragapult_completion_submission.py` deterministically builds
+  `submission-dragapult-completion-1-unsigned.tar.gz` from the exact uploaded
+  elite parent while changing only `agent/dragapult_bc.py`.  Archive SHA-256
+  is `ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3`;
+  packaged module SHA-256 is `f9504f0a...3782`.  Two independent builds were
+  byte-identical.  The exact archive passed owner/UID-1 action parity and a
+  200-game random smoke with zero invalid games, repairs, or errors; validation
+  result `a9a75ed3...efd`.  The broader Qu-v2 deployment suite also passed.
+  The package manifest deliberately records `upload_authorized=false`: do not
+  upload until the user approves an exact Kaggle submission name.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a
