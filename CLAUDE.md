@@ -28,6 +28,34 @@ This section supersedes older active-direction statements below.  The full
   was 23.54% over 512 games; a fresh 2,048-game control measured 26.90%
   (550-1,496-2).  The larger control is the better local reference.
 
+### Expanded August 7--10 BC run
+
+- A deterministic 1,200-game sample from each August 7, 8, and 9 daily
+  archive added 1,068 unique BC-valid games after exact-deck filtering and
+  cross-source deduplication.  The registration-prefix audit covered all
+  3,600 sampled IDs with zero errors and recovered 268 exact Dragapult games;
+  232 of those required a full replay download.  The ignored combined corpus
+  is `tools/checkpoints/day1-bc-combined-v3-20260811/corpus.json`: 2,833 valid
+  games, zero invalid, manifest SHA-256 `2c484176...be977`, and content SHA-256
+  `ad1f7f20...e0eb9`.
+- Exact-deck inventories are Froslass 1,580 (1,272/158/150), Lucario 888
+  (747/71/70), Dragapult 481 (374/60/47), and Festival Lead 99 (77/10/12),
+  with splits shown as train/validation/test.  The test partitions remain
+  sealed.
+- `tools/research/run_day2_expanded_bc.py` prospectively locked and completed
+  eight independent Qu-v2B-initialized, frozen-backbone, KL-anchored BC arms:
+  ST_MAIN and ST_CARD for all four decks.  The lock SHA-256 is
+  `9b7f8f38...437ed4c`; every arm completed exactly four epochs and selected
+  epoch 4.  Final validation objectives were Froslass 1.24463/1.38529,
+  Dragapult 1.37333/0.88436, Lucario 1.25829/1.16235, and Festival
+  1.23442/2.09525 (MAIN/CARD).  All output manifests and weight/checkpoint
+  hashes verify.
+- This is a training-completion result, not a release verdict.  No sealed-test
+  behavior readout, paired gameplay gate, package, integration, or upload has
+  been authorized or performed.  The next step is a prospectively locked
+  one-shot behavior comparison against frozen Qu-v2B, followed only for
+  behavior-passing arms by independent paired gameplay evaluation.
+
 ### Rejected Lucario exact-matchup BC
 
 - `lucario-grim-exact-v2` used 239 exact Lucario-versus-Dobi games, split
