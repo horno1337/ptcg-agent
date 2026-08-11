@@ -1,21 +1,30 @@
 from __future__ import annotations
 
+import numpy as np
+
 from agent import dragapult_bc as BC
 from agent.obsview import (
     AREA_BENCH,
     CTX_DAMAGE_COUNTER_ANY,
+    CTX_SWITCH,
+    OT_ABILITY,
+    OT_ATTACH,
+    OT_ATTACK,
+    OT_END,
+    OT_PLAY,
     ST_CARD,
+    ST_MAIN,
     ObsView,
 )
 
 
-def _pokemon(card_id: int, hp: int) -> dict:
+def _pokemon(card_id: int, hp: int, *, energy=()) -> dict:
     return {
         "id": card_id,
         "hp": hp,
         "maxHp": max(hp, 100),
-        "energies": [],
-        "energyCards": [],
+        "energies": list(energy),
+        "energyCards": [{"id": card_id} for card_id in energy],
         "tools": [],
     }
 
@@ -57,6 +66,45 @@ def _view(hps: list[int], *, context: int = CTX_DAMAGE_COUNTER_ANY,
     })
 
 
+def _main_view(*, active, bench=(), hand=(), opponent_active=None,
+               opponent_bench=(), options=(), deck_count=30,
+               select_type=ST_MAIN, context=0, effect=None, turn=5) -> ObsView:
+    return ObsView({
+        "current": {
+            "yourIndex": 0,
+            "turn": turn,
+            "players": [
+                {
+                    "active": [active],
+                    "bench": list(bench),
+                    "hand": [{"id": card_id} for card_id in hand],
+                    "handCount": len(hand),
+                    "deckCount": deck_count,
+                    "discard": [],
+                    "prize": [None] * 6,
+                },
+                {
+                    "active": [opponent_active or _pokemon(200, 250)],
+                    "bench": list(opponent_bench),
+                    "hand": None,
+                    "handCount": 0,
+                    "deckCount": 30,
+                    "discard": [],
+                    "prize": [None] * 6,
+                },
+            ],
+        },
+        "select": {
+            "type": select_type,
+            "context": context,
+            "effect": {"id": effect} if effect is not None else None,
+            "minCount": 1,
+            "maxCount": 1,
+            "option": list(options),
+        },
+    })
+
+
 def test_phantom_dive_preserves_a_live_bc_target():
     view = _view([20, 10, 80])
     assert BC._guard_phantom_dive_target(view, [0]) == [0]
@@ -94,3 +142,165 @@ def test_decide_applies_guard_after_card_head(monkeypatch):
     monkeypatch.setattr(BC.model, "decode_qu_v2", lambda *_args: [0])
 
     assert BC.decide(_view([0, 30, 10]), BC.TARGET_DECK) == [2]
+
+
+def _energy_route_view(*, ready=True, backup_energy=(), deck_count=30,
+                       include_recon=False, turn=3):
+    active_energy = (
+        (BC.FIRE_ENERGY, BC.PSYCHIC_ENERGY)
+        if ready else (BC.FIRE_ENERGY,)
+    )
+    options = [
+        {
+            "type": OT_ATTACH,
+            "index": 0,
+            "inPlayArea": AREA_BENCH,
+            "inPlayIndex": 0,
+        },
+        {
+            "type": OT_ATTACH,
+            "index": 1,
+            "inPlayArea": AREA_BENCH,
+            "inPlayIndex": 1,
+        },
+        {"type": OT_ATTACK, "attackId": BC.PHANTOM_DIVE},
+        {"type": OT_END},
+    ]
+    if include_recon:
+        options.append({"type": OT_ABILITY, "area": AREA_BENCH, "index": 1})
+    return _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320, energy=active_energy),
+        bench=[
+            _pokemon(BC.MUNKIDORI, 110),
+            _pokemon(BC.DRAKLOAK, 90, energy=backup_energy),
+        ],
+        hand=[BC.DARK_ENERGY, BC.FIRE_ENERGY],
+        options=options,
+        deck_count=deck_count,
+        turn=turn,
+    )
+
+
+def test_early_dark_to_munk_is_masked_until_backup_has_energy():
+    view = _energy_route_view()
+    logits = np.asarray([10.0, 9.0, 2.0, 1.0, 0.0], dtype=np.float32)
+    assert BC._apply_main_route_guards(view, logits, [0]) == [1]
+
+
+def test_dark_to_munk_is_allowed_after_attacker_and_backup_are_started():
+    view = _energy_route_view(backup_energy=(BC.PSYCHIC_ENERGY,))
+    logits = np.asarray([10.0, 9.0, 2.0, 1.0, 0.0], dtype=np.float32)
+    assert BC._apply_main_route_guards(view, logits, [0]) == [0]
+
+
+def test_backup_energy_does_not_unlock_munk_before_phantom_is_ready():
+    view = _energy_route_view(
+        ready=False, backup_energy=(BC.PSYCHIC_ENERGY,),
+    )
+    logits = np.asarray([10.0, 9.0, 2.0, 1.0, 0.0], dtype=np.float32)
+    assert BC._apply_main_route_guards(view, logits, [0]) == [1]
+
+
+def test_recon_is_preserved_and_used_as_safe_blocked_attachment_replacement():
+    view = _energy_route_view(include_recon=True)
+    logits = np.asarray(
+        [10.0, 9.0, 8.0, 7.0, 6.0, 0.0], dtype=np.float32,
+    )
+    assert BC._apply_main_route_guards(view, logits, [2]) == [2]
+    assert BC._apply_main_route_guards(view, logits, [4]) == [4]
+    assert BC._apply_main_route_guards(view, logits, [0]) == [4]
+
+
+def test_recon_guard_preserves_low_deck_attack_choice():
+    view = _energy_route_view(deck_count=BC.RECON_SAFE_DECK_COUNT,
+                              include_recon=True)
+    logits = np.asarray(
+        [10.0, 9.0, 8.0, 7.0, 6.0, 0.0], dtype=np.float32,
+    )
+    assert BC._apply_main_route_guards(view, logits, [2]) == [2]
+
+
+def test_dark_to_munk_is_allowed_after_early_setup_window():
+    view = _energy_route_view(turn=BC.EARLY_SETUP_LAST_TURN + 1)
+    logits = np.asarray([10.0, 9.0, 2.0, 1.0, 0.0], dtype=np.float32)
+    assert BC._apply_main_route_guards(view, logits, [0]) == [0]
+
+
+def _boss_main_view(*, active_hp=250, bench=()):
+    return _main_view(
+        active=_pokemon(
+            BC.DRAGAPULT_EX, 320,
+            energy=(BC.FIRE_ENERGY, BC.PSYCHIC_ENERGY),
+        ),
+        hand=[BC.BOSS],
+        opponent_active=_pokemon(200, active_hp),
+        opponent_bench=bench or [_pokemon(24, 190)],
+        options=[
+            {"type": OT_PLAY, "index": 0},
+            {"type": OT_ATTACK, "attackId": BC.PHANTOM_DIVE},
+            {"type": OT_END},
+        ],
+    )
+
+
+def test_boss_guard_fires_only_when_bench_ko_is_unavailable_on_active():
+    assert BC._boss_immediate_prize_main(_boss_main_view()) == [0]
+    assert BC._boss_immediate_prize_main(
+        _boss_main_view(active_hp=180),
+    ) is None
+    assert BC._boss_immediate_prize_main(
+        _boss_main_view(bench=[_pokemon(201, 220)]),
+    ) is None
+
+
+def test_boss_guard_ignores_ordinary_single_prizer_but_targets_engine():
+    assert BC._boss_immediate_prize_main(
+        _boss_main_view(bench=[_pokemon(201, 100)]),
+    ) is None
+    assert BC._boss_immediate_prize_main(
+        _boss_main_view(bench=[_pokemon(BC.DRAKLOAK, 90)]),
+    ) == [0]
+
+
+def test_boss_target_prefers_higher_prize_reachable_pokemon():
+    view = _main_view(
+        active=_pokemon(
+            BC.DRAGAPULT_EX, 320,
+            energy=(BC.FIRE_ENERGY, BC.PSYCHIC_ENERGY),
+        ),
+        opponent_active=_pokemon(200, 250),
+        opponent_bench=[_pokemon(201, 50), _pokemon(24, 190)],
+        select_type=ST_CARD,
+        context=CTX_SWITCH,
+        effect=BC.BOSS,
+        options=[
+            {"type": 3, "area": AREA_BENCH, "index": 0, "playerIndex": 1},
+            {"type": 3, "area": AREA_BENCH, "index": 1, "playerIndex": 1},
+        ],
+    )
+    assert BC._boss_immediate_prize_target(view) == [1]
+
+
+def test_decide_applies_boss_guard_before_loading_head(monkeypatch):
+    monkeypatch.setattr(BC, "ENABLE_EXPERIMENTAL_ROUTE_GUARDS", True)
+    monkeypatch.setattr(
+        BC, "_load_head",
+        lambda _name: (_ for _ in ()).throw(AssertionError("head must not load")),
+    )
+    assert BC.decide(_boss_main_view(), BC.TARGET_DECK) == [0]
+
+
+def test_rejected_route_guards_are_disabled_in_shipped_decision_path(monkeypatch):
+    class _Net:
+        def forward(self, _sample):
+            return object(), None
+
+    monkeypatch.setattr(BC, "ENABLE_EXPERIMENTAL_ROUTE_GUARDS", False)
+    monkeypatch.setattr(BC, "_load_head", lambda _name: _Net())
+    monkeypatch.setattr(
+        BC.qu_v2_features, "encode_public_observation",
+        lambda _obs, _deck: object(),
+    )
+    monkeypatch.setattr(BC.model, "decode_qu_v2", lambda *_args: [1])
+
+    assert BC.decide(_boss_main_view(), BC.TARGET_DECK) == [1]
