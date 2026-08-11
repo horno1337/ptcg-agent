@@ -83,10 +83,21 @@ This section supersedes older active-direction statements below.  The full
   required next gate is a separately locked deterministic paired evaluation
   of each terminal PPO candidate against its unchanged BC parent on identical
   frozen-peer schedules.
+- That deterministic gate is now complete: 512 games per candidate/control
+  arm, identical paired-seat frozen-peer schedules, 4,096 valid games total.
+  No PPO candidate earned BC replacement.  Froslass was -3.71 pp with CI95
+  [-9.42,+2.00], Dragapult +0.78 pp [-5.10,+6.67], Lucario -1.86 pp
+  [-7.98,+4.26], and Festival -0.39 pp [-5.94,+5.16].  All four missed the
+  locked strict-superiority rule; all also missed the -2 pp noninferiority
+  bound because their lower confidence limits were below -2 pp.  Result
+  SHA-256: `2d2d040e45f6a499d3bfe849d535c9072011b6a92078743f50ca286bb1f4282b`.
+  Keep all four BC parents authoritative; do
+  not integrate, package, scale, or upload these PPO candidates.
 - Durable entry points are `tools/research/evaluate_day2_expanded_bc.py`,
   `tools/research/eval_day2_specialist_league.py`, and
-  `tools/research/run_day2_specialist_ppo_league.py`.  Locks, results, weights,
-  and replay-derived evidence remain ignored under
+  `tools/research/run_day2_specialist_ppo_league.py`; the deterministic PPO
+  gate is `tools/research/eval_day2_specialist_ppo_league.py`.  Locks, results,
+  weights, and replay-derived evidence remain ignored under
   `tools/checkpoints/day2-expanded-bc-20260811/`.
 
 ### Rejected Lucario exact-matchup BC
