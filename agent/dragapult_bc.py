@@ -7,7 +7,7 @@ import os
 from typing import Sequence
 
 from . import model, qu_v2_features
-from .obsview import ST_CARD, ST_MAIN, ObsView
+from .obsview import CTX_DAMAGE_COUNTER_ANY, ST_CARD, ST_MAIN, ObsView
 
 
 TARGET_DECK = (
@@ -28,6 +28,9 @@ _CARD_PATH = os.path.join(os.path.dirname(__file__), "dragapult_card_weights.npz
 _main = None
 _card = None
 _attempted: set[str] = set()
+
+
+DRAGAPULT_EX = 121
 
 
 def supports_deck(registered_deck: Sequence[int]) -> bool:
@@ -73,6 +76,67 @@ def _load_head(name: str):
     return loaded
 
 
+def _positive_hp(view: ObsView, option: dict) -> int | None:
+    """Return a visible, living target's HP; unknown/dead targets are None."""
+    entry = view.option_board_entry(option)
+    if not isinstance(entry, dict):
+        return None
+    hp = entry.get("hp")
+    if isinstance(hp, bool) or not isinstance(hp, int) or hp <= 0:
+        return None
+    return hp
+
+
+def _guard_phantom_dive_target(
+    view: ObsView,
+    picks: list[int],
+) -> list[int]:
+    """Prevent Phantom Dive from spending counters on an already-KO'd target.
+
+    The engine resolves Phantom Dive's six counters as six consecutive
+    one-target prompts.  A learned head can keep returning the same bench
+    index after that Pokemon reaches zero HP.  Preserve every visible live
+    BC choice, but when its chosen target is visibly dead, retarget to the
+    lowest-HP live opposing option.  That naturally spends only the counters
+    required for a KO before the next prompt moves elsewhere.
+    """
+    if (
+        view.select_type != ST_CARD
+        or view.context != CTX_DAMAGE_COUNTER_ANY
+        or view.effect_card_id != DRAGAPULT_EX
+        or len(picks) != 1
+    ):
+        return picks
+
+    chosen = picks[0]
+    if not isinstance(chosen, int) or not 0 <= chosen < len(view.options):
+        return picks
+
+    chosen_entry = view.option_board_entry(view.options[chosen])
+    if not isinstance(chosen_entry, dict):
+        return picks
+    chosen_hp = chosen_entry.get("hp")
+    if isinstance(chosen_hp, bool) or not isinstance(chosen_hp, int):
+        return picks
+    if chosen_hp > 0:
+        return picks
+
+    live: list[tuple[int, int]] = []
+    for index, option in enumerate(view.options):
+        if option.get("playerIndex", view.my_index) == view.my_index:
+            continue
+        hp = _positive_hp(view, option)
+        if hp is not None:
+            live.append((hp, index))
+    if not live:
+        return picks
+
+    # Lowest positive HP maximizes the chance that the remaining counters
+    # convert into a Prize instead of creating another unfinished target.
+    _, replacement = min(live, key=lambda row: (row[0], row[1]))
+    return [replacement]
+
+
 def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
     """Route exact-deck MAIN/CARD prompts to their field-gated BC heads."""
     if (
@@ -95,8 +159,9 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
             view.obs, registered_deck,
         )
         logits, _ = net.forward(sample)
-        return model.decode_qu_v2(
+        picks = model.decode_qu_v2(
             logits, len(view.options), view.min_count, view.max_count,
         )
+        return _guard_phantom_dive_target(view, picks)
     except Exception:
         return None
