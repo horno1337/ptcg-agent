@@ -10,6 +10,35 @@ the ladder.
 This section supersedes older active-direction statements below.  The full
 2026-08-07 handoff remains as historical provenance.
 
+### Active Lucario/Dragapult direction and ladder probes
+
+- The project is now explicitly focused on Lucario and Dragapult.  Kaggle
+  ladder submissions are part of the development loop, not deferred until a
+  final champion: local gates decide what is safe and informative to submit,
+  while leaderboard replays test transfer against real policies.  Do not
+  infer strength from the first displayed rating; require a useful clean-game
+  cohort and matchup/action analysis.
+- The authoritative Lucario Day-1 MAIN+CARD specialist was packaged as
+  `submission-lucario-benchmark-1-unsigned.tar.gz`, SHA-256
+  `8960f6c250bb30594b83fed4e2bee62f0127d44ce2e7814479ccaa045ad7f5ae`.
+  The exact archive passed 200/200 random games with zero repairs/errors,
+  exercised MAIN, CARD, and residual routes, hash-loaded both heads, and
+  produced identical actions as owner and UID/GID 1.  Deployment/safety tests
+  passed 6/6.  It was uploaded as `lucario-benchmark-1`, Kaggle submission
+  `55437466`, on 2026-08-11.  Its immediate displayed score was 512.9: treat
+  this as an early warning/collection signal, not a stable verdict.
+- The Lucario package is a benchmark-only user-authorized probe, not a champion
+  promotion.  Its frozen local evidence remains strong against the Aug-10
+  Qu-v2B-piloted field: 64.94% versus 56.35%, paired +8.59 pp, CI95
+  [+5.87,+11.32], 2,048 games per arm.  The transfer gap is now the primary
+  question.  The highest-value next local experiment is the preregistered
+  Day-1/Day-2 2x2 MAIN/CARD head-isolation gate on a refreshed field, with
+  explicit Dragapult, mirror, Ogerpon, Alakazam, and Grim slices.
+- Do not continuously poll submission `55437466`.  On the next requested
+  update, fetch its available episodes once, deduplicate them, verify runtime
+  provenance, and diagnose repeated decision divergences.  Keep Dragapult in
+  parallel as the second specialist, but do not upload its rejected PPO pilot.
+
 ### Multi-deck Day-1 standing
 
 - The validated Day-1 exact-deck BC specialists are Lucario, Froslass, and
@@ -20,9 +49,8 @@ This section supersedes older active-direction statements below.  The full
   `submission-froslass-test-1-unsigned.tar.gz`, SHA-256
   `2ea844f944603e80e19feb7bbf059f629f5d7981e16660e430e93b88117c6aed`.
   It passed a 200-game zero-fault smoke and owner/non-owner runtime audit.  A
-  Kaggle upload attempt was rejected by the daily five-submission cap before a
-  submission was created.  No retry timer or monitor remains.  Upload only
-  after a fresh explicit user request supplies the intended submission name.
+  It was later uploaded as Kaggle submission `55419438`; the current project
+  direction no longer prioritizes Froslass refinement.
 - The current Lucario specialist remains the Day-1 MAIN+CARD pair under
   `tools/checkpoints/day1-lucario-froslass-20260810/`.  Its direct Dobi score
   was 23.54% over 512 games; a fresh 2,048-game control measured 26.90%
