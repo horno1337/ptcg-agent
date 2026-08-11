@@ -65,6 +65,19 @@ This section supersedes older active-direction statements below.  The full
   available episodes once.  If either remains below 800 after a meaningful
   cohort, treat that as another failed BC transfer and prioritize causal deck
   rules/planning from replay roots rather than another broad BC/PPO run.
+- The requested Dragapult route rules were implemented with focused tests:
+  early manual Darkness-to-Munkidori attachment protection, and a conservative
+  Boss line restricted to visible multi-Prize, game-winning, or key-engine
+  bench KOs when the Active is not KO-able.  Learned Drakloak decisions and
+  the existing Phantom Dive allocator remain unchanged.  They are retained
+  behind `ENABLE_EXPERIMENTAL_ROUTE_GUARDS = False`, because the correctly
+  isolated 2,048-game paired gate rejected enabling them: 58.11% versus
+  59.47% for the same elite heads plus Phantom-only control, paired -1.37 pp,
+  CI95 [-5.53,+2.79].  Dragapult was -1.16 pp and Lucario +3.92 pp; all games
+  were valid with zero fallbacks or repairs.  Result SHA-256
+  `a58c5947...bcf0555`; durable evaluator:
+  `tools/research/eval_dragapult_route_guards.py`.  Do not package or upload
+  these guards enabled without a new causal refinement and independent gate.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a
