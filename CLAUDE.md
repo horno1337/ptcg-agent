@@ -12,6 +12,60 @@ This section supersedes older active-direction statements below.  The full
 
 ### Active Lucario/Dragapult direction and ladder probes
 
+#### 2026-08-11 elite-refinement update (authoritative)
+
+- The original benchmark probes are now a confirmed transfer failure, not an
+  early-rating ambiguity.  Kaggle ultimately reported `lucario-benchmark-1`
+  (`55437466`) at **584.1** and `dragapult-benchmark-1` (`55438590`) at
+  **502.9**.  The available non-mirror replay samples were Lucario 10-9 over
+  19 games and Dragapult 1-2 over three games; the samples are too small to
+  reconcile with the ratings, but runtime fingerprints are conclusive.  On
+  specialist-versus-fallback disagreements, logged actions matched Lucario BC
+  177/186 times and Dragapult BC 33/33 times.  The failure is policy transfer,
+  not missing weights or silent Qu/Dobi fallback.
+- Do not use the older Qu-v2B-piloted field as a ladder-score predictor.  It is
+  retained only as a paired regression/fault screen.  The Day-2 Lucario MAIN
+  replacement was rejected after a fresh 2,048-game confirmation: +0.27 pp,
+  CI95 [-2.37,+2.91], with no strict superiority.  The pictured Metafy
+  Dragapult/Froslass/Munkidori registration (hash `4ffe6aee...0f2b`) also did
+  not justify a deck pivot: there were zero exact public games, and every
+  transferred head was materially worse than the original exact Dragapult
+  registration in the locked local screen.
+- A new conservative elite-teacher refinement is complete under
+  `tools/checkpoints/elite-recent-specialist-bc-20260811/`.  It uses only
+  recent, non-mirror exact-deck games: 253 Lucario games from Majkel1337,
+  ntumlnoob, and M Sato (217/18/18 train/validation/test), and 271 Dragapult
+  games from six established high-volume/high-performing teachers
+  (207/38/26).  Each Day-1 head was both initialization and KL anchor; the
+  public backbone stayed frozen.  CUDA was unavailable before epoch one, so a
+  self-hashed resource adjudication changed only the device to CPU.  Training
+  lock `09b5ba10...b759`; adjudication `3782a55f...0d6a`.
+- One-shot held-out behavior result `1e02e1fb...7721` passed all three arms
+  against their actual Day-1 parents.  Lucario MAIN exact-action agreement
+  improved 58.19% -> 58.71% with weighted NLL delta -0.02512.  Dragapult MAIN
+  improved 51.14% -> 53.87% with NLL delta -0.05060; Dragapult CARD improved
+  69.60% -> 70.82% with NLL delta -0.02240.  Every arm also won the subset on
+  which candidate and parent actions disagreed.
+- The locked 4,096-game current-field regression gate was valid and zero-fault
+  (`9f85eb6f...51d61`).  Lucario elite was +1.56 pp overall, CI95
+  [-2.16,+5.29], and +3.10 pp against Dragapult.  Dragapult elite was +4.74 pp,
+  CI95 [+0.54,+8.94], and +8.33 pp against Lucario.  Both passed the
+  preregistered ladder-probe screen; this is still not a ladder-strength claim.
+- Two deterministic exact-archive probes were built, rebuilt byte-identically,
+  passed 200/200 random games with zero repairs/errors, passed owner/non-owner
+  parity, and passed the 6/6 deployment suite:
+  - `submission-lucario-elite-1-unsigned.tar.gz`, SHA-256
+    `358c46b44dbc3070b099787a33829c2a669d287b55edd5351e5561196e37f95b`;
+    uploaded as `lucario-elite-1`, Kaggle submission `55439638`.
+  - `submission-dragapult-elite-1-unsigned.tar.gz`, SHA-256
+    `599b6d6e872c420f699f536088ccbf9fbbdb59d0b978a13cc73c1ab72531762e`;
+    uploaded as `dragapult-elite-1`, Kaggle submission `55439643`.
+  Both were `PENDING` at the single post-upload receipt read.  Do not poll.
+  On the next user-requested update, read status once and fetch/deduplicate
+  available episodes once.  If either remains below 800 after a meaningful
+  cohort, treat that as another failed BC transfer and prioritize causal deck
+  rules/planning from replay roots rather than another broad BC/PPO run.
+
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a
   final champion: local gates decide what is safe and informative to submit,
@@ -25,8 +79,8 @@ This section supersedes older active-direction statements below.  The full
   exercised MAIN, CARD, and residual routes, hash-loaded both heads, and
   produced identical actions as owner and UID/GID 1.  Deployment/safety tests
   passed 6/6.  It was uploaded as `lucario-benchmark-1`, Kaggle submission
-  `55437466`, on 2026-08-11.  Its immediate displayed score was 512.9: treat
-  this as an early warning/collection signal, not a stable verdict.
+  `55437466`, on 2026-08-11.  Its final observed score is 584.1; it failed as a
+  competitive probe and is superseded by `lucario-elite-1` above.
 - The Lucario package is a benchmark-only user-authorized probe, not a champion
   promotion.  Its frozen local evidence remains strong against the Aug-10
   Qu-v2B-piloted field: 64.94% versus 56.35%, paired +8.59 pp, CI95
@@ -34,7 +88,7 @@ This section supersedes older active-direction statements below.  The full
   question.  The highest-value next local experiment is the preregistered
   Day-1/Day-2 2x2 MAIN/CARD head-isolation gate on a refreshed field, with
   explicit Dragapult, mirror, Ogerpon, Alakazam, and Grim slices.
-- Do not continuously poll submission `55437466`.  On the next requested
+- Do not continuously poll any submission.  On the next requested
   update, fetch its available episodes once, deduplicate them, verify runtime
   provenance, and diagnose repeated decision divergences.  Keep Dragapult in
   parallel as the second specialist, but do not upload its rejected PPO pilot.

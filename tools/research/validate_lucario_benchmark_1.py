@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from datetime import datetime, timezone
 import json
 import os
@@ -32,6 +33,8 @@ DECK_SHA256 = "77a53ffc32f89b22562f6b4ac0b8cbde9e8210923cd0ef512551b8a8eb9003f8"
 PER_FAMILY = 16
 RANDOM_GAMES = 200
 RANDOM_SEED = 2026081117
+PROFILE = "lucario"
+VALIDATION_NAME = "lucario-benchmark-1"
 
 
 class ValidationError(RuntimeError):
@@ -156,6 +159,52 @@ print(json.dumps({"summary":series.summary(),"records":[asdict(x) for x in serie
 '''
 
 
+def configure(profile: str) -> None:
+    """Select the frozen exact-deck benchmark profile before any validation."""
+    global PROFILE, ARCHIVE, REPLAYS, OUTPUT
+    global ARCHIVE_SHA256, MAIN_SHA256, CARD_SHA256, DECK_SHA256, RANDOM_SEED
+    global AUDIT_SCRIPT, RANDOM_SCRIPT, VALIDATION_NAME
+    requested = profile
+    PROFILE = "dragapult" if requested.startswith("dragapult") else "lucario"
+    VALIDATION_NAME = requested.replace("-elite", "-elite-1")
+    if requested == "lucario":
+        VALIDATION_NAME = "lucario-benchmark-1"
+        return
+    if requested == "lucario-elite":
+        ARCHIVE = ROOT / "submission-lucario-elite-1-unsigned.tar.gz"
+        OUTPUT = ROOT / (
+            "tools/checkpoints/elite-recent-specialist-bc-20260811/"
+            "packages/lucario-elite-1-validation.json"
+        )
+        ARCHIVE_SHA256 = "358c46b44dbc3070b099787a33829c2a669d287b55edd5351e5561196e37f95b"
+        MAIN_SHA256 = "bbc77e95f9c2184a118d4a7d9b537f58e604e3f267e517f5080817d7129e5d5b"
+        RANDOM_SEED = 2026081141
+        return
+    if requested not in {"dragapult", "dragapult-elite"}:
+        raise ValidationError(f"unknown validation profile: {profile}")
+    ARCHIVE = ROOT / "submission-dragapult-benchmark-1-unsigned.tar.gz"
+    REPLAYS = ROOT / "tools/checkpoints/dragapult-bc-20260810/raw"
+    OUTPUT = ROOT / "tools/checkpoints/dragapult-benchmark-1/exact-archive-validation.json"
+    ARCHIVE_SHA256 = "9b56efa785b1b2e95d12b5142dfea5fdeb5fb235228e41d7e3a66adce1fca85c"
+    MAIN_SHA256 = "6e2183c318e0b41753aa629ffce61706332628740e22613f4120967e0ebb2e55"
+    CARD_SHA256 = "135696e3a5b080f1a3b7bee4bb882f12a0dfbefc1d43a7cd3913b29c571781df"
+    DECK_SHA256 = "07bedfffbfad6ecb31733acc54c8110bb1934d8b1dc98bd9c4d37f6ba5c5e725"
+    RANDOM_SEED = 2026081123
+    VALIDATION_NAME = "dragapult-benchmark-1"
+    if requested == "dragapult-elite":
+        ARCHIVE = ROOT / "submission-dragapult-elite-1-unsigned.tar.gz"
+        OUTPUT = ROOT / (
+            "tools/checkpoints/elite-recent-specialist-bc-20260811/"
+            "packages/dragapult-elite-1-validation.json"
+        )
+        ARCHIVE_SHA256 = "599b6d6e872c420f699f536088ccbf9fbbdb59d0b978a13cc73c1ab72531762e"
+        MAIN_SHA256 = "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+        CARD_SHA256 = "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+        RANDOM_SEED = 2026081142
+    AUDIT_SCRIPT = AUDIT_SCRIPT.replace("lucario", "dragapult")
+    RANDOM_SCRIPT = RANDOM_SCRIPT.replace("lucario", "dragapult")
+
+
 def execute(command: list[str], cwd: Path, environment: dict[str, str]) -> dict[str, Any]:
     completed = subprocess.run(
         command, cwd=cwd, env=environment, text=True, capture_output=True,
@@ -170,6 +219,14 @@ def execute(command: list[str], cwd: Path, environment: dict[str, str]) -> dict[
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--profile",
+        choices=("lucario", "dragapult", "lucario-elite", "dragapult-elite"),
+        default="lucario",
+    )
+    args = parser.parse_args()
+    configure(args.profile)
     if OUTPUT.exists():
         raise SystemExit(f"refusing to overwrite {OUTPUT}")
     if COMMON.file_sha256(ARCHIVE) != ARCHIVE_SHA256:
@@ -183,8 +240,8 @@ def main() -> int:
         members = BASE._safe_extract(ARCHIVE, extracted)
         required = {
             "main.py", "decks/deck.csv", "agent/policy.py", "agent/weights.npz",
-            "agent/lucario_bc.py", "agent/lucario_main_weights.npz",
-            "agent/lucario_card_weights.npz",
+            f"agent/{PROFILE}_bc.py", f"agent/{PROFILE}_main_weights.npz",
+            f"agent/{PROFILE}_card_weights.npz",
         }
         if not required.issubset(members):
             raise ValidationError(f"missing archive members: {sorted(required - set(members))}")
@@ -201,7 +258,7 @@ def main() -> int:
         )
         deck = tuple(owner["deck"])
         opponents = [OpponentSpec(
-            key="lucario/random-legal", deck=deck, move=random_legal_move,
+            key=f"{PROFILE}/random-legal", deck=deck, move=random_legal_move,
             policy_id="random-legal:tools.rl_env.v1", schedule_group="random-legal",
         )]
         schedule = COMMON.build_schedule_contract(
@@ -262,7 +319,7 @@ def main() -> int:
     )
     passed = parity_passed and random_passed
     result = {
-        "schema": "ptcg.lucario-benchmark-1.exact-archive-validation.v1",
+        "schema": f"ptcg.{VALIDATION_NAME}.exact-archive-validation.v1",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "archive": {"path": str(ARCHIVE.resolve()), "sha256": ARCHIVE_SHA256},
         "cohort": {
