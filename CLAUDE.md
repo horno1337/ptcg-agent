@@ -321,6 +321,33 @@ This section supersedes older active-direction statements below.  The full
   Focused tests pass 26/26 and the repository 200-game random smoke passed
   200/200 with zero errors.  This is a mechanical integration, not yet a
   packaged or uploaded ladder claim.
+- A read-only audit of submission `55457370` (`Sixth Sense`) now covers 23
+  non-mirror games: 19-4 (82.6%).  This is a selected, small replay sample,
+  not a rating forecast.  Its `674ec310...` registration differs from exact
+  `07bed` by only three Trainer slots: +1 Venture Bomb/+2 Watchtower, -1
+  Dawn/-2 Jamming Tower.  It went 4-1 against exact `07bed`, 3-2 across Mega
+  Lucario variants, 1-1 against exact Grim, and 5-0 across the observed
+  Alakazam family.  The 07bed elite heads agree with its logged actions only
+  59.23% overall (MAIN 52.70%, CARD 65.17%); this is a behavior comparison on
+  a related deck, not exact runtime replay.  The main gap remains route and
+  sequencing rather than CARD semantics.
+- In those games Budew supplied the first attack in 19/23.  First Phantom
+  timing did not distinguish the four losses (turns 6, 6, 8, 9) from wins;
+  faster setup alone is not the correction.  Boss converted to a same-turn
+  attack on 12/14 winning uses but only 2/4 losing uses.  The Lucario losses
+  include a turn-2 no-attack Boss and repeated Phantom turns spent converting
+  one Lunatone while Mega Lucario won the multi-Prize race.  The Grim loss
+  missed the turn-6 evolution/attack window and first used Phantom on turn 8.
+- Episode `92107363` is the clearest positive route: build multiple Drakloak
+  under repeated Budew pressure, Boss and hit Mega Lucario, use counters to
+  cash a damaged three-Prize Mega, later cash Lunatone, and Boss the final
+  single-Prize target.  It attached Darkness to active Munkidori on turn 1 to
+  enable the turn-3 retreat into Budew, so a blanket early Darkness-to-Munk
+  prohibition would delete an expert winning line.  Its win used neither
+  Venture Bomb nor Watchtower; do not attribute it to the three-card deck
+  difference.  Durable diagnostic:
+  `tools/research/analyze_submission_55457370.py`; current report:
+  `tools/checkpoints/submission-55457370-20260812/analysis.json`.
 - The 2026-08-12 ordered Dragapult sequencing/context experiment is complete;
   none of its candidates is authorized for integration or upload.  The exact
   parameter parent throughout was elite MAIN SHA-256 `793b230d...f966e0`;
