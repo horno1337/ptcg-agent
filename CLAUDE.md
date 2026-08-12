@@ -284,6 +284,43 @@ This section supersedes older active-direction statements below.  The full
   claims that the weak current model improved, and they must not be confused
   with the Aug-11 retraining branch.  Combine only provenance-verified replay
   episodes from the two probes.
+- The observed low-rating matchmaking band, not the global archive, now drives
+  the immediate Dragapult order.  In the 64 resolved probe games summarized
+  by the user, exact Mega Lucario was 21/64 (32.8%) and Grimmsnarl only 3/64
+  (4.7%).  Treat those two frequencies as observed; the other 40 opponent
+  identities were not supplied and must not be invented.  Optimize Lucario
+  escape-band mechanics first, then revisit Grim after the agent reaches the
+  rating band where Grim is common.
+- User-supplied episode `92107363` is a top-ranked `Sixth Sense` win over
+  Majkel1337's exact Mega Lucario `77a53ffc...`.  The winning Dragapult list is
+  a related `674ec310...` variant (Venture Bomb/Watchtower), not exact shipped
+  `07bed`; only shared mechanics transfer.  Its Prize route was concrete:
+  Phantom counters finished a 60-HP Makuhita, later finished a damaged
+  three-Prize Mega Lucario, then a 50-HP Lunatone, and the final Boss/Phantom
+  line took the last Prize.  At the decisive damaged-Mega root, the elite CARD
+  head targeted a lower-value Lunatone instead.
+- A one-attachment Boss setup-mate hypothesis reproduced the final expert
+  line and passed a targeted stochastic Lucario screen (+4.74 pp, CI95
+  [+0.45,+9.02], 21 fires) but failed its required band confirmation: -2.93
+  pp overall, CI95 [-7.08,+1.22], including -8.41 pp in Dragapult mirrors.
+  Keep `ENABLE_BOSS_SETUP_MATE_GUARD=False`.  The arms use unpaired native
+  randomness: 506 targeted and 471 band outcomes differed despite only 21 and
+  10 candidate interventions.  Therefore these are stochastic A/B estimates,
+  not deterministic per-game causal traces; the failed confirmation is
+  binding and the targeted pass is not promotion evidence.
+- The narrower Lucario Phantom secure-Prize rule is enabled.  It activates
+  only when Mega Lucario is publicly visible and remaining Phantom counters
+  can visibly finish at least one opposing target.  It preserves the learned
+  target if that target is already KO-able at the maximum available Prize
+  value; otherwise it chooses the lowest-HP target at that Prize value.  On 64
+  exact `07bed`-versus-`77a53ffc` archive games it changed 12/1,128 Phantom
+  prompts and matched the expert on all 12, improving agreement 979 -> 991.
+  On supplied episode `92107363` it changed 3/30 and matched all three,
+  improving 21 -> 24.  Behavior audit:
+  `tools/checkpoints/dragapult-lucario-secure-prize-v1-20260812/behavior-audit.json`.
+  Focused tests pass 26/26 and the repository 200-game random smoke passed
+  200/200 with zero errors.  This is a mechanical integration, not yet a
+  packaged or uploaded ladder claim.
 - The 2026-08-12 ordered Dragapult sequencing/context experiment is complete;
   none of its candidates is authorized for integration or upload.  The exact
   parameter parent throughout was elite MAIN SHA-256 `793b230d...f966e0`;

@@ -70,11 +70,13 @@ def _view(hps: list[int], *, context: int = CTX_DAMAGE_COUNTER_ANY,
 
 def _main_view(*, active, bench=(), hand=(), opponent_active=None,
                opponent_bench=(), options=(), deck_count=30,
-               select_type=ST_MAIN, context=0, effect=None, turn=5) -> ObsView:
+               select_type=ST_MAIN, context=0, effect=None, turn=5,
+               prizes=6, energy_attached=False) -> ObsView:
     return ObsView({
         "current": {
             "yourIndex": 0,
             "turn": turn,
+            "energyAttached": energy_attached,
             "players": [
                 {
                     "active": [active],
@@ -83,7 +85,7 @@ def _main_view(*, active, bench=(), hand=(), opponent_active=None,
                     "handCount": len(hand),
                     "deckCount": deck_count,
                     "discard": [],
-                    "prize": [None] * 6,
+                    "prize": [None] * prizes,
                 },
                 {
                     "active": [opponent_active or _pokemon(200, 250)],
@@ -120,6 +122,45 @@ def test_phantom_dive_retargets_dead_choice_to_lowest_live_hp():
 def test_phantom_dive_keeps_choice_when_no_live_target_exists():
     view = _view([0, -10])
     assert BC._guard_phantom_dive_target(view, [0]) == [0]
+
+
+def test_phantom_secure_prize_finishes_higher_value_lucario_target():
+    view = _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320),
+        opponent_active=_pokemon(678, 340),
+        opponent_bench=[_pokemon(675, 50), _pokemon(678, 30)],
+        select_type=ST_CARD,
+        context=CTX_DAMAGE_COUNTER_ANY,
+        effect=BC.DRAGAPULT_EX,
+        options=[
+            {"type": 3, "area": AREA_BENCH, "index": 0,
+             "playerIndex": 1},
+            {"type": 3, "area": AREA_BENCH, "index": 1,
+             "playerIndex": 1},
+        ],
+    )
+    view.select["remainDamageCounter"] = 6
+    assert BC._guard_phantom_secure_prize(view, [0]) == [1]
+
+
+def test_phantom_secure_prize_preserves_best_ko_and_non_lucario_states():
+    view = _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320),
+        opponent_active=_pokemon(678, 340),
+        opponent_bench=[_pokemon(675, 50), _pokemon(677, 40)],
+        select_type=ST_CARD, context=CTX_DAMAGE_COUNTER_ANY,
+        effect=BC.DRAGAPULT_EX,
+        options=[
+            {"type": 3, "area": AREA_BENCH, "index": 0,
+             "playerIndex": 1},
+            {"type": 3, "area": AREA_BENCH, "index": 1,
+             "playerIndex": 1},
+        ],
+    )
+    view.select["remainDamageCounter"] = 5
+    assert BC._guard_phantom_secure_prize(view, [0]) == [0]
+    view.opp["active"][0]["id"] = 200
+    assert BC._guard_phantom_secure_prize(view, [1]) == [1]
 
 
 def test_guard_is_scoped_to_dragapult_phantom_dive():
@@ -346,6 +387,67 @@ def test_hammer_sequence_preserves_hammer_when_no_safe_setup_exists():
     )
     logits = np.asarray([10.0, 9.0, 8.0, 7.0, 6.0, 0.0])
     assert BC._guard_hammer_sequencing(view, logits, [0]) == [0]
+
+
+def _boss_setup_mate_main_view(*, prizes=1, target_hp=110,
+                               active_hp=340):
+    return _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320, energy=(BC.FIRE_ENERGY,)),
+        hand=[BC.BOSS, BC.PSYCHIC_ENERGY],
+        opponent_active=_pokemon(678, active_hp),
+        opponent_bench=[_pokemon(676, target_hp)],
+        prizes=prizes,
+        options=[
+            {"type": OT_PLAY, "index": 0},
+            {"type": OT_ATTACH, "index": 1, "area": AREA_ACTIVE,
+             "inPlayArea": AREA_ACTIVE, "inPlayIndex": 0,
+             "playerIndex": 0},
+            {"type": OT_ATTACK, "attackId": BC.JET_HEADBUTT},
+            {"type": OT_END},
+        ],
+    )
+
+
+def test_boss_setup_mate_forces_only_visible_final_prize_line():
+    view = _boss_setup_mate_main_view()
+    assert BC._boss_setup_mate_main(view) == [0]
+    assert BC._boss_setup_mate_main(_boss_setup_mate_main_view(prizes=2)) is None
+    assert BC._boss_setup_mate_main(
+        _boss_setup_mate_main_view(target_hp=210),
+    ) is None
+    assert BC._boss_setup_mate_main(
+        _boss_setup_mate_main_view(active_hp=190),
+    ) is None
+
+
+def test_boss_setup_mate_selects_target_before_completing_attachment():
+    view = _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320, energy=(BC.FIRE_ENERGY,)),
+        hand=[BC.PSYCHIC_ENERGY],
+        opponent_active=_pokemon(678, 340),
+        opponent_bench=[_pokemon(676, 110), _pokemon(678, 340)],
+        prizes=1,
+        select_type=ST_CARD,
+        context=CTX_SWITCH,
+        effect=BC.BOSS,
+        options=[
+            {"type": 3, "area": AREA_BENCH, "index": 0,
+             "playerIndex": 1},
+            {"type": 3, "area": AREA_BENCH, "index": 1,
+             "playerIndex": 1},
+        ],
+    )
+    assert BC._boss_setup_mate_target(view) == [0]
+    spent = _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320, energy=(BC.FIRE_ENERGY,)),
+        hand=[BC.PSYCHIC_ENERGY], opponent_active=_pokemon(678, 340),
+        opponent_bench=[_pokemon(676, 110)], prizes=1,
+        energy_attached=True, select_type=ST_CARD, context=CTX_SWITCH,
+        effect=BC.BOSS,
+        options=[{"type": 3, "area": AREA_BENCH, "index": 0,
+                  "playerIndex": 1}],
+    )
+    assert BC._boss_setup_mate_target(spent) is None
 
 
 def _boss_main_view(*, active_hp=250, bench=()):

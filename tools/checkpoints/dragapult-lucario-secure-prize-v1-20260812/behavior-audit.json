@@ -1,0 +1,259 @@
+{
+  "artifacts": {
+    "card_sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43",
+    "index": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-archive-20260812/corpus-index.json",
+      "sha256": "7ca33c3f4165e06d01d3f82550acdab976cca6cec2be05ef3ece6e03c987aa44"
+    },
+    "main_sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0",
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "ef98eadcd6082870c04fc2bf32e132c99ce88d7ca053f0fea101401f8a0003c1"
+    },
+    "source_replay": {
+      "path": "/home/horn/Downloads/92107363.json",
+      "sha256": "61ea17fd3e683541a7854ea11030f93d8c7b87468000e299cdd98a4271a7ff88"
+    }
+  },
+  "behavior_passed": true,
+  "created_at": "2026-08-12T12:40:56.329416+00:00",
+  "exact_archive": {
+    "counts": {
+      "candidate_agreement": 991,
+      "intervention_expert_agreement": 12,
+      "intervention_parent_agreement": 0,
+      "interventions": 12,
+      "parent_agreement": 979,
+      "prompts": 1128
+    },
+    "examples": [
+      {
+        "candidate_target": {
+          "card_id": 674,
+          "hp": 50
+        },
+        "episode_id": 90820761,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 6,
+        "turn": 9
+      },
+      {
+        "candidate_target": {
+          "card_id": 674,
+          "hp": 40
+        },
+        "episode_id": 90820761,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 5,
+        "turn": 9
+      },
+      {
+        "candidate_target": {
+          "card_id": 674,
+          "hp": 30
+        },
+        "episode_id": 90820761,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 4,
+        "turn": 9
+      },
+      {
+        "candidate_target": {
+          "card_id": 674,
+          "hp": 20
+        },
+        "episode_id": 90820761,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 3,
+        "turn": 9
+      },
+      {
+        "candidate_target": {
+          "card_id": 674,
+          "hp": 10
+        },
+        "episode_id": 90820761,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 2,
+        "turn": 9
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 50
+        },
+        "episode_id": 91931101,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 0
+        },
+        "remain_damage_counters": 5,
+        "turn": 13
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 50
+        },
+        "episode_id": 91946112,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 6,
+        "turn": 8
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 20
+        },
+        "episode_id": 91946112,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 3,
+        "turn": 8
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 10
+        },
+        "episode_id": 91946112,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 678,
+          "hp": 140
+        },
+        "remain_damage_counters": 2,
+        "turn": 8
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 30
+        },
+        "episode_id": 92065138,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 50
+        },
+        "remain_damage_counters": 4,
+        "turn": 8
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 20
+        },
+        "episode_id": 92065138,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 50
+        },
+        "remain_damage_counters": 3,
+        "turn": 8
+      },
+      {
+        "candidate_target": {
+          "card_id": 677,
+          "hp": 10
+        },
+        "episode_id": 92065138,
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 50
+        },
+        "remain_damage_counters": 2,
+        "turn": 8
+      }
+    ],
+    "games": 64
+  },
+  "gameplay_authority": false,
+  "package_authority": false,
+  "rule": "with visible Mega Lucario, preserve any learned Phantom target that is KO-able by remaining counters at maximum available Prize value; otherwise choose the lowest-HP such target",
+  "schema": "ptcg.dragapult-lucario-secure-prize.behavior-audit.v1",
+  "supplied_top_ranked_win": {
+    "counts": {
+      "candidate_agreement": 24,
+      "intervention_expert_agreement": 3,
+      "intervention_parent_agreement": 0,
+      "interventions": 3,
+      "parent_agreement": 21,
+      "prompts": 30
+    },
+    "episode_id": 92107363,
+    "examples": [
+      {
+        "candidate_target": {
+          "card_id": 678,
+          "hp": 30
+        },
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 50
+        },
+        "remain_damage_counters": 6,
+        "turn": 13
+      },
+      {
+        "candidate_target": {
+          "card_id": 678,
+          "hp": 20
+        },
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 50
+        },
+        "remain_damage_counters": 5,
+        "turn": 13
+      },
+      {
+        "candidate_target": {
+          "card_id": 678,
+          "hp": 10
+        },
+        "expert_agrees": true,
+        "parent_target": {
+          "card_id": 675,
+          "hp": 50
+        },
+        "remain_damage_counters": 4,
+        "turn": 13
+      }
+    ],
+    "source_replay_sha256": "61ea17fd3e683541a7854ea11030f93d8c7b87468000e299cdd98a4271a7ff88"
+  },
+  "upload_authority": false
+}
