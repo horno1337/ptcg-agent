@@ -1,0 +1,68 @@
+{
+  "behavior_eligible": false,
+  "created_at": "2026-08-12T11:33:53.875381+00:00",
+  "gameplay_authority": false,
+  "history": [
+    {
+      "candidate_accuracy": 0.492040520984081,
+      "candidate_game_normalized_nll": 1.4250860631513262,
+      "epoch": 1,
+      "parent_accuracy": 0.5021707670043415,
+      "parent_game_normalized_nll": 1.4261508039043942,
+      "rows": 691
+    },
+    {
+      "candidate_accuracy": 0.4934876989869754,
+      "candidate_game_normalized_nll": 1.4242898184128807,
+      "epoch": 2,
+      "parent_accuracy": 0.5021707670043415,
+      "parent_game_normalized_nll": 1.4261508039043942,
+      "rows": 691
+    },
+    {
+      "candidate_accuracy": 0.48914616497829233,
+      "candidate_game_normalized_nll": 1.4232125698536673,
+      "epoch": 3,
+      "parent_accuracy": 0.5021707670043415,
+      "parent_game_normalized_nll": 1.4261508039043942,
+      "rows": 691
+    },
+    {
+      "candidate_accuracy": 0.487698986975398,
+      "candidate_game_normalized_nll": 1.4209351954607887,
+      "epoch": 4,
+      "parent_accuracy": 0.5021707670043415,
+      "parent_game_normalized_nll": 1.4261508039043942,
+      "rows": 691
+    },
+    {
+      "candidate_accuracy": 0.48480463096960924,
+      "candidate_game_normalized_nll": 1.4185915040194899,
+      "epoch": 5,
+      "parent_accuracy": 0.5021707670043415,
+      "parent_game_normalized_nll": 1.4261508039043942,
+      "rows": 691
+    }
+  ],
+  "lock_sha256": "e20d917b60b33f2128152651742234252fe2f7cbbabe7186af610d3ebc88cb6d",
+  "package_authority": false,
+  "result_sha256": "b2d6142dfc0bf744298aae891357b3c18697198073be5f95cfa4d95a719e775c",
+  "schema": "ptcg.dragapult-turn-context-main.training-result.v1",
+  "test_opened": false,
+  "training": {
+    "candidate_accuracy": 0.5198217217921651,
+    "candidate_game_normalized_nll": 1.3166936052845843,
+    "parent_accuracy": 0.5080928923293455,
+    "parent_game_normalized_nll": 1.343478338392171,
+    "rows": 8526
+  },
+  "upload_authority": false,
+  "validation": {
+    "candidate_accuracy": 0.48480463096960924,
+    "candidate_game_normalized_nll": 1.4185915040194899,
+    "parent_accuracy": 0.5021707670043415,
+    "parent_game_normalized_nll": 1.4261508039043942,
+    "rows": 691
+  },
+  "weights_sha256": "c1ac292298d34c3a4efc0177f7aa8c61bf76d7cea931d467e8dbc8dbf9ebcdb3"
+}

@@ -1,0 +1,73 @@
+{
+  "counts": {
+    "base_exact": 4323,
+    "candidate_exact": 4208,
+    "expert_eventual_hammer": 451,
+    "expert_later_attack": 425,
+    "expert_later_hammer": 259,
+    "intervention_exact_base": 227,
+    "intervention_exact_candidate": 112,
+    "interventions": 501,
+    "main_prompts": 8543
+  },
+  "expert_at_intervention": {
+    "ability:?": 2,
+    "ability:Drakloak": 72,
+    "ability:Fezandipiti ex": 7,
+    "ability:Munkidori": 5,
+    "attach:Basic {D} Energy": 8,
+    "attach:Basic {P} Energy": 11,
+    "attach:Basic {R} Energy": 8,
+    "attack:Phantom Dive": 16,
+    "evolve:Dragapult ex": 15,
+    "evolve:Drakloak": 6,
+    "play:Boss’s Orders": 11,
+    "play:Buddy-Buddy Poffin": 16,
+    "play:Crispin": 9,
+    "play:Crushing Hammer": 236,
+    "play:Dawn": 1,
+    "play:Dreepy": 2,
+    "play:Fezandipiti ex": 1,
+    "play:Jamming Tower": 18,
+    "play:Meowth ex": 5,
+    "play:Munkidori": 8,
+    "play:Night Stretcher": 8,
+    "play:Poké Pad": 16,
+    "play:Ultra Ball": 16,
+    "retreat": 4
+  },
+  "head": {
+    "arm": "elite",
+    "card_sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43",
+    "main_sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+  },
+  "package_authority": false,
+  "promotion_authority": false,
+  "rates": {
+    "base_exact": 0.5060283272854968,
+    "candidate_exact": 0.49256701392953295,
+    "expert_eventual_hammer": 0.9001996007984032,
+    "expert_later_hammer": 0.5169660678642715,
+    "intervention_base_exact": 0.4530938123752495,
+    "intervention_candidate_exact": 0.22355289421157684
+  },
+  "replacement": {
+    "ability:?": 4,
+    "ability:Drakloak": 135,
+    "ability:Fezandipiti ex": 10,
+    "ability:Munkidori": 41,
+    "evolve:Dragapult ex": 38,
+    "evolve:Drakloak": 10,
+    "play:Buddy-Buddy Poffin": 22,
+    "play:Budew": 9,
+    "play:Dreepy": 7,
+    "play:Fezandipiti ex": 14,
+    "play:Jamming Tower": 48,
+    "play:Meowth ex": 11,
+    "play:Munkidori": 41,
+    "play:Night Stretcher": 48,
+    "play:Poké Pad": 63
+  },
+  "schema": "ptcg.dragapult-hammer-sequence-guard.behavior.v1",
+  "source": "/home/horn/Desktop/ptcg_dragapult_top_20260811"
+}

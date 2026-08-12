@@ -12,6 +12,7 @@ from agent.obsview import (
     OT_ATTACH,
     OT_ATTACK,
     OT_END,
+    OT_EVOLVE,
     OT_PLAY,
     ST_CARD,
     ST_MAIN,
@@ -295,6 +296,56 @@ def test_phantom_completion_requires_exactly_one_missing_energy_type():
     assert BC._guard_phantom_completion(
         _completion_view(energy=(BC.FIRE_ENERGY, BC.PSYCHIC_ENERGY)), [4],
     ) == [4]
+
+
+def _hammer_sequence_view():
+    return _main_view(
+        active=_pokemon(235, 30),
+        bench=[_pokemon(BC.DREEPY, 70)],
+        hand=[
+            BC.CRUSHING_HAMMER, 1086, BC.ULTRA_BALL,
+            BC.UNFAIR_STAMP, BC.JAMMING_TOWER, BC.DREEPY,
+        ],
+        options=[
+            {"type": OT_PLAY, "index": 0},
+            {"type": OT_PLAY, "index": 1},
+            {"type": OT_PLAY, "index": 2},
+            {"type": OT_PLAY, "index": 3},
+            {"type": OT_PLAY, "index": 4},
+            {"type": OT_PLAY, "index": 5},
+            {"type": OT_EVOLVE, "index": 0, "area": AREA_BENCH, "inPlayIndex": 0},
+            {"type": OT_ABILITY, "area": AREA_BENCH, "index": 0},
+            {"type": OT_ATTACH, "index": 0, "area": AREA_BENCH, "inPlayIndex": 0},
+            {"type": OT_ATTACK, "attackId": 323},
+            {"type": OT_END},
+        ],
+    )
+
+
+def test_hammer_sequence_delays_only_to_safe_setup():
+    view = _hammer_sequence_view()
+    logits = np.asarray([
+        10.0, 4.0, 9.9, 9.8, 5.0, 6.0, 8.0, 7.0, 9.7, 9.6, 9.5, 0.0,
+    ])
+    # Ultra Ball, Stamp, attachment, attack and END all outrank the evolve,
+    # but none may replace Hammer. The highest safe setup is the evolve.
+    assert BC._guard_hammer_sequencing(view, logits, [0]) == [6]
+
+
+def test_hammer_sequence_preserves_hammer_when_no_safe_setup_exists():
+    view = _main_view(
+        active=_pokemon(235, 30),
+        hand=[BC.CRUSHING_HAMMER, BC.ULTRA_BALL, BC.UNFAIR_STAMP],
+        options=[
+            {"type": OT_PLAY, "index": 0},
+            {"type": OT_PLAY, "index": 1},
+            {"type": OT_PLAY, "index": 2},
+            {"type": OT_ATTACK, "attackId": 323},
+            {"type": OT_END},
+        ],
+    )
+    logits = np.asarray([10.0, 9.0, 8.0, 7.0, 6.0, 0.0])
+    assert BC._guard_hammer_sequencing(view, logits, [0]) == [0]
 
 
 def _boss_main_view(*, active_hp=250, bench=()):

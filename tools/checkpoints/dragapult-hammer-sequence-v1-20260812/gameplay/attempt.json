@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T11:19:52.878382+00:00",
+  "lock_sha256": "679f85ddb3214d749e7e8f70a565fbd839bd91225d6b6345437aeaf5d34d9b65",
+  "schema": "ptcg.dragapult-hammer-sequence.gameplay-attempt.v1",
+  "written_before_first_engine_outcome": true
+}

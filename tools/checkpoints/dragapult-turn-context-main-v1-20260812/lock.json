@@ -1,0 +1,54 @@
+{
+  "corpus": {
+    "all_games": {
+      "test": 20,
+      "train": 245,
+      "validation": 27
+    },
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/corpus.json",
+    "selection": "exact-list strong-teacher wins only; test split sealed",
+    "sha256": "0548b7dcf2a0facae045b9af5d6a712d07c3e83caebd9c203243d72bbd69e7d8",
+    "winner_games": {
+      "test": 14,
+      "train": 163,
+      "validation": 13
+    }
+  },
+  "created_at": "2026-08-12T11:33:12.320075+00:00",
+  "features": {
+    "history_buffer": false,
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_turn_context.py",
+    "public_only": true,
+    "schema": "ptcg.dragapult-public-turn-context.v1",
+    "sha256": "fe5dca2a9ad84aae3359ba35ef3a7b774704d0b6a0fd798a3d6d7c241bc3f03e"
+  },
+  "gates": {
+    "behavior": "validation NLL and exact action must improve over parent",
+    "gameplay": "fresh paired field screen against exact dragapult-v2",
+    "test": "sealed unless gameplay candidate qualifies"
+  },
+  "hypothesis": "The failed broad Hammer ordering rule indicates MAIN needs explicit public action-count, readiness, legal-family, target, and parent-rank features rather than a universal ordering override.",
+  "lock_sha256": "e20d917b60b33f2128152651742234252fe2f7cbbabe7186af610d3ebc88cb6d",
+  "package_authority": false,
+  "parent": {
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+    "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+  },
+  "promotion_authority": false,
+  "schema": "ptcg.dragapult-turn-context-main.training-lock.v1",
+  "training": {
+    "batch": 256,
+    "completion_guard_roots": "excluded; code guard remains frozen",
+    "epochs": 5,
+    "game_normalized": true,
+    "hidden": 32,
+    "kl_to_elite_parent": 0.7,
+    "learning_rate": 0.0005,
+    "parent_initialization": "zero output layer gives exact elite MAIN",
+    "seed": 2026081252,
+    "selection": "lowest winner-only validation NLL across fixed epochs",
+    "weight_decay": 0.0001
+  },
+  "upload_authority": false,
+  "written_before_training_or_validation_metrics": true
+}

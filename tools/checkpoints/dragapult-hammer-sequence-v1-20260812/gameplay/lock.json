@@ -1,0 +1,120 @@
+{
+  "artifacts": {
+    "behavior": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-hammer-sequence-v1-20260812/top-pilot-behavior.json",
+      "sha256": "a97ecb18deded69556fe2f67cda940551395b5d7d7c7e6d2fa27e5051be14b5d"
+    },
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_hammer_sequence.py",
+      "sha256": "7dd3d03b321758ea02499a1fa823abb09f5178aeca5d8ec85b638b6b9564450b"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "96330a49976b7c5d135b3a265d22de922ecd579da94e6eddbbc8474cdbdb2f8a"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    }
+  },
+  "candidate": "elite MAIN/CARD plus completion and bounded Hammer ordering",
+  "control": "exact dragapult-v2: elite MAIN/CARD plus completion",
+  "created_at": "2026-08-12T11:19:44.498446+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "intervention": "when MAIN argmax is Crushing Hammer, choose highest-logit safe setup: ability, evolve, Pokemon play, Poffin, Night Stretcher, Poke Pad, or Jamming Tower; exclude attachments/supporters/attacks/retreat/END/Ultra Ball/Unfair Stamp; decode again after each action",
+  "lock_sha256": "679f85ddb3214d749e7e8f70a565fbd839bd91225d6b6345437aeaf5d34d9b65",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "games_per_arm": 1024,
+    "identical_schedule": true,
+    "key_slices": [
+      "Dragapult",
+      "Mega Lucario",
+      "Grimmsnarl"
+    ],
+    "one_schedule_one_attempt": true,
+    "pass_authority": "fresh confirmation only; no direct package authority",
+    "primary": "point delta > 0 and CI95 lower > -0.025",
+    "seed": 2026081251,
+    "slice_floor": -0.04,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "eed9d71a114334c64c563db9cc420d6b63e6fff052d33ccf188f35edb8c4097d",
+  "schema": "ptcg.dragapult-hammer-sequence.gameplay-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

@@ -1,0 +1,26 @@
+{
+  "behavior_eligible": true,
+  "created_at": "2026-08-12T11:36:35.474739+00:00",
+  "gameplay_authority": false,
+  "lock_sha256": "8c3bddd999ef797612a34cf74ac7dea263416588200fa7bb294a17685b41d432",
+  "package_authority": false,
+  "result_sha256": "4728c97e76cb87a7a6d315c81fefa668114f90e4480c1f501647335dee893d3f",
+  "schema": "ptcg.dragapult-weighted-context-main.training-result.v1",
+  "sealed_test": {
+    "candidate_accuracy": 0.5362035225048923,
+    "candidate_game_normalized_nll": 1.3386751402170471,
+    "parent_accuracy": 0.5195694716242661,
+    "parent_game_normalized_nll": 1.37243828842527,
+    "rows": 1022
+  },
+  "test_opened_once": true,
+  "training": {
+    "candidate_accuracy": 0.533221076264646,
+    "candidate_game_normalized_nll": 1.2969445171965508,
+    "parent_accuracy": 0.5165929979653406,
+    "parent_game_normalized_nll": 1.3357878236444058,
+    "rows": 14253
+  },
+  "upload_authority": false,
+  "weights_sha256": "16edaacd7e08c052848119ce53f54aa7f9e22203bdcaacfeae9a2edf40234307"
+}

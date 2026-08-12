@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T11:39:27.328026+00:00",
+  "lock_sha256": "ff4212339332cc3b5793546f51cb0bf6f11b01cce04dffcd97bda9e9fa743763",
+  "schema": "ptcg.dragapult-weighted-context-main.gameplay-attempt.v1",
+  "written_before_first_engine_outcome": true
+}

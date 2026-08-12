@@ -1,0 +1,130 @@
+{
+  "artifacts": {
+    "adapter": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-weighted-context-main-v1-20260812/weighted_context_main_weights.npz",
+      "sha256": "16edaacd7e08c052848119ce53f54aa7f9e22203bdcaacfeae9a2edf40234307"
+    },
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "context": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_turn_context.py",
+      "sha256": "fe5dca2a9ad84aae3359ba35ef3a7b774704d0b6a0fd798a3d6d7c241bc3f03e"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_weighted_context_main.py",
+      "sha256": "3a5b47044676e3f3c152d5dbffcbbc8b8c334b30f2529c358669723b8009af26"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "96330a49976b7c5d135b3a265d22de922ecd579da94e6eddbbc8474cdbdb2f8a"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "training_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-weighted-context-main-v1-20260812/lock.json",
+      "sha256": "4d6322525cf4a800e2559d003a19f4e63b552026539086320966b4771944dc5d"
+    },
+    "training_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-weighted-context-main-v1-20260812/result.json",
+      "sha256": "cea3b8f69c355cefd546f7bd7a84e8a42444f7006da0e62242ee64a5c62acedd"
+    }
+  },
+  "candidate": "elite MAIN plus weighted public-context adapter and completion",
+  "control": "exact dragapult-v2 elite MAIN/CARD plus completion",
+  "created_at": "2026-08-12T11:39:20.893557+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "lock_sha256": "ff4212339332cc3b5793546f51cb0bf6f11b01cce04dffcd97bda9e9fa743763",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "fresh_confirmation_required": true,
+    "games_per_arm": 1024,
+    "identical_schedule": true,
+    "key_slices": [
+      "Dragapult",
+      "Mega Lucario",
+      "Grimmsnarl"
+    ],
+    "primary": "point delta > 0 and CI95 lower > -0.025",
+    "seed": 2026081254,
+    "slice_floor": -0.04,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "fa599c43fd5e700d2b84ae5defe557289633ffcc553fef95afcee077632986c0",
+  "schema": "ptcg.dragapult-weighted-context-main.gameplay-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

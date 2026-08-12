@@ -284,6 +284,36 @@ This section supersedes older active-direction statements below.  The full
   claims that the weak current model improved, and they must not be confused
   with the Aug-11 retraining branch.  Combine only provenance-verified replay
   episodes from the two probes.
+- The 2026-08-12 ordered Dragapult sequencing/context experiment is complete;
+  none of its candidates is authorized for integration or upload.  The exact
+  parameter parent throughout was elite MAIN SHA-256 `793b230d...f966e0`;
+  the completion behavior remained a separate deterministic code guard.
+  First, a bounded Hammer sequencing rule delayed Hammer only behind safe
+  deterministic setup and preserved eventual Hammer/attack access.  It
+  matched eventual expert Hammer use on 451/501 replay interventions (90.0%)
+  but regressed the locked 1,024-game/arm field gate: 63.53% versus 64.94%,
+  paired -1.42 pp, CI95 [-5.42,+2.59], zero faults.  Keep
+  `ENABLE_HAMMER_SEQUENCE_GUARD=False`; result `599553bd...8a9f`.
+- A public-only per-option turn-context adapter was then trained without
+  replay history or hidden state.  Winner-only training reduced validation
+  NLL 1.4262 -> 1.4186 but worsened exact agreement 50.22% -> 48.48%, so it
+  stopped before gameplay.  The preregistered outcome-weighted variant used
+  win/draw/loss weights 1.0/0.3/0.25 and passed its once-opened 20-game test:
+  exact agreement 51.96% -> 53.62%, NLL 1.3724 -> 1.3387 over 1,022 MAIN
+  rows.  It nevertheless failed the isolated field gate: 64.99% versus
+  63.18%, paired +1.81 pp, CI95 [-2.22,+5.84], because Mega Lucario regressed
+  -7.60 pp beyond the locked -4 pp slice floor.  Dragapult improved +1.55 pp
+  and Grim was neutral.  Result `4a406ba6...7b10`; do not confirm, integrate,
+  package, or upload this broad adapter.
+- `analyze_dragapult_weighted_context_ladder.py` enumerates hypotheses on 21
+  provenance-matching elite-parent ladder losses: 59 candidate interventions
+  across 891 MAIN prompts, while preserving nine completion roots.  These are
+  off-policy counterfactual roots, not labels; the candidate did not generate
+  the trajectories and the output is explicitly ineligible for actor
+  training.  The heterogeneous changes (including Ultra Ball, Hammer,
+  Drakloak, abilities, and attachments) provide no single safe broad rule.
+  Future causal work must choose a narrow public signature, branch it from
+  learner-reached loss states, and confirm on disjoint roots before gameplay.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a
