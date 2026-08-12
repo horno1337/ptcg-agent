@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T09:59:20.527198+00:00",
+  "lock_sha256": "ce543e31d3fcbdb9c108c27f5510fe54b55ec0241445a63f018f28df201e2465",
+  "schema": "ptcg.dragapult-tempo-reranker.gameplay-attempt.v1",
+  "written_before_first_engine_outcome": true
+}

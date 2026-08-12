@@ -1,0 +1,152 @@
+{
+  "artifacts": {
+    "behavior_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/behavior-result.json",
+      "sha256": "0cdd117595f54e575be614ec58b1aa03177da355dc24afbbfcf3532342980ae0"
+    },
+    "candidate_card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/candidates/card/model/candidate-qu-v2a-weights.npz",
+      "sha256": "7c70bf09bb39a794f5b9a5d48d856a9ccd4404d7d950f4927a462ce0809874ac"
+    },
+    "candidate_main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/candidates/main/model/candidate-qu-v2a-weights.npz",
+      "sha256": "8d83e607f9e640ca9fa6f4bf02ac719930aa066dbeb72dad245e96e20179ab2a"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_aug11_head_factorial.py",
+      "sha256": "a3f055cce72f758f2f4647049eb090116bc1b80ac6c64f509c73df3c8adead26"
+    },
+    "guards": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "parent_card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/elite-recent-specialist-bc-20260811/candidates/dragapult-card/model/candidate-qu-v2a-weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "parent_main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/elite-recent-specialist-bc-20260811/candidates/dragapult-main/model/candidate-qu-v2a-weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "training_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/training-lock.json",
+      "sha256": "c14ba23929b47348238147f0176ea05dcd77f836fede88ed47ca3b5083c6a17c"
+    }
+  },
+  "behavior_result_sha256": "c360034335b9537470d7f0ea95db02cd1c2312b80df6ee748fe98c299711556d",
+  "control": "pp",
+  "created_at": "2026-08-12T09:31:49.450867+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "lock_sha256": "ad77ca8c82c282e52699f270b1e9eb026b71c66bee87ec8df6da4667b38cb61c",
+  "package_authority": false,
+  "policy_constant": "Phantom-ready complementary-Energy completion guard",
+  "promotion_authority": false,
+  "protocol": {
+    "confirmation": "fresh larger candidate-vs-pp schedule required before packaging",
+    "games_per_stack": 512,
+    "identical_schedule": true,
+    "key_slices": [
+      "Dragapult",
+      "Mega Lucario",
+      "Alakazam",
+      "Grimmsnarl"
+    ],
+    "screen_eligibility": "valid, point delta > 0, paired CI95 lower > -0.025, and each key-slice point delta >= -0.05",
+    "seed": 2026081220,
+    "selection": "highest point score among eligible stacks; arm-name tie break",
+    "total_games": 2048,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "0d55eaf6d60624843a183c06390d1767351397d43bb3fe7aaed612ffbd84eace",
+  "schema": "ptcg.dragapult-aug11-head-factorial.lock.v1",
+  "stacks": {
+    "cc": [
+      "candidate",
+      "candidate"
+    ],
+    "cp": [
+      "candidate",
+      "parent"
+    ],
+    "pc": [
+      "parent",
+      "candidate"
+    ],
+    "pp": [
+      "parent",
+      "parent"
+    ]
+  },
+  "training_lock_sha256": "80c998867f2739e2d01923eb0dc88c02ecdb74f60dc712677f5c9ca80aa95b60",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

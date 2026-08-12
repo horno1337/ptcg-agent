@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T09:44:24.227407+00:00",
+  "lock_sha256": "0cf68e487536b4e06c99854dbcf79d45148b3e44e5b1e88814700617ada4d227",
+  "schema": "ptcg.dragapult-tempo-panels.attempt.v1",
+  "written_before_first_terminal_outcome": true
+}

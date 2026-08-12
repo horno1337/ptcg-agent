@@ -12,6 +12,76 @@ This section supersedes older active-direction statements below.  The full
 
 ### Active Lucario/Dragapult direction and ladder probes
 
+#### 2026-08-12 Dragapult tempo/outcome update
+
+- Transcript-driven tempo work is now outcome-gated.  The public feature
+  module is `agent/dragapult_tempo.py`; it is research-only and not wired into
+  the shipped policy.  A 310-seat top-pilot audit found 12,111 high-impact
+  MAIN roots: current-v2 family agreement was 63.43%, with nearly equal total
+  attack counts but severe Boss/Ultra Ball underuse and ability overuse.  This
+  rejects a global attack bonus and motivates state-conditioned commitments.
+- Three plausible corrections were isolated and rejected, all valid and
+  zero-fault.  A held-out late-Budew discovery win failed on the untouched
+  confirmation root (Ultra Ball and Itchy Pollen both lost 16/16).  A broad
+  family residual improved held-out expert agreement 63.56% -> 65.20%, but
+  its 512-game/arm field screen was only +0.49 pp, CI95 [-4.91,+5.88], and
+  regressed Dragapult -1.54 pp.  Conservative learned Boss/Ultra gates had
+  60%/75% held-out intervention precision, yet their 1,024-game/arm screen
+  scored 64.16% versus 64.94% control: -0.78 pp, CI95 [-4.80,+3.24], with
+  Lucario -5.39 pp.  Do not integrate, package, upload, or threshold-tune any
+  of these opened candidates.  Expert-action precision is not gameplay value.
+- The outcome-based replacement cohort is complete under
+  `tools/checkpoints/dragapult-tempo-roots-v2-20260812/`: 256 fresh local games
+  (156-100), 9,896 high-impact learner roots observed, and 578 deterministic
+  roots retained from 97 losses.  Public and privileged reconstruction data
+  are separate.  The first 48-root panel accidentally ran four repetitions
+  because of a Python default-argument binding bug; it is invalid and excluded
+  wholesale.  The corrected replacement used 48 disjoint stratified roots,
+  exactly eight repetitions/action, zero rejects, result
+  `c706c2a5...f24ceab`.  It found no action with >=6/8 paired advantages; only
+  four alternatives reached 5/8 across three roots, with no repeated action-
+  family condition.  There is therefore no validated runtime fix yet.  The
+  next step is more paired outcome coverage and a game-disjoint public model;
+  never turn isolated exact-hidden roots into handwritten rules.
+
+- The official `pokemon-tcg-ai-battle-episodes-2026-08-11` archive was
+  downloaded once from Kaggle.  Its 703 MiB ZIP has SHA-256
+  `54280567...58de`, passed `unzip -t`, and contains 4,622 JSON games.
+  `tools/research/extract_exact_dragapult_daily_archive.py` streams the ZIP
+  without expanding it wholesale and extracted only exact-list `07bed` games.
+  Inventory: 611 exact games / 637 exact seats, of which 98 episode IDs were
+  already present and 513 are new.  The corrected self-hashed extraction
+  manifest is `e45ad92a...653b`; the 2.6 GiB raw extraction remains ignored
+  and can be recreated from the official archive.
+- The combined content index contains 2,136 unique games (2,135 BC-valid),
+  deduplicates 100 alias paths with zero content conflicts, and has content
+  hash `ea8cb70b...914b`.  All 513 Aug-11 additions are content-exclusive to
+  the new source and BC-valid: 422/48/43 train/validation/test, 528 exact
+  seats including 15 mirrors, and 307 wins / 221 losses.  The adequately
+  sampled >60% archive pilots are Kh0a (164 seats, 65.2%), Raihan Ramadistra
+  (66, 66.7%), JB Bryant (43, 60.5%), and LiamK (37, 70.3%).
+- Replaying all new seats through exact `dragapult-v2` routed 55,684 of
+  58,702 prompts.  Exact agreement is 64.07% overall, 54.3% MAIN and 73.5%
+  CARD.  This independently confirms the same offensive-plan gap: compared
+  with logged pilots, the runtime used Ultra Ball 786 fewer times, Fire/
+  Psychic attachments 965 fewer times, and Boss 382 fewer times, while
+  overusing Drakloak, Munkidori, and Hammer utility.  Diagnostic artifact:
+  `tools/checkpoints/dragapult-aug11-archive-20260812/divergence-v2.json`,
+  file SHA-256 `f5983636...593a`.
+- A separate parent-anchored refinement is locked under
+  `tools/checkpoints/dragapult-aug11-elite-bc-20260812/`, using 292 non-mirror
+  games from those four pilots (245/27/20).  MAIN and CARD train separately
+  from the elite heads with frozen backbone, learning rate 1.5e-5, KL 0.7,
+  and five CPU epochs; lock `80c99886...95b60`.  Both passed the disclosed
+  development behavior comparison: MAIN agreement 52.05% -> 53.91%, NLL
+  -0.03189; CARD 72.24% -> 73.48%, NLL -0.02640.  The corrected locked 2x2
+  gameplay screen is now complete and selected no stack.  Against parent/
+  parent at 63.67%, candidate/candidate was +2.34 pp (CI95 [-3.26,+7.95]),
+  candidate-MAIN/parent-CARD +1.17 pp (CI95 [-4.48,+6.83]), and parent-MAIN/
+  candidate-CARD +2.73 pp (CI95 [-3.05,+8.52]) but missed the Alakazam slice
+  at -5.26 pp.  Result `e0393974...17388ee`.  No Aug-11 head combination has
+  confirmation, promotion, packaging, or upload authority.
+
 #### 2026-08-11 elite-refinement update (authoritative)
 
 - The original benchmark probes are now a confirmed transfer failure, not an
@@ -205,15 +275,15 @@ This section supersedes older active-direction statements below.  The full
   predict gameplay.  The next Dragapult experiment must select Boss/Phantom
   interventions with paired outcomes at learner-reached states and confirm on
   disjoint roots before another field gate.
-- The user has prospectively authorized **two byte-identical Kaggle
-  submissions** of the next Dragapult candidate that passes all behavior,
-  paired-gameplay, deterministic package, archive-runtime, and smoke gates.
-  Naming is delegated to the agent.  Use distinct probe names, bind both to
-  the same archive SHA-256/commit, read each upload receipt once, and combine
-  only provenance-verified replay episodes.  This authorization is
-  conditional on a genuinely passing candidate; it does not authorize
-  uploading the current rejected `dragapult-v2`, calibrator, allocator, or
-  Boss classifier.
+- The earlier conditional two-probe authorization was superseded by the
+  user's later explicit instruction to submit the current package-qualified
+  `dragapult-v2` twice as data-collection controls.  The byte-identical archive
+  SHA-256 `ffe0bb46...5d3` was accepted on 2026-08-12 as
+  `dragapult-v2-probe-a` (`55453859`) and `dragapult-v2-probe-b` (`55453866`).
+  Both receipts were `PENDING` at the single read; do not poll.  These are not
+  claims that the weak current model improved, and they must not be confused
+  with the Aug-11 retraining branch.  Combine only provenance-verified replay
+  episodes from the two probes.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a

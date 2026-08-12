@@ -1,0 +1,129 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_tempo_reranker.py",
+      "sha256": "f09f11c17b0d636b9b88bb8ed7a808e33ea132f5a6ad459b7922004daf1a2b25"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "tempo": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_tempo.py",
+      "sha256": "4c9d0d1871f52140d8674f0ccf1e0c95b966c75b4d552e7fa3146669d3cdd8b0"
+    },
+    "training_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-reranker-v1-20260812/lock.json",
+      "sha256": "03eafdb5aa0934d6b078be701b6efa26727add5f65a86a5ff31ce9167d314202"
+    },
+    "training_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-reranker-v1-20260812/result.json",
+      "sha256": "a481a563ed5f9b5c054c6a3f30660060c6c7b1f1b31304e2fa2fdc8ee20b06da"
+    },
+    "weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-reranker-v1-20260812/tempo_family_weights.npz",
+      "sha256": "f2dde56e51b12d65d352baec2329b2ab8bda3d1f9a11d9cc3ae0e3aad1529adf"
+    }
+  },
+  "candidate": "current Dragapult-v2 plus tempo family residual",
+  "control": "exact current Dragapult-v2",
+  "created_at": "2026-08-12T09:59:12.665538+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "lock_sha256": "ce543e31d3fcbdb9c108c27f5510fe54b55ec0241445a63f018f28df201e2465",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "fresh_confirmation_required": true,
+    "games_per_arm": 512,
+    "identical_schedule": true,
+    "key_slices": [
+      "Dragapult",
+      "Mega Lucario",
+      "Grimmsnarl"
+    ],
+    "screen": "delta > 0; CI95 lower > -0.03; key slices >= -0.05",
+    "seed": 2026081242,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "563f07c4ab52d2bac784b58beb4a28425754aa50e23ade943195420a0deacc15",
+  "schema": "ptcg.dragapult-tempo-reranker.gameplay-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

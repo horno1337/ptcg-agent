@@ -1,0 +1,67 @@
+{
+  "all_legal_root_actions": true,
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "collection_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/lock.json",
+      "sha256": "dd32cc212759d163a262f6647446152e6032d33af02a96d704985f311ded346e"
+    },
+    "collection_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/result.json",
+      "sha256": "2174a123a92069dc5598c428859165924ccc0530ad352e931f62f90cb3d717b2"
+    },
+    "confirmation": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/confirm_dragapult_late_budew.py",
+      "sha256": "3182f2846f5a6b0d7c27b1dcc474a53f509ae3d03531d3f1d1bb4267dfddf47a"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "panel_evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/label_dragapult_tempo_roots.py",
+      "sha256": "711b0992b52550ae741cdb590a8698101b9488b017f7f658b7cff13bb1557854"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "privileged_roots": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/privileged-roots.jsonl",
+      "sha256": "cfc9fc93f94606ee96230cc67dd8f1f20e204e51d0057c7dc867a0dc9c9be3eb"
+    },
+    "public_roots": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/public-roots.jsonl",
+      "sha256": "94879b67c59dae94ad39dab3152eafa8536524574d29c097b2a956c73a5b0e6f"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    }
+  },
+  "collection_result_sha256": "37845bd6753fc3a153f5b80f999319ec88c39790aebd23e6bbd3aa19a0a9fad1",
+  "created_at": "2026-08-12T09:51:14.386683+00:00",
+  "learner_continuation": "exact dragapult-v2",
+  "lock_sha256": "49afe08a1c70467d3c34167d83ed287220e5011fc880f214719f745693ca554f",
+  "opponent_continuation": "frozen Qu-v2B",
+  "package_authority": false,
+  "promotion_authority": false,
+  "public_condition": {
+    "current_family": "ultra_ball",
+    "my_active_budew": true,
+    "opponent_prizes_left_max": 2,
+    "required_legal_family": "attack",
+    "split": "confirmation episode"
+  },
+  "rollouts_per_action": 16,
+  "root_ids": [
+    "01f88f2d60fb2927f8ff26204c29f1acc788428b42c45167043e2c160b13d67f"
+  ],
+  "schema": "ptcg.dragapult-late-budew-confirm.lock.v1",
+  "success_definition": "attack-family mean outcome exceeds current Ultra Ball and its paired repetition advantage is positive in at least 12/16 rollouts",
+  "upload_authority": false,
+  "written_before_confirmation_outcomes": true
+}

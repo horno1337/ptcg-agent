@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T09:51:22.233132+00:00",
+  "lock_sha256": "49afe08a1c70467d3c34167d83ed287220e5011fc880f214719f745693ca554f",
+  "schema": "ptcg.dragapult-late-budew-confirm.attempt.v1",
+  "written_before_first_confirmation_outcome": true
+}

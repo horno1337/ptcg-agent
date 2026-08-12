@@ -1,0 +1,63 @@
+{
+  "arms": {
+    "card": {
+      "best_epoch": 5,
+      "best_validation_objective": 0.8664095160623982,
+      "candidate": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/candidates/card/model/candidate-qu-v2a-weights.npz",
+        "sha256": "7c70bf09bb39a794f5b9a5d48d856a9ccd4404d7d950f4927a462ce0809874ac"
+      },
+      "parent": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/elite-recent-specialist-bc-20260811/candidates/dragapult-card/model/candidate-qu-v2a-weights.npz",
+        "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+      },
+      "provenance": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/candidates/card/model/candidate-qu-v2a-training-manifest.json",
+        "sha256": "448fe6afb98abe530cca6cb793079a8498b506dc451c4ba51487cb79540d7140"
+      },
+      "select_type": 1
+    },
+    "main": {
+      "best_epoch": 5,
+      "best_validation_objective": 1.398044158858824,
+      "candidate": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/candidates/main/model/candidate-qu-v2a-weights.npz",
+        "sha256": "8d83e607f9e640ca9fa6f4bf02ac719930aa066dbeb72dad245e96e20179ab2a"
+      },
+      "parent": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/elite-recent-specialist-bc-20260811/candidates/dragapult-main/model/candidate-qu-v2a-weights.npz",
+        "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+      },
+      "provenance": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/candidates/main/model/candidate-qu-v2a-training-manifest.json",
+        "sha256": "8d8dd30295cf95ad0331415872060b8ebc545e2c875cc9f8071c681eec45e187"
+      },
+      "select_type": 0
+    }
+  },
+  "artifacts": {
+    "corpus": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/corpus.json",
+      "sha256": "0548b7dcf2a0facae045b9af5d6a712d07c3e83caebd9c203243d72bbd69e7d8"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/evaluate_dragapult_aug11_elite_bc.py",
+      "sha256": "1d46782e51a29b5fcb15e6869420e9440caa1976974c9aa8b23f460a930cc9f1"
+    }
+  },
+  "created_at": "2026-08-12T09:13:24.023809+00:00",
+  "lock_sha256": "448d9fdf4fcfb136bd419e1086575b33fdc1335feeff65efd699d27277b9197c",
+  "package_authority": false,
+  "promotion_authority": false,
+  "schema": "ptcg.dragapult-aug11-elite-bc.behavior-lock.v1",
+  "test": {
+    "aggregate_opening_disclosure": "full-archive action rates were inspected before training lock; this comparison is development eligibility, not sealed evidence",
+    "expected_games": 20,
+    "rule": "candidate weighted NLL < parent, exact agreement >= parent, and candidate wins disagreement prompts",
+    "same_prompts_and_weights": true,
+    "split": "test"
+  },
+  "training_lock_sha256": "80c998867f2739e2d01923eb0dc88c02ecdb74f60dc712677f5c9ca80aa95b60",
+  "upload_authority": false,
+  "written_before_per_decision_test_readout": true
+}

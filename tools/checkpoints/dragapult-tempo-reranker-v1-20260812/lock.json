@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-08-12T09:55:08.035478+00:00",
+  "elite_main_sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0",
+  "families": [
+    "ability",
+    "attach_active",
+    "attach_backup",
+    "attach_munkidori",
+    "attach_other",
+    "attack",
+    "boss",
+    "end",
+    "evolve",
+    "other",
+    "play_other",
+    "ultra_ball"
+  ],
+  "lock_sha256": "1929bba0fc67170151aced4fe5055dc52d1d30e236ad42bea37681b47d6f8187",
+  "package_authority": false,
+  "promotion_authority": false,
+  "runtime_contract": "high-impact MAIN roots only; public tempo features; combine family log-probabilities; BC selects exact option; existing guards remain",
+  "schema": "ptcg.dragapult-tempo-reranker.lock.v1",
+  "source": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-archive-20260812/raw",
+  "source_manifest_sha256": "ae641be054028467bafb509f381b45dbf55758055946c108d47a705ab6255d36",
+  "split": {
+    "episodes": {
+      "train": 259,
+      "validation": 46
+    },
+    "rows": {
+      "train": 10223,
+      "validation": 1888
+    },
+    "seed": 2026081241,
+    "unit": "episode",
+    "validation_rule": "SHA256(seed:episode_id)[0] < 51"
+  },
+  "teachers": [
+    "Kh0a",
+    "Raihan Ramadistra",
+    "JB Bryant",
+    "LiamK"
+  ],
+  "training": {
+    "beta_grid": [
+      0.25,
+      0.5,
+      0.75,
+      1.0,
+      1.5
+    ],
+    "epochs": 240,
+    "l2_grid": [
+      0.0003,
+      0.001,
+      0.003
+    ],
+    "learning_rate": 0.025,
+    "selection": "highest validation family accuracy; lower beta then lower l2 tie break"
+  },
+  "upload_authority": false,
+  "written_before_validation_metrics": true
+}

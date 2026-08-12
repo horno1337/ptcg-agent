@@ -1,0 +1,518 @@
+{
+  "corpus_content_sha256": "ea8cb70bc64676946bdf79f906582dd6b9922d95ae1da8ed9d9138094c16914b",
+  "counters": {
+    "content_groups": 513,
+    "exact_seats": 528,
+    "mirror_games": 15,
+    "seat_loss": 221,
+    "seat_win": 307,
+    "source_exclusive": 513,
+    "source_overlaps": 0,
+    "valid_for_bc": 513
+  },
+  "decision_counts_by_split": {
+    "test": 7904,
+    "train": 79287,
+    "validation": 8873
+  },
+  "index": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-archive-20260812/corpus-index.json",
+  "manifest_sha256": "649dcd4245e2c1e69936da945351652bc1dd3eb41244fc268a34bd4275438f8c",
+  "opponents": [
+    {
+      "archetype": "Grimmsnarl",
+      "deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+      "seats": 104
+    },
+    {
+      "archetype": "Mega Froslass",
+      "deck_sha256": "dd63244cb42c5002bb2c7e415e8224e3dc8440ee02743f0db22d9d44594a72cc",
+      "seats": 65
+    },
+    {
+      "archetype": "Alakazam-A",
+      "deck_sha256": "3f4515092dc59df397f365a9b79c7cf0c1cb73b9aa38bc47c1b18e9df4c2fdaf",
+      "seats": 59
+    },
+    {
+      "archetype": "Mega Lucario",
+      "deck_sha256": "77a53ffc32f89b22562f6b4ac0b8cbde9e8210923cd0ef512551b8a8eb9003f8",
+      "seats": 33
+    },
+    {
+      "archetype": "Dragapult exact mirror",
+      "deck_sha256": "07bedfffbfad6ecb31733acc54c8110bb1934d8b1dc98bd9c4d37f6ba5c5e725",
+      "seats": 30
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "59c6fdb878b672309da0db1318640029802b1afdcfd4e23b1dcab3d3a96d61fc",
+      "seats": 19
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "e2e03fe8ef9592b1204c159a7725da3945675fa872b1e18baca550560503a78e",
+      "seats": 12
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "e40278fd83d971c280b0fb9cd14d5e45cfe63a45c647741eb937440b4b19be34",
+      "seats": 8
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "c04e65de725b8bb51b25f5dc87ae1c56a01316177c501ee2cfc62b3c60ac5712",
+      "seats": 8
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "03822cc73f7886a42fbfe086d205d4a37f24fc65c443ce1574363bbf200542bd",
+      "seats": 8
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "a0c76728e82f1ba5bb3beaa9d24c1afdb630de1dcb8cc78a525078e5dfa754a7",
+      "seats": 8
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "39b50b5cba308ad1768346cd0e9dd1b75e7d87539c3ee0b455505bc945fe5bb6",
+      "seats": 8
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "b529ad012ed92882c28ff4cabc81ba4890546431d6e294ade2edca9c4ce8839e",
+      "seats": 8
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "d07ed130cb14e088bf151f2edb944e1cbcb95713cb017b0375ed6667f8c978ba",
+      "seats": 7
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "d6c573dd89bd1319494e25d56e66536c0b68c3db2cf4694f4a63f7423ee2f0bd",
+      "seats": 7
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "943174ae3253c8246214bfa455dee6acab63e06b2a4206c44764802a0d9a810d",
+      "seats": 7
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "5e60b8c7eafc87e69cb063ae0ed7f7351fbf415b4c021567790b977bece49fbf",
+      "seats": 6
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "14399e66b88b8ac7f19dd45125f8780e758bfa1be9680ef7d6941e98c639d4c1",
+      "seats": 6
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "f8a5ec1c82043f715dfa7da982343bcb4d0b67d80827eb74c9640e00efb97766",
+      "seats": 6
+    },
+    {
+      "archetype": "Ogerpon-B",
+      "deck_sha256": "310ede704da1adc09e09efc2b3e4f96cd2201abdbcb3f51ada245472cac2742a",
+      "seats": 5
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "706fa9122e5b9ca9aab2f6d40984e0822845fc6f44032c99653a3c103338dd35",
+      "seats": 5
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "e13e98e335417986a8c8f5e8db288f311e87c1276fd10952a9054c5ecd03cf6b",
+      "seats": 4
+    },
+    {
+      "archetype": "Alakazam-B",
+      "deck_sha256": "f06bd3d5964e5f6d7051339db56aff17f4b111043a2cacce1621d10f52806368",
+      "seats": 4
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "b5ee70e51125f0e338361bf03d39ea9fa7ce9d0ba9abc1482b12396eae0844f0",
+      "seats": 4
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "57629a8665ff9c51705dcc5add30bba0dc0ef56a182b00f556b834f8f14b3749",
+      "seats": 4
+    },
+    {
+      "archetype": "Festival Lead",
+      "deck_sha256": "e8e9908e4943584bcbf4d54c91feda6ccfd5a39c0a0cf7d30e5db4a5de7ebd7b",
+      "seats": 4
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "415af0a5541c9c046b4a80abc365dbf91fc693b8546e49796fec6463a181c53d",
+      "seats": 4
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "674ec3100a65337e91ee11325b087e25925f312d28c8ec5a49969220d6b9d5b8",
+      "seats": 4
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "bc07a39f2fb9680f3ebf58c8ce09c61b56a13bd5386f122bda50f8207b7e4ada",
+      "seats": 4
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "04d8c62a21a6ccdc9db26cbba19952d729cae087e3627b6fab189467218fbc87",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "4dbed9a0888fad86eba05d92a088258e97db703afb4436df0795df2f0d1f2ef7",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "cf0a33ceb843d17c711ae7a14a060ca45306d06caa32b0ab649dfe244608f629",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "f1e80a06297672d99628ab130066bf187d3dc16b469f78c474d62505af633380",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "9d41abe5be83392c2d4307ec90c763e6903e0963131e00ba63597c2a7cc523cc",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "4fde3b2a53102d072fe13ee14a0679dbf11b4d4b62e15ff9646e910a27df23d2",
+      "seats": 3
+    },
+    {
+      "archetype": "Ogerpon-A",
+      "deck_sha256": "0a6ca2ca3e72f1d6c0860cb653f16b05c4ba9b8d7774d5669c608e43f4c154f2",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "54a7c05beef5724806c536df2e7ef63ac6f7b928be9e10bcb44d5019db82725b",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "8163944c662633424842c3fdb5a19c941a0984e6eb3938281d246e475c00e7a0",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "df6f7443719675711c2dcead3559087de996f3b8c43192d55ebfe6182e43cb7c",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "f65c3e061690ab89f9d0796e0b33c183c4c38d44911647724de0672b71b711d7",
+      "seats": 3
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "3bc0f71f1bce12dc025b332e92104c913b24df91e874ccd7c82ce3a2b07c77c2",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "7e39843702037f34ff18a5ecee55840691b11d9aaf0ea0245f6669ffc349621a",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "798608188147ee6641b079f320dfeb03a329452bc1cbc51cc3f8eedb8d53ef2d",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "1ad4871bb14dbee0800c50f667a3b3e55d73332b5a495a527db23e79fbee529b",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "747769779b60ad8db730b0b238414abb1e47936349cc72c83ff79c2ffacf31bc",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "a33247e725d6e2054c0f6f2808c0fa8fa019bc9383e28528c2482457b348af3c",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "d2eebe06c6ad0d4d6686dec0ea5b30c51dc3c415cecbd02f770ed23a2d65e088",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "b86b5b31208135f9bf188990981ee008edd65b0dbc335e7961d8dbf7b8ccfcb5",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "cb57ce7f37086b07abab9f60dcfcf792a02ee3035a0e87d08afcd0ba8632e0de",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "68c95eacc12a6aed39544ecf7f93e20fc59799e398e3d1ccc612cfb8d7e58127",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "5215eb3eb285a44731d7b51d8d6b07661bd5b303c91dd693acce3a7b2778c493",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "25393c128f3bb0b662a02e7c0aa7564f6ce87e8865cd09ee551082305272587d",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "a2911605e68bdcef872bbaa821952903147d98e4ab7f73f26169c96b1f27acb9",
+      "seats": 2
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "dab0154ba22bdd5201cd990a126d25ea9f8c8a2b284714bda3ccb32fad5d1b71",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "67cf83ea7e092595551b8cd9668be37903de3beb362b384f21c07b66d0549ff9",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "41f5fc7f6f74b69842e5bde647154619a29c004cb4afea1055c215eab67b359f",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "a23b89031a0c3a384c860e8be483be3a7264d25ee5737fc5d511627ed5bd0f9d",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "df3fbbfdb4687a056a521e59ccae8f3fd1ea6e658d8eb88e26b7af5f02c4f738",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "ceb24736e91686b29472aff0991ae3301162fb59367090cfee78dc821184f448",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "564e879292e2fc10e33a272cd4dffbfffd2db38c5fbe89760be73cf74eadb31a",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "5b1e19a2e0256f12e1ac27701e847d0ec569cec89c15edac8316cdc2a826a32b",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "3f8ee4b51dd39a464b9ca5bbda6c84fad383a50c04ee0c43c74df9a989893c04",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "16fe2542d5b0b3dfe2b5e3ebcac679c107b8a476835726f2aec4e816e536e813",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "17872b59494a351c03599017c4c978889d941745c83f75be61ff1d47ae746048",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "fdf9c5b1e7507ced3eb6c1922921c39136880c75a36a61a0b1249c4be21eac28",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "f6e4ef53a74ab835c825689f42606c40cb3eba704dad49d516fb67426087c44f",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "ca60839cba73b0054f0854952ec3a5e98cb8178db1f71e264aafceb44ffd7adb",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "01501d644249c08144b169d9af115042260d89f0990e04b81c5aeadfcb7d7b84",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "70c72579c3756bf35c3b06300b2819b549f808c733ab3e0e043f0d303d649d70",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "0043a7493af90c24b6662181233a5c9eeedc50892b7940744c82cbac36a55c4f",
+      "seats": 1
+    },
+    {
+      "archetype": "unknown",
+      "deck_sha256": "daa1cce9079016e357f7ab3f1666f0ecc4ddca3b8e4131b88ade164c14ddcb4c",
+      "seats": 1
+    }
+  ],
+  "overlap_sources": {},
+  "schema": "ptcg.dragapult.aug11-corpus-analysis.v1",
+  "source": "aug11",
+  "splits": {
+    "test": 43,
+    "train": 422,
+    "validation": 48
+  },
+  "teachers": [
+    {
+      "loss": 57,
+      "seats": 164,
+      "teacher": "Kh0a",
+      "win": 107,
+      "win_rate": 0.6524390243902439
+    },
+    {
+      "loss": 22,
+      "seats": 66,
+      "teacher": "Raihan Ramadistra",
+      "win": 44,
+      "win_rate": 0.6666666666666666
+    },
+    {
+      "loss": 36,
+      "seats": 61,
+      "teacher": "haggle",
+      "win": 25,
+      "win_rate": 0.4098360655737705
+    },
+    {
+      "loss": 25,
+      "seats": 49,
+      "teacher": "宝糕手",
+      "win": 24,
+      "win_rate": 0.4897959183673469
+    },
+    {
+      "loss": 17,
+      "seats": 43,
+      "teacher": "JB Bryant",
+      "win": 26,
+      "win_rate": 0.6046511627906976
+    },
+    {
+      "loss": 11,
+      "seats": 37,
+      "teacher": "LiamK",
+      "win": 26,
+      "win_rate": 0.7027027027027027
+    },
+    {
+      "loss": 13,
+      "seats": 29,
+      "teacher": "Jack",
+      "win": 16,
+      "win_rate": 0.5517241379310345
+    },
+    {
+      "loss": 12,
+      "seats": 26,
+      "teacher": "Pokemon Siuuuu",
+      "win": 14,
+      "win_rate": 0.5384615384615384
+    },
+    {
+      "loss": 11,
+      "seats": 18,
+      "teacher": "Boseiju",
+      "win": 7,
+      "win_rate": 0.3888888888888889
+    },
+    {
+      "loss": 3,
+      "seats": 8,
+      "teacher": "Iliamna",
+      "win": 5,
+      "win_rate": 0.625
+    },
+    {
+      "loss": 4,
+      "seats": 7,
+      "teacher": "fishcat",
+      "win": 3,
+      "win_rate": 0.42857142857142855
+    },
+    {
+      "loss": 3,
+      "seats": 4,
+      "teacher": "Budew",
+      "win": 1,
+      "win_rate": 0.25
+    },
+    {
+      "loss": 1,
+      "seats": 3,
+      "teacher": "Ars Noveau",
+      "win": 2,
+      "win_rate": 0.6666666666666666
+    },
+    {
+      "loss": 1,
+      "seats": 3,
+      "teacher": "Marshall Maximizer",
+      "win": 2,
+      "win_rate": 0.6666666666666666
+    },
+    {
+      "loss": 1,
+      "seats": 3,
+      "teacher": "Pokopia",
+      "win": 2,
+      "win_rate": 0.6666666666666666
+    },
+    {
+      "loss": 2,
+      "seats": 3,
+      "teacher": "youtube.com/@BigBugginnings",
+      "win": 1,
+      "win_rate": 0.3333333333333333
+    },
+    {
+      "loss": 1,
+      "seats": 2,
+      "teacher": "213tubo",
+      "win": 1,
+      "win_rate": 0.5
+    },
+    {
+      "loss": 1,
+      "seats": 1,
+      "teacher": "[RU] Kirill Makhankov",
+      "win_rate": 0.0
+    },
+    {
+      "seats": 1,
+      "teacher": "熱異常",
+      "win": 1,
+      "win_rate": 1.0
+    }
+  ]
+}

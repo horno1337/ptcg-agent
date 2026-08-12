@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T10:19:30.695516+00:00",
+  "lock_sha256": "688c419514ba883a969cee800ab193dca1a1a933608f9b56d055500aff030ef4",
+  "schema": "ptcg.dragapult-tempo-root-collection.attempt.v1",
+  "written_before_first_game_outcome": true
+}

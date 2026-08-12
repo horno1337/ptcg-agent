@@ -1,0 +1,87 @@
+{
+  "candidate_only": true,
+  "created_at": "2026-08-12T09:07:08.042504+00:00",
+  "filtered_corpus": {
+    "content_sha256": "afcb637c054895fccd8ecec2b6fdd5808237435ba10ca8caa294f2e1c54ea943",
+    "inventory": {
+      "games": 292,
+      "splits": {
+        "test": 20,
+        "train": 245,
+        "validation": 27
+      },
+      "teachers": {
+        "JB Bryant": 40,
+        "Kh0a": 154,
+        "LiamK": 33,
+        "Raihan Ramadistra": 65
+      },
+      "wins": {
+        "JB Bryant": 26,
+        "Kh0a": 98,
+        "LiamK": 23,
+        "Raihan Ramadistra": 43
+      }
+    },
+    "manifest_sha256": "545ad991f1bf7ca7839737ba95546516b3a57057f5ac16af638fb1dccc0dd1f1",
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-elite-bc-20260812/corpus.json"
+  },
+  "gates": {
+    "behavior": "development-only head eligibility against its elite parent; full-archive aggregate was opened before lock",
+    "gameplay": "predeclared 2x2 MAIN/CARD head isolation, then fresh paired confirmation of the best eligible stack",
+    "package": "only a strict, zero-fault gameplay winner may package"
+  },
+  "hypothesis": "A low-rate refinement on the strong Aug-11 exact-list subset can repair the persistent offensive-plan gap without discarding the field-gated elite heads.",
+  "lock_sha256": "80c998867f2739e2d01923eb0dc88c02ecdb74f60dc712677f5c9ca80aa95b60",
+  "package_authority": false,
+  "parents": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/elite-recent-specialist-bc-20260811/candidates/dragapult-card/model/candidate-qu-v2a-checkpoint.pt",
+      "sha256": "68ce9316c6207e70a3ca84efaa02b2e35ce5724ff4af4d8a6e7745a9a9869bd9"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/elite-recent-specialist-bc-20260811/candidates/dragapult-main/model/candidate-qu-v2a-checkpoint.pt",
+      "sha256": "f07f2aada7e4216b073ae9f3c638ab9cb2ce7cf512e6b7189416fe389acde69f"
+    }
+  },
+  "promotion_authority": false,
+  "schema": "ptcg.dragapult-aug11-elite-bc.training-lock.v1",
+  "source_corpus": {
+    "content_sha256": "ea8cb70bc64676946bdf79f906582dd6b9922d95ae1da8ed9d9138094c16914b",
+    "manifest_sha256": "649dcd4245e2c1e69936da945351652bc1dd3eb41244fc268a34bd4275438f8c",
+    "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-aug11-archive-20260812/corpus-index.json",
+    "sha256": "7ca33c3f4165e06d01d3f82550acdab976cca6cec2be05ef3ece6e03c987aa44"
+  },
+  "training": {
+    "batch_size": 128,
+    "defer_test": true,
+    "device": "cpu",
+    "draw_weight": 0.3,
+    "epochs": 5,
+    "freeze_public_backbone": true,
+    "game_normalized": true,
+    "heads": {
+      "card": {
+        "parent": "card",
+        "seed": 2026081212,
+        "select_type": 1
+      },
+      "main": {
+        "parent": "main",
+        "seed": 2026081211,
+        "select_type": 0
+      }
+    },
+    "kl_coefficient": 0.7,
+    "kl_weighting": "uniform-game",
+    "learning_rate": 1.5e-05,
+    "loss_weight": 0.1,
+    "selection": "lowest validation objective across exactly five epochs",
+    "shuffle_buffer": 4096,
+    "value_coefficient": 0.0,
+    "weight_decay": 1e-05,
+    "winner_weight": 1.0
+  },
+  "upload_authority": false,
+  "written_before_training_outcomes": true
+}

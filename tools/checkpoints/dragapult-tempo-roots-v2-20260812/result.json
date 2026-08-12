@@ -1,0 +1,2116 @@
+{
+  "artifacts": {
+    "privileged": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v2-20260812/privileged-roots.jsonl",
+      "sha256": "a34ca63395c544ee1f4aa493b76a60f4b53e171630eb0b8ede1d94aaef871c5f"
+    },
+    "public": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v2-20260812/public-roots.jsonl",
+      "sha256": "24d9b917c34bc358edc45f1a192aaa5bc2fb722d66e6c21015a83d053915f288"
+    }
+  },
+  "controller": {
+    "calls": 27477,
+    "card_routes": 12896,
+    "completion_guards": 112,
+    "exceptions": {},
+    "fallbacks": 0,
+    "latency_ms": {
+      "max": 2.75375391356647,
+      "mean": 1.2005294986873454,
+      "p95": 1.4417959842830896
+    },
+    "main_routes": 13190,
+    "munkidori_attachment_guards": 29,
+    "name": "dragapult-v2-root-collector",
+    "off_deck_routes": 0,
+    "phantom_guards": 0,
+    "qu_routes": 1391,
+    "recon_guards": 83,
+    "repairs": 0
+  },
+  "counters": {
+    "discarded_roots": 9318,
+    "games_loss": 100,
+    "games_win": 156,
+    "high_impact_roots_seen": 9896,
+    "loss_games_with_roots": 97,
+    "retained_loss_roots": 578
+  },
+  "created_at": "2026-08-12T10:23:52.835144+00:00",
+  "field_controller": {
+    "adapter_hits": 0,
+    "adapter_misses": 0,
+    "base_routes": 0,
+    "calls": 18638,
+    "candidate_routes": 0,
+    "candidate_select_type": null,
+    "exceptions": {},
+    "fallbacks": 0,
+    "latency_ms": {
+      "max": 11.790912132710218,
+      "mean": 1.1598204909853316,
+      "p50": 1.1296134907752275,
+      "p95": 1.417081046383828
+    },
+    "name": "tempo-root-run",
+    "qu_v2c_canary": false,
+    "qu_v2c_eligible": 0,
+    "qu_v2c_overrides": 0
+  },
+  "games": [
+    {
+      "candidate_roots": 38,
+      "episode_id": 0,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 0,
+      "episode_id": 1,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 20,
+      "episode_id": 2,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 50,
+      "episode_id": 3,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 20,
+      "episode_id": 4,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 29,
+      "episode_id": 5,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 34,
+      "episode_id": 6,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 7,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 8,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 9,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 22,
+      "episode_id": 10,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 11,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 12,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 53,
+      "episode_id": 13,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 31,
+      "episode_id": 14,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 49,
+      "episode_id": 15,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 51,
+      "episode_id": 16,
+      "learner_seat": 0,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 64,
+      "episode_id": 17,
+      "learner_seat": 1,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 46,
+      "episode_id": 18,
+      "learner_seat": 1,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 58,
+      "episode_id": 19,
+      "learner_seat": 0,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 65,
+      "episode_id": 20,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 17,
+      "episode_id": 21,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 22,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 20,
+      "episode_id": 23,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 24,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 25,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 22,
+      "episode_id": 26,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/39b50b5cba/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 64,
+      "episode_id": 27,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/39b50b5cba/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 28,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/54a7c05bee/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 29,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/54a7c05bee/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 40,
+      "episode_id": 30,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/daa1cce907/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 31,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/daa1cce907/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 23,
+      "episode_id": 32,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 50,
+      "episode_id": 33,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 24,
+      "episode_id": 34,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 41,
+      "episode_id": 35,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 54,
+      "episode_id": 36,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 37,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 38,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 39,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 28,
+      "episode_id": 40,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 41,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 52,
+      "episode_id": 42,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 33,
+      "episode_id": 43,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 58,
+      "episode_id": 44,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 45,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 40,
+      "episode_id": 46,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 47,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 54,
+      "episode_id": 48,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 57,
+      "episode_id": 49,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 50,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 51,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 21,
+      "episode_id": 52,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/25393c128f/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 41,
+      "episode_id": 53,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/25393c128f/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 54,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 55,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 23,
+      "episode_id": 56,
+      "learner_seat": 0,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 57,
+      "learner_seat": 1,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 48,
+      "episode_id": 58,
+      "learner_seat": 0,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 59,
+      "learner_seat": 1,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 60,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 20,
+      "episode_id": 61,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 62,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 63,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 30,
+      "episode_id": 64,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 28,
+      "episode_id": 65,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 55,
+      "episode_id": 66,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 36,
+      "episode_id": 67,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 21,
+      "episode_id": 68,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 69,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 70,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 54,
+      "episode_id": 71,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 72,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 73,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 74,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 67,
+      "episode_id": 75,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 48,
+      "episode_id": 76,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 19,
+      "episode_id": 77,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 78,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 55,
+      "episode_id": 79,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 55,
+      "episode_id": 80,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 81,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 82,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 25,
+      "episode_id": 83,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 84,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 18,
+      "episode_id": 85,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 18,
+      "episode_id": 86,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 87,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 50,
+      "episode_id": 88,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 89,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 90,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 91,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 22,
+      "episode_id": 92,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 93,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 22,
+      "episode_id": 94,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 95,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 33,
+      "episode_id": 96,
+      "learner_seat": 1,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 97,
+      "learner_seat": 0,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 36,
+      "episode_id": 98,
+      "learner_seat": 1,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 99,
+      "learner_seat": 0,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 100,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 101,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 29,
+      "episode_id": 102,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 53,
+      "episode_id": 103,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 104,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 52,
+      "episode_id": 105,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 62,
+      "episode_id": 106,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/39b50b5cba/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 10,
+      "episode_id": 107,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/39b50b5cba/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 108,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/54a7c05bee/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 57,
+      "episode_id": 109,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/54a7c05bee/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 34,
+      "episode_id": 110,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 73,
+      "episode_id": 111,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 36,
+      "episode_id": 112,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 113,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 49,
+      "episode_id": 114,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 55,
+      "episode_id": 115,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 31,
+      "episode_id": 116,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/daa1cce907/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 60,
+      "episode_id": 117,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/daa1cce907/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 118,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 49,
+      "episode_id": 119,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 13,
+      "episode_id": 120,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 121,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 34,
+      "episode_id": 122,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 62,
+      "episode_id": 123,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 46,
+      "episode_id": 124,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 125,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 126,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 68,
+      "episode_id": 127,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 128,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 15,
+      "episode_id": 129,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 26,
+      "episode_id": 130,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 131,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 14,
+      "episode_id": 132,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/25393c128f/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 17,
+      "episode_id": 133,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/25393c128f/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 134,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 135,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 45,
+      "episode_id": 136,
+      "learner_seat": 1,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 137,
+      "learner_seat": 0,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 138,
+      "learner_seat": 0,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 49,
+      "episode_id": 139,
+      "learner_seat": 1,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 40,
+      "episode_id": 140,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 55,
+      "episode_id": 141,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 142,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 41,
+      "episode_id": 143,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 31,
+      "episode_id": 144,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 53,
+      "episode_id": 145,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 146,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 31,
+      "episode_id": 147,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 51,
+      "episode_id": 148,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 149,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 150,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 151,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 152,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 30,
+      "episode_id": 153,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 76,
+      "episode_id": 154,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 53,
+      "episode_id": 155,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 30,
+      "episode_id": 156,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 157,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 158,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 46,
+      "episode_id": 159,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 49,
+      "episode_id": 160,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 161,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 162,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 40,
+      "episode_id": 163,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 65,
+      "episode_id": 164,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 18,
+      "episode_id": 165,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 166,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 167,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 168,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 169,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 41,
+      "episode_id": 170,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 52,
+      "episode_id": 171,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 172,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 173,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 174,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 60,
+      "episode_id": 175,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 176,
+      "learner_seat": 0,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 25,
+      "episode_id": 177,
+      "learner_seat": 1,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 17,
+      "episode_id": 178,
+      "learner_seat": 1,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 19,
+      "episode_id": 179,
+      "learner_seat": 0,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 180,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 181,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 29,
+      "episode_id": 182,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 183,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 184,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 185,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 29,
+      "episode_id": 186,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/39b50b5cba/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 187,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/39b50b5cba/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 12,
+      "episode_id": 188,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/54a7c05bee/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 48,
+      "episode_id": 189,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/54a7c05bee/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 190,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/daa1cce907/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 33,
+      "episode_id": 191,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/daa1cce907/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 192,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 193,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 194,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 5,
+      "episode_id": 195,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 5
+    },
+    {
+      "candidate_roots": 0,
+      "episode_id": 196,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 50,
+      "episode_id": 197,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 198,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 199,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 28,
+      "episode_id": 200,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 31,
+      "episode_id": 201,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 54,
+      "episode_id": 202,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 51,
+      "episode_id": 203,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 204,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 30,
+      "episode_id": 205,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 55,
+      "episode_id": 206,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 0,
+      "episode_id": 207,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 51,
+      "episode_id": 208,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 58,
+      "episode_id": 209,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 29,
+      "episode_id": 210,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 50,
+      "episode_id": 211,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 212,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/25393c128f/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 213,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/25393c128f/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 60,
+      "episode_id": 214,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 52,
+      "episode_id": 215,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 6,
+      "episode_id": 216,
+      "learner_seat": 1,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 52,
+      "episode_id": 217,
+      "learner_seat": 0,
+      "opponent_key": "Applin/e8e9908e49/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 56,
+      "episode_id": 218,
+      "learner_seat": 1,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 31,
+      "episode_id": 219,
+      "learner_seat": 0,
+      "opponent_key": "Grimmsnarl/c20a8a46f5/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 41,
+      "episode_id": 220,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 3,
+      "episode_id": 221,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 3
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 222,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 223,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 36,
+      "episode_id": 224,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 36,
+      "episode_id": 225,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 34,
+      "episode_id": 226,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 227,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 228,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 28,
+      "episode_id": 229,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 38,
+      "episode_id": 230,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 35,
+      "episode_id": 231,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 232,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 23,
+      "episode_id": 233,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 234,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 235,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 236,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 29,
+      "episode_id": 237,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 37,
+      "episode_id": 238,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 39,
+      "episode_id": 239,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 60,
+      "episode_id": 240,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 42,
+      "episode_id": 241,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 32,
+      "episode_id": 242,
+      "learner_seat": 0,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 62,
+      "episode_id": 243,
+      "learner_seat": 1,
+      "opponent_key": "Mega Froslass/dd63244cb4/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 49,
+      "episode_id": 244,
+      "learner_seat": 0,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 44,
+      "episode_id": 245,
+      "learner_seat": 1,
+      "opponent_key": "Dragapult/07bedfffbf/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 28,
+      "episode_id": 246,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 26,
+      "episode_id": 247,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/3f4515092d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 34,
+      "episode_id": 248,
+      "learner_seat": 0,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 47,
+      "episode_id": 249,
+      "learner_seat": 1,
+      "opponent_key": "Alakazam/f06bd3d596/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 27,
+      "episode_id": 250,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 251,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/310ede704d/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 30,
+      "episode_id": 252,
+      "learner_seat": 0,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 50,
+      "episode_id": 253,
+      "learner_seat": 1,
+      "opponent_key": "Teal Mask Ogerpon ex/0a6ca2ca3e/qu-v2b-current-weight",
+      "result": "loss",
+      "retained_roots": 6
+    },
+    {
+      "candidate_roots": 34,
+      "episode_id": 254,
+      "learner_seat": 1,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    },
+    {
+      "candidate_roots": 43,
+      "episode_id": 255,
+      "learner_seat": 0,
+      "opponent_key": "Mega Lucario/77a53ffc32/qu-v2b-current-weight",
+      "result": "win",
+      "retained_roots": 0
+    }
+  ],
+  "lock_sha256": "688c419514ba883a969cee800ab193dca1a1a933608f9b56d055500aff030ef4",
+  "package_authority": false,
+  "promotion_authority": false,
+  "result_sha256": "0205a3c0182819cb55547e146e5ee6f00e15aeabfc3a8b0a28aeca34bc9d7225",
+  "schema": "ptcg.dragapult-tempo-root-collection.v1"
+}

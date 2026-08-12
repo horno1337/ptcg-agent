@@ -1,0 +1,123 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "collection_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v2-20260812/lock.json",
+      "sha256": "506a672becab413aa498905f19062ae9a3f8a4e254d19e2ca6597a2f0d630c07"
+    },
+    "collection_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v2-20260812/result.json",
+      "sha256": "ddb6f676ead2c20e5b9690bbf6179795a1015ca543194bb4f2821372dc567489"
+    },
+    "engine": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/engine/libcg.so",
+      "sha256": "73cc06473da0645d87d3c820ddec3c078610d95c24ee1080efcd98ef50650db7"
+    },
+    "entrypoint": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/label_dragapult_tempo_roots_v3.py",
+      "sha256": "62c8ea3c12c6a6f1195a975cf2489da4955ba4f3173da4cee5e2314f7ae261e4"
+    },
+    "labeler": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/label_dragapult_tempo_roots.py",
+      "sha256": "ff0f3cd2dfc65826e669b3d5e1c643269fbe0687de8e0f59595b382472053280"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "privileged_roots": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v2-20260812/privileged-roots.jsonl",
+      "sha256": "a34ca63395c544ee1f4aa493b76a60f4b53e171630eb0b8ede1d94aaef871c5f"
+    },
+    "public_roots": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v2-20260812/public-roots.jsonl",
+      "sha256": "24d9b917c34bc358edc45f1a192aaa5bc2fb722d66e6c21015a83d053915f288"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    }
+  },
+  "collection_result_sha256": "0205a3c0182819cb55547e146e5ee6f00e15aeabfc3a8b0a28aeca34bc9d7225",
+  "created_at": "2026-08-12T10:30:24.712983+00:00",
+  "interpretation": "privileged exact-state discovery only; no direct actor labels and no threshold tuning on future confirmation roots",
+  "lock_sha256": "62b4cf774f3404a448a655f03a359b444a60c61d48cf1026d8679d7d7276915a",
+  "package_authority": false,
+  "promotion_authority": false,
+  "rollouts": {
+    "all_legal_root_actions": true,
+    "hop_cap": 500,
+    "learner_continuation": "exact dragapult-v2",
+    "native_rng_seedable": false,
+    "opponent_continuation": "frozen Qu-v2B",
+    "per_root": 8,
+    "root_and_branch_order": "independently balanced cyclic/reverse"
+  },
+  "schema": "ptcg.dragapult-tempo-panels.lock.v1",
+  "selection": {
+    "root_ids": [
+      "092cca974aaa382e84ecb116225bfdf37a82f032f5e12e0680a6f0d48cac813f",
+      "02e6f5a5704aae321128f9e739e232e6eae4bc7e47ffa7c40ce0d94c13a1b17c",
+      "09bc0c25fec17a7ae90f2968702163e632ab930eecd0bd3a79828e4e1032fba9",
+      "0fdb12f7887a2d4059bb27fb9b4a6946bdfaa24bede6a045c9247ae907a575fb",
+      "0610cde85d52da1129f8b3d1fa0f076c53daabe135e29c13fa3855d0f41ca0c0",
+      "10394446ced55297c7697f714c419d0f67e4d833b2529e96c5cb1ffa26570ab1",
+      "0b8fcb83dede4f681238c699ac87aec76e1d751af105488776b988aad744ec01",
+      "25ee6976533990283cd6f21ad3128f4262e6f769edda456ea2eca81c32ec166a",
+      "011777c34e46c8b10ad80bfc82da03c23823f78e91fee0aee40e88e4c2fd3d95",
+      "101a3ad69caa171e6608bc108e2eeab7745c8b8c270a0ded428cf21f52b3fc31",
+      "1231367f71cbc587b71396556fdd12d56780ddbcd933d8e441a56720eddd455f",
+      "0379e369c90063615e3d960573eff75404622dd51edad807ff4f255667ce7985",
+      "1548419fdbfb828f0502230c11cb80f3c66ee68d54552233d175669369a22af4",
+      "09083d3d0d31aa0bf54686bd8cf1883357c06c1d8d1168f33ce40dc4aacf3a92",
+      "046676d96b0c3537209885958a38ce2619ce7165e5e4d6b065dbd342552df7c1",
+      "05defa0adb1eb1dc7eb733a2ad4523a502eef1109e8585cca7aa2aa6df2db97b",
+      "187a0272b4b7807b708f3f0596760e63f0cd462fa07a186dbed795189a726b86",
+      "115cf09c432136017f9ed20f90a0eb7c9c6393ef64272ae37ab7246dee377503",
+      "0b06c38c14dbd3c9029c9928b919f0c8f3ff603b461070a79501cec0cfd515c7",
+      "3eb7bdc34e2eedead9994b43bda698f7bd9e4566192c42817ee24228f62b0e52",
+      "2fcb7ab15859903fe673573af4bbc817c14465b1c350472316b624ef9331a0ab",
+      "2d54448b0ff8f341dbdb2854152ebf004b4a4f7d45e25b6f991b85d52c7959ca",
+      "06583d8557c555807cd6342c66d3efcc30ad856f23de2af215db09b269ea1bd5",
+      "2a7607ea8d1edb6d3b6233f02283efe8d814506a83239bf171e881a768890f03",
+      "000025e613e429f19fbb7f4aea7227a721ac7330ab70c660e82c87b8a726ec5a",
+      "3daa216a301e7c3edcb32aeea36a4a689afc3fbccd5713799f28264a7f7841d1",
+      "0986556f1a12804be0f387cd9f71be0e4c9520f6049cc3c30a7b201d0cf235a8",
+      "05714d25ada2f71472fbc9ef0bfbdc102c2de0da83b3daed77b8b752ce6bf274",
+      "0592d04904718a3b56002ceed673d1e3b2fbee77284fd1c85b0ba76379403bb2",
+      "074962370bc8986983259a702f8fda02529e37f696c6ca7222f4da05b885bba2",
+      "0529916d236b8454942444d8a3fb52483ee3c736a628029a2e5be0dbec79bddd",
+      "22a5ea214c625e3fbdf06923477eb9fa9cc1fd1951a38e6290fc95b44210c818",
+      "0826b9c22f529f3967a64f70ce978d45cf0bc6e32ced9ab9209c05fedd47e658",
+      "034fb623998f71b1df2a73e44752aeb9eaf051e4b4bec1b258cd82e39e5415d8",
+      "05b029d51adb0f9d6abac385b1f86adfd60e578b4ae60c1f20d04eccdf482038",
+      "183b217aed866b3eb26183b1c4f9cc8cf5aec537924a03c31e7aecd089905e73",
+      "01c12dd2f3e1a8ef1c86ec409ea21c72a9c2183ab88ed67a8aa81270f58eaee5",
+      "021527712381c1c54ddc5e9bfcc05c23fe19394e279f7242d8228aedd7815530",
+      "1b4be87315c8883113a3a366a1734947a19ff94c88e13d62f17255ec26bd650e",
+      "0065ed2c89802f39f2aa62da49f263d351d03027bfbdb9f2f11088aaf70edbfa",
+      "01ffb0d6df9120962e97fc2ff6a301d345f9b20fac96da6aaff87c4312428e53",
+      "051cdaf5e765cd178c90ad907c014516963b57b461c9683e8a831c7a35310d6f",
+      "013f16d77edd7f254540ce953cf84b9125f0a1d4471348cccbefdb06a664208b",
+      "0c71160b415e7d9f0f3df35b9a9e968dfdb04b665b9587e85fb914687234509a",
+      "08fc65da0f3cd468470e17509d8b828ea965f7888e30ac9f91303371dc001f90",
+      "0adf5885135f04de8ebfd384efa82d6b9ab5c9fdb621e48bc1f876b176f7a300",
+      "0259b78a2e4b8cfe8e92830f301c1a1aac6ff3c9f5090ec03f1d170fd020aea2",
+      "149eb16e8f8b0949ae4313a6b24db5f5a54670af62dee3435168323095a7d6d4"
+    ],
+    "root_order": "round-robin lowest root_id by opponent archetype/current-policy family, excluding every root exposed by invalid four-repetition v1",
+    "roots": 48,
+    "rule": "SHA256(seed:episode_id)[0] < 128",
+    "split": "discovery",
+    "split_seed": 2026081247
+  },
+  "upload_authority": false,
+  "written_before_terminal_rollout_outcomes": true
+}

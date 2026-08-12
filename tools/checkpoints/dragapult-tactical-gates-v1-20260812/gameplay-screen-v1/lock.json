@@ -1,0 +1,125 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_tactical_gates.py",
+      "sha256": "76dbd67f9971e76cdb1eedba854bb7c666f599efb03ee20be16ea95f77a95e4f"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "tempo": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_tempo.py",
+      "sha256": "aa88561286c81fbdb7751ed6e0bc93d3aaed9d73f112c849abf76f15c0966f0e"
+    },
+    "training_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tactical-gates-v1-20260812/lock.json",
+      "sha256": "0fb0b388228ac21d13655ea8c863e54ab5b7532f58450189f672b44bb14f844d"
+    },
+    "training_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tactical-gates-v1-20260812/result.json",
+      "sha256": "cc3c8244e8fc1fab5a2a9ba168e454acf175ffc95897bd4b091ebb2ffb5dcc4e"
+    },
+    "weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tactical-gates-v1-20260812/tactical_gate_weights.npz",
+      "sha256": "68b648b16a5c0108dda7be0e890ca5cf5ca4cc274b08882ff3d9cd09ac76037e"
+    }
+  },
+  "candidate": "exact Dragapult-v2 plus conservative learned Boss/Ultra gates",
+  "control": "exact Dragapult-v2",
+  "created_at": "2026-08-12T10:08:50.893101+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "lock_sha256": "c0085003b6f0c21f508074a41be79eea6c46e7e6619b764452a9186b01d2fe13",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "fresh_confirmation_required": true,
+    "games_per_arm": 1024,
+    "identical_schedule": true,
+    "key_slices": [
+      "Dragapult",
+      "Mega Lucario",
+      "Grimmsnarl"
+    ],
+    "promotion": "delta > 0; CI95 lower > -0.025; key slices >= -0.04",
+    "seed": 2026081244,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "261eeb468f0bbc6bcffa5fc2d98594b1d054f1ed283911f759db4ec04f148e34",
+  "schema": "ptcg.dragapult-tactical-gates.gameplay-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T09:13:24.078402+00:00",
+  "lock_sha256": "448d9fdf4fcfb136bd419e1086575b33fdc1335feeff65efd699d27277b9197c",
+  "schema": "ptcg.dragapult-aug11-elite-bc.behavior-attempt.v1",
+  "written_before_first_per_decision_test_readout": true
+}

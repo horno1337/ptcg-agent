@@ -1,0 +1,62 @@
+{
+  "created_at": "2026-08-12T10:06:45.339022+00:00",
+  "lock_sha256": "607ce8addfba41e4a9262cdcc6395a59709525bc59af02598e69be938faa0154",
+  "package_authority": false,
+  "promotion_authority": false,
+  "rows": {
+    "('boss', 'train', 0)": 2573,
+    "('boss', 'train', 1)": 228,
+    "('boss', 'validation', 0)": 550,
+    "('boss', 'validation', 1)": 43,
+    "('ultra_ball', 'train', 0)": 3556,
+    "('ultra_ball', 'train', 1)": 485,
+    "('ultra_ball', 'validation', 0)": 769,
+    "('ultra_ball', 'validation', 1)": 117
+  },
+  "runtime_contract": "promote only Boss/Ultra family; BC retains exact option and all downstream choices",
+  "schema": "ptcg.dragapult-tactical-gates.lock.v1",
+  "source_manifest_sha256": "ae641be054028467bafb509f381b45dbf55758055946c108d47a705ab6255d36",
+  "split_seed": 2026081243,
+  "targets": [
+    "boss",
+    "ultra_ball"
+  ],
+  "teachers": [
+    "Kh0a",
+    "Raihan Ramadistra",
+    "JB Bryant",
+    "LiamK"
+  ],
+  "training": {
+    "epochs": 220,
+    "l2_grid": [
+      0.0003,
+      0.001,
+      0.003
+    ],
+    "learning_rate": 0.02,
+    "minimum_interventions": 5,
+    "minimum_precision": 0.6,
+    "positive_weight_grid": [
+      1.0,
+      2.0,
+      4.0,
+      8.0
+    ],
+    "selection": "max validation net-correct changes, then precision, lower threshold/l2/positive-weight",
+    "threshold_grid": [
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95
+    ]
+  },
+  "upload_authority": false,
+  "written_before_validation_metrics": true
+}

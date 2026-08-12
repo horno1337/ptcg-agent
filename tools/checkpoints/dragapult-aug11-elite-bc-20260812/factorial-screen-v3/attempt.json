@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-08-12T09:43:34.285379+00:00",
+  "lock_sha256": "8ad299ace0644b9a1cc72f9516e5870177344a32c72dc9ecd562acbfa355a186",
+  "schema": "ptcg.dragapult-aug11-head-factorial.attempt.v1",
+  "written_before_first_engine_outcome": true
+}

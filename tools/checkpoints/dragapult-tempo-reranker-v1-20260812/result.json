@@ -1,0 +1,3021 @@
+{
+  "behavior_eligible": true,
+  "candidates": [
+    {
+      "beta": 0.25,
+      "l2": 0.0003,
+      "train": {
+        "accuracy": 0.6461899638071016,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3156,
+            "hits": 1817,
+            "precision": 0.5757287705956907,
+            "recall": 0.8144329896907216,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 84,
+            "hits": 32,
+            "precision": 0.38095238095238093,
+            "recall": 0.37209302325581395,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 347,
+            "hits": 220,
+            "precision": 0.6340057636887608,
+            "recall": 0.4489795918367347,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 162,
+            "hits": 98,
+            "precision": 0.6049382716049383,
+            "recall": 0.4688995215311005,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 75,
+            "hits": 37,
+            "precision": 0.49333333333333335,
+            "recall": 0.22560975609756098,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1283,
+            "hits": 955,
+            "precision": 0.7443491816056118,
+            "recall": 0.689033189033189,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 16,
+            "hits": 7,
+            "precision": 0.4375,
+            "recall": 0.04046242774566474,
+            "support": 173
+          },
+          "end": {
+            "chosen": 59,
+            "hits": 38,
+            "precision": 0.6440677966101694,
+            "recall": 0.5507246376811594,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1137,
+            "hits": 749,
+            "precision": 0.6587510993843447,
+            "recall": 0.7445328031809145,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 236,
+            "hits": 109,
+            "precision": 0.461864406779661,
+            "recall": 0.2945945945945946,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3615,
+            "hits": 2516,
+            "precision": 0.6959889349930843,
+            "recall": 0.7010309278350515,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 53,
+            "hits": 28,
+            "precision": 0.5283018867924528,
+            "recall": 0.06222222222222222,
+            "support": 450
+          }
+        },
+        "changed": 559,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6488347457627118,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 648,
+            "hits": 369,
+            "precision": 0.5694444444444444,
+            "recall": 0.8502304147465438,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.3125,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 52,
+            "hits": 32,
+            "precision": 0.6153846153846154,
+            "recall": 0.4507042253521127,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 32,
+            "hits": 23,
+            "precision": 0.71875,
+            "recall": 0.5348837209302325,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 8,
+            "hits": 5,
+            "precision": 0.625,
+            "recall": 0.2,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 207,
+            "hits": 160,
+            "precision": 0.7729468599033816,
+            "recall": 0.642570281124498,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 0,
+            "hits": 0,
+            "precision": null,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 8,
+            "hits": 6,
+            "precision": 0.75,
+            "recall": 0.5454545454545454,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 205,
+            "hits": 135,
+            "precision": 0.6585365853658537,
+            "recall": 0.7458563535911602,
+            "support": 181
+          },
+          "other": {
+            "chosen": 31,
+            "hits": 13,
+            "precision": 0.41935483870967744,
+            "recall": 0.20967741935483872,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 681,
+            "hits": 474,
+            "precision": 0.6960352422907489,
+            "recall": 0.6970588235294117,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 7,
+            "hits": 3,
+            "precision": 0.42857142857142855,
+            "recall": 0.036585365853658534,
+            "support": 82
+          }
+        },
+        "changed": 88,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.5,
+      "l2": 0.0003,
+      "train": {
+        "accuracy": 0.6515699892399491,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3217,
+            "hits": 1861,
+            "precision": 0.578489275722723,
+            "recall": 0.8341550874047512,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 83,
+            "hits": 33,
+            "precision": 0.39759036144578314,
+            "recall": 0.38372093023255816,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 334,
+            "hits": 219,
+            "precision": 0.655688622754491,
+            "recall": 0.44693877551020406,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 131,
+            "hits": 88,
+            "precision": 0.6717557251908397,
+            "recall": 0.42105263157894735,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 56,
+            "hits": 31,
+            "precision": 0.5535714285714286,
+            "recall": 0.18902439024390244,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1232,
+            "hits": 941,
+            "precision": 0.7637987012987013,
+            "recall": 0.6789321789321789,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 12,
+            "hits": 6,
+            "precision": 0.5,
+            "recall": 0.03468208092485549,
+            "support": 173
+          },
+          "end": {
+            "chosen": 47,
+            "hits": 34,
+            "precision": 0.723404255319149,
+            "recall": 0.4927536231884058,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1161,
+            "hits": 764,
+            "precision": 0.6580534022394487,
+            "recall": 0.7594433399602386,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 191,
+            "hits": 93,
+            "precision": 0.4869109947643979,
+            "recall": 0.25135135135135134,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3698,
+            "hits": 2559,
+            "precision": 0.6919956733369389,
+            "recall": 0.7130119810532182,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 61,
+            "hits": 32,
+            "precision": 0.5245901639344263,
+            "recall": 0.07111111111111111,
+            "support": 450
+          }
+        },
+        "changed": 948,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6514830508474576,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 653,
+            "hits": 374,
+            "precision": 0.5727411944869831,
+            "recall": 0.8617511520737328,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 11,
+            "hits": 7,
+            "precision": 0.6363636363636364,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 49,
+            "hits": 30,
+            "precision": 0.6122448979591837,
+            "recall": 0.4225352112676056,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 28,
+            "hits": 20,
+            "precision": 0.7142857142857143,
+            "recall": 0.46511627906976744,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 6,
+            "hits": 3,
+            "precision": 0.5,
+            "recall": 0.12,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 198,
+            "hits": 157,
+            "precision": 0.7929292929292929,
+            "recall": 0.6305220883534136,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 5,
+            "hits": 5,
+            "precision": 1.0,
+            "recall": 0.45454545454545453,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 206,
+            "hits": 135,
+            "precision": 0.6553398058252428,
+            "recall": 0.7458563535911602,
+            "support": 181
+          },
+          "other": {
+            "chosen": 25,
+            "hits": 12,
+            "precision": 0.48,
+            "recall": 0.1935483870967742,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 696,
+            "hits": 482,
+            "precision": 0.6925287356321839,
+            "recall": 0.7088235294117647,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 10,
+            "hits": 5,
+            "precision": 0.5,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 152,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.75,
+      "l2": 0.0003,
+      "train": {
+        "accuracy": 0.6509830773745476,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3264,
+            "hits": 1880,
+            "precision": 0.5759803921568627,
+            "recall": 0.842671447781264,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 77,
+            "hits": 32,
+            "precision": 0.4155844155844156,
+            "recall": 0.37209302325581395,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 306,
+            "hits": 207,
+            "precision": 0.6764705882352942,
+            "recall": 0.42244897959183675,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 113,
+            "hits": 80,
+            "precision": 0.7079646017699115,
+            "recall": 0.3827751196172249,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 49,
+            "hits": 27,
+            "precision": 0.5510204081632653,
+            "recall": 0.16463414634146342,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1193,
+            "hits": 928,
+            "precision": 0.7778709136630344,
+            "recall": 0.6695526695526696,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.028901734104046242,
+            "support": 173
+          },
+          "end": {
+            "chosen": 39,
+            "hits": 28,
+            "precision": 0.717948717948718,
+            "recall": 0.4057971014492754,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1191,
+            "hits": 774,
+            "precision": 0.6498740554156172,
+            "recall": 0.7693836978131213,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 154,
+            "hits": 79,
+            "precision": 0.512987012987013,
+            "recall": 0.21351351351351353,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3764,
+            "hits": 2584,
+            "precision": 0.6865037194473964,
+            "recall": 0.7199777096684313,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 64,
+            "hits": 31,
+            "precision": 0.484375,
+            "recall": 0.06888888888888889,
+            "support": 450
+          }
+        },
+        "changed": 1271,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6509533898305084,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 669,
+            "hits": 382,
+            "precision": 0.5710014947683109,
+            "recall": 0.880184331797235,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 7,
+            "precision": 0.7,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 47,
+            "hits": 28,
+            "precision": 0.5957446808510638,
+            "recall": 0.39436619718309857,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 23,
+            "hits": 19,
+            "precision": 0.8260869565217391,
+            "recall": 0.4418604651162791,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 6,
+            "hits": 3,
+            "precision": 0.5,
+            "recall": 0.12,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 189,
+            "hits": 152,
+            "precision": 0.8042328042328042,
+            "recall": 0.6104417670682731,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 4,
+            "hits": 4,
+            "precision": 1.0,
+            "recall": 0.36363636363636365,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 204,
+            "hits": 133,
+            "precision": 0.6519607843137255,
+            "recall": 0.7348066298342542,
+            "support": 181
+          },
+          "other": {
+            "chosen": 23,
+            "hits": 11,
+            "precision": 0.4782608695652174,
+            "recall": 0.1774193548387097,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 701,
+            "hits": 485,
+            "precision": 0.6918687589158345,
+            "recall": 0.7132352941176471,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 195,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 1.0,
+      "l2": 0.0003,
+      "train": {
+        "accuracy": 0.6485376112687078,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3265,
+            "hits": 1882,
+            "precision": 0.576416539050536,
+            "recall": 0.8435679067682653,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 73,
+            "hits": 33,
+            "precision": 0.4520547945205479,
+            "recall": 0.38372093023255816,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 298,
+            "hits": 205,
+            "precision": 0.6879194630872483,
+            "recall": 0.41836734693877553,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 98,
+            "hits": 73,
+            "precision": 0.7448979591836735,
+            "recall": 0.3492822966507177,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 40,
+            "hits": 22,
+            "precision": 0.55,
+            "recall": 0.13414634146341464,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1156,
+            "hits": 902,
+            "precision": 0.7802768166089965,
+            "recall": 0.6507936507936508,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 8,
+            "hits": 6,
+            "precision": 0.75,
+            "recall": 0.03468208092485549,
+            "support": 173
+          },
+          "end": {
+            "chosen": 33,
+            "hits": 23,
+            "precision": 0.696969696969697,
+            "recall": 0.3333333333333333,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1220,
+            "hits": 778,
+            "precision": 0.6377049180327868,
+            "recall": 0.7733598409542743,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 143,
+            "hits": 71,
+            "precision": 0.4965034965034965,
+            "recall": 0.1918918918918919,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3819,
+            "hits": 2599,
+            "precision": 0.6805446451950773,
+            "recall": 0.7241571468375592,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 70,
+            "hits": 36,
+            "precision": 0.5142857142857142,
+            "recall": 0.08,
+            "support": 450
+          }
+        },
+        "changed": 1508,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6520127118644068,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 678,
+            "hits": 391,
+            "precision": 0.5766961651917404,
+            "recall": 0.9009216589861752,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 7,
+            "precision": 0.7,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 45,
+            "hits": 27,
+            "precision": 0.6,
+            "recall": 0.38028169014084506,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 18,
+            "hits": 16,
+            "precision": 0.8888888888888888,
+            "recall": 0.37209302325581395,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 7,
+            "hits": 4,
+            "precision": 0.5714285714285714,
+            "recall": 0.16,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 181,
+            "hits": 150,
+            "precision": 0.8287292817679558,
+            "recall": 0.6024096385542169,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 2,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 3,
+            "hits": 3,
+            "precision": 1.0,
+            "recall": 0.2727272727272727,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 206,
+            "hits": 132,
+            "precision": 0.6407766990291263,
+            "recall": 0.7292817679558011,
+            "support": 181
+          },
+          "other": {
+            "chosen": 22,
+            "hits": 11,
+            "precision": 0.5,
+            "recall": 0.1774193548387097,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 705,
+            "hits": 485,
+            "precision": 0.6879432624113475,
+            "recall": 0.7132352941176471,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 236,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 1.5,
+      "l2": 0.0003,
+      "train": {
+        "accuracy": 0.6452117773647658,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3276,
+            "hits": 1883,
+            "precision": 0.5747863247863247,
+            "recall": 0.844016136261766,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 76,
+            "hits": 37,
+            "precision": 0.4868421052631579,
+            "recall": 0.43023255813953487,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 286,
+            "hits": 198,
+            "precision": 0.6923076923076923,
+            "recall": 0.40408163265306124,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 79,
+            "hits": 58,
+            "precision": 0.7341772151898734,
+            "recall": 0.27751196172248804,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 34,
+            "hits": 19,
+            "precision": 0.5588235294117647,
+            "recall": 0.11585365853658537,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1110,
+            "hits": 871,
+            "precision": 0.7846846846846847,
+            "recall": 0.6284271284271284,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 8,
+            "hits": 7,
+            "precision": 0.875,
+            "recall": 0.04046242774566474,
+            "support": 173
+          },
+          "end": {
+            "chosen": 28,
+            "hits": 20,
+            "precision": 0.7142857142857143,
+            "recall": 0.2898550724637681,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1255,
+            "hits": 789,
+            "precision": 0.6286852589641434,
+            "recall": 0.7842942345924453,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 116,
+            "hits": 58,
+            "precision": 0.5,
+            "recall": 0.15675675675675677,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3882,
+            "hits": 2617,
+            "precision": 0.6741370427614631,
+            "recall": 0.7291724714405127,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 73,
+            "hits": 39,
+            "precision": 0.5342465753424658,
+            "recall": 0.08666666666666667,
+            "support": 450
+          }
+        },
+        "changed": 1889,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6398305084745762,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 669,
+            "hits": 385,
+            "precision": 0.5754857997010463,
+            "recall": 0.8870967741935484,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 4,
+            "precision": 0.4,
+            "recall": 0.25,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 43,
+            "hits": 22,
+            "precision": 0.5116279069767442,
+            "recall": 0.30985915492957744,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 12,
+            "hits": 10,
+            "precision": 0.8333333333333334,
+            "recall": 0.23255813953488372,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 2,
+            "hits": 1,
+            "precision": 0.5,
+            "recall": 0.04,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 175,
+            "hits": 146,
+            "precision": 0.8342857142857143,
+            "recall": 0.5863453815261044,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 3,
+            "hits": 1,
+            "precision": 0.3333333333333333,
+            "recall": 0.029411764705882353,
+            "support": 34
+          },
+          "end": {
+            "chosen": 3,
+            "hits": 3,
+            "precision": 1.0,
+            "recall": 0.2727272727272727,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 211,
+            "hits": 133,
+            "precision": 0.6303317535545023,
+            "recall": 0.7348066298342542,
+            "support": 181
+          },
+          "other": {
+            "chosen": 16,
+            "hits": 7,
+            "precision": 0.4375,
+            "recall": 0.11290322580645161,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 733,
+            "hits": 491,
+            "precision": 0.669849931787176,
+            "recall": 0.7220588235294118,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 296,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.25,
+      "l2": 0.001,
+      "train": {
+        "accuracy": 0.6459943265186344,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3155,
+            "hits": 1816,
+            "precision": 0.5755942947702061,
+            "recall": 0.813984760197221,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 82,
+            "hits": 32,
+            "precision": 0.3902439024390244,
+            "recall": 0.37209302325581395,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 346,
+            "hits": 220,
+            "precision": 0.6358381502890174,
+            "recall": 0.4489795918367347,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 163,
+            "hits": 97,
+            "precision": 0.5950920245398773,
+            "recall": 0.46411483253588515,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 76,
+            "hits": 37,
+            "precision": 0.4868421052631579,
+            "recall": 0.22560975609756098,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1283,
+            "hits": 955,
+            "precision": 0.7443491816056118,
+            "recall": 0.689033189033189,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 17,
+            "hits": 8,
+            "precision": 0.47058823529411764,
+            "recall": 0.046242774566473986,
+            "support": 173
+          },
+          "end": {
+            "chosen": 59,
+            "hits": 38,
+            "precision": 0.6440677966101694,
+            "recall": 0.5507246376811594,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1139,
+            "hits": 750,
+            "precision": 0.6584723441615452,
+            "recall": 0.7455268389662028,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 235,
+            "hits": 109,
+            "precision": 0.46382978723404256,
+            "recall": 0.2945945945945946,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3615,
+            "hits": 2514,
+            "precision": 0.6954356846473029,
+            "recall": 0.7004736695458345,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 53,
+            "hits": 28,
+            "precision": 0.5283018867924528,
+            "recall": 0.06222222222222222,
+            "support": 450
+          }
+        },
+        "changed": 549,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6483050847457628,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 647,
+            "hits": 368,
+            "precision": 0.5687789799072643,
+            "recall": 0.847926267281106,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.3125,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 52,
+            "hits": 32,
+            "precision": 0.6153846153846154,
+            "recall": 0.4507042253521127,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 32,
+            "hits": 23,
+            "precision": 0.71875,
+            "recall": 0.5348837209302325,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.2,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 207,
+            "hits": 160,
+            "precision": 0.7729468599033816,
+            "recall": 0.642570281124498,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 0,
+            "hits": 0,
+            "precision": null,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 8,
+            "hits": 6,
+            "precision": 0.75,
+            "recall": 0.5454545454545454,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 206,
+            "hits": 135,
+            "precision": 0.6553398058252428,
+            "recall": 0.7458563535911602,
+            "support": 181
+          },
+          "other": {
+            "chosen": 31,
+            "hits": 13,
+            "precision": 0.41935483870967744,
+            "recall": 0.20967741935483872,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 680,
+            "hits": 474,
+            "precision": 0.6970588235294117,
+            "recall": 0.6970588235294117,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 7,
+            "hits": 3,
+            "precision": 0.42857142857142855,
+            "recall": 0.036585365853658534,
+            "support": 82
+          }
+        },
+        "changed": 86,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.5,
+      "l2": 0.001,
+      "train": {
+        "accuracy": 0.6519612638168835,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3222,
+            "hits": 1862,
+            "precision": 0.5779019242706394,
+            "recall": 0.834603316898252,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 80,
+            "hits": 32,
+            "precision": 0.4,
+            "recall": 0.37209302325581395,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 335,
+            "hits": 220,
+            "precision": 0.6567164179104478,
+            "recall": 0.4489795918367347,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 130,
+            "hits": 87,
+            "precision": 0.6692307692307692,
+            "recall": 0.41626794258373206,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 56,
+            "hits": 31,
+            "precision": 0.5535714285714286,
+            "recall": 0.18902439024390244,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1234,
+            "hits": 942,
+            "precision": 0.7633711507293355,
+            "recall": 0.6796536796536796,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 12,
+            "hits": 6,
+            "precision": 0.5,
+            "recall": 0.03468208092485549,
+            "support": 173
+          },
+          "end": {
+            "chosen": 46,
+            "hits": 34,
+            "precision": 0.7391304347826086,
+            "recall": 0.4927536231884058,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1161,
+            "hits": 764,
+            "precision": 0.6580534022394487,
+            "recall": 0.7594433399602386,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 187,
+            "hits": 92,
+            "precision": 0.4919786096256685,
+            "recall": 0.24864864864864866,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3699,
+            "hits": 2562,
+            "precision": 0.6926196269261963,
+            "recall": 0.7138478684870437,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 61,
+            "hits": 33,
+            "precision": 0.5409836065573771,
+            "recall": 0.07333333333333333,
+            "support": 450
+          }
+        },
+        "changed": 946,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6509533898305084,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 657,
+            "hits": 375,
+            "precision": 0.5707762557077626,
+            "recall": 0.8640552995391705,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 11,
+            "hits": 7,
+            "precision": 0.6363636363636364,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 48,
+            "hits": 29,
+            "precision": 0.6041666666666666,
+            "recall": 0.4084507042253521,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 27,
+            "hits": 20,
+            "precision": 0.7407407407407407,
+            "recall": 0.46511627906976744,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 6,
+            "hits": 3,
+            "precision": 0.5,
+            "recall": 0.12,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 199,
+            "hits": 158,
+            "precision": 0.7939698492462312,
+            "recall": 0.6345381526104418,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 5,
+            "hits": 5,
+            "precision": 1.0,
+            "recall": 0.45454545454545453,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 204,
+            "hits": 134,
+            "precision": 0.6568627450980392,
+            "recall": 0.7403314917127072,
+            "support": 181
+          },
+          "other": {
+            "chosen": 24,
+            "hits": 12,
+            "precision": 0.5,
+            "recall": 0.1935483870967742,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 696,
+            "hits": 481,
+            "precision": 0.6910919540229885,
+            "recall": 0.7073529411764706,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 10,
+            "hits": 5,
+            "precision": 0.5,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 154,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.75,
+      "l2": 0.001,
+      "train": {
+        "accuracy": 0.650396165509146,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3270,
+            "hits": 1881,
+            "precision": 0.5752293577981651,
+            "recall": 0.8431196772747647,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 77,
+            "hits": 32,
+            "precision": 0.4155844155844156,
+            "recall": 0.37209302325581395,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 306,
+            "hits": 207,
+            "precision": 0.6764705882352942,
+            "recall": 0.42244897959183675,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 112,
+            "hits": 79,
+            "precision": 0.7053571428571429,
+            "recall": 0.37799043062200954,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 46,
+            "hits": 24,
+            "precision": 0.5217391304347826,
+            "recall": 0.14634146341463414,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1194,
+            "hits": 926,
+            "precision": 0.7755443886097152,
+            "recall": 0.6681096681096681,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 8,
+            "hits": 5,
+            "precision": 0.625,
+            "recall": 0.028901734104046242,
+            "support": 173
+          },
+          "end": {
+            "chosen": 37,
+            "hits": 28,
+            "precision": 0.7567567567567568,
+            "recall": 0.4057971014492754,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1190,
+            "hits": 773,
+            "precision": 0.6495798319327731,
+            "recall": 0.768389662027833,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 153,
+            "hits": 79,
+            "precision": 0.5163398692810458,
+            "recall": 0.21351351351351353,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3766,
+            "hits": 2583,
+            "precision": 0.6858736059479554,
+            "recall": 0.7196990805238228,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 64,
+            "hits": 32,
+            "precision": 0.5,
+            "recall": 0.07111111111111111,
+            "support": 450
+          }
+        },
+        "changed": 1266,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6509533898305084,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 668,
+            "hits": 382,
+            "precision": 0.5718562874251497,
+            "recall": 0.880184331797235,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 7,
+            "precision": 0.7,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 47,
+            "hits": 28,
+            "precision": 0.5957446808510638,
+            "recall": 0.39436619718309857,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 23,
+            "hits": 19,
+            "precision": 0.8260869565217391,
+            "recall": 0.4418604651162791,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 6,
+            "hits": 3,
+            "precision": 0.5,
+            "recall": 0.12,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 189,
+            "hits": 152,
+            "precision": 0.8042328042328042,
+            "recall": 0.6104417670682731,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 4,
+            "hits": 4,
+            "precision": 1.0,
+            "recall": 0.36363636363636365,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 205,
+            "hits": 134,
+            "precision": 0.6536585365853659,
+            "recall": 0.7403314917127072,
+            "support": 181
+          },
+          "other": {
+            "chosen": 23,
+            "hits": 11,
+            "precision": 0.4782608695652174,
+            "recall": 0.1774193548387097,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 701,
+            "hits": 484,
+            "precision": 0.6904422253922967,
+            "recall": 0.711764705882353,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 194,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 1.0,
+      "l2": 0.001,
+      "train": {
+        "accuracy": 0.6483419739802406,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3268,
+            "hits": 1882,
+            "precision": 0.5758873929008568,
+            "recall": 0.8435679067682653,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 71,
+            "hits": 31,
+            "precision": 0.43661971830985913,
+            "recall": 0.36046511627906974,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 297,
+            "hits": 203,
+            "precision": 0.6835016835016835,
+            "recall": 0.4142857142857143,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 99,
+            "hits": 74,
+            "precision": 0.7474747474747475,
+            "recall": 0.35406698564593303,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 40,
+            "hits": 20,
+            "precision": 0.5,
+            "recall": 0.12195121951219512,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1159,
+            "hits": 905,
+            "precision": 0.7808455565142364,
+            "recall": 0.652958152958153,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 7,
+            "hits": 5,
+            "precision": 0.7142857142857143,
+            "recall": 0.028901734104046242,
+            "support": 173
+          },
+          "end": {
+            "chosen": 31,
+            "hits": 22,
+            "precision": 0.7096774193548387,
+            "recall": 0.3188405797101449,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1223,
+            "hits": 781,
+            "precision": 0.6385936222403925,
+            "recall": 0.7763419483101391,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 140,
+            "hits": 71,
+            "precision": 0.5071428571428571,
+            "recall": 0.1918918918918919,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3821,
+            "hits": 2600,
+            "precision": 0.6804501439413766,
+            "recall": 0.7244357759821677,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 67,
+            "hits": 34,
+            "precision": 0.5074626865671642,
+            "recall": 0.07555555555555556,
+            "support": 450
+          }
+        },
+        "changed": 1500,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6520127118644068,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 678,
+            "hits": 391,
+            "precision": 0.5766961651917404,
+            "recall": 0.9009216589861752,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 7,
+            "precision": 0.7,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 45,
+            "hits": 27,
+            "precision": 0.6,
+            "recall": 0.38028169014084506,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 17,
+            "hits": 15,
+            "precision": 0.8823529411764706,
+            "recall": 0.3488372093023256,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 7,
+            "hits": 4,
+            "precision": 0.5714285714285714,
+            "recall": 0.16,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 181,
+            "hits": 150,
+            "precision": 0.8287292817679558,
+            "recall": 0.6024096385542169,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 2,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 3,
+            "hits": 3,
+            "precision": 1.0,
+            "recall": 0.2727272727272727,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 206,
+            "hits": 132,
+            "precision": 0.6407766990291263,
+            "recall": 0.7292817679558011,
+            "support": 181
+          },
+          "other": {
+            "chosen": 22,
+            "hits": 11,
+            "precision": 0.5,
+            "recall": 0.1774193548387097,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 706,
+            "hits": 486,
+            "precision": 0.6883852691218131,
+            "recall": 0.7147058823529412,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 237,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 1.5,
+      "l2": 0.001,
+      "train": {
+        "accuracy": 0.6448205027878313,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3291,
+            "hits": 1885,
+            "precision": 0.5727742327560013,
+            "recall": 0.8449125952487674,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 67,
+            "hits": 33,
+            "precision": 0.4925373134328358,
+            "recall": 0.38372093023255816,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 283,
+            "hits": 196,
+            "precision": 0.6925795053003534,
+            "recall": 0.4,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 74,
+            "hits": 57,
+            "precision": 0.7702702702702703,
+            "recall": 0.2727272727272727,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 30,
+            "hits": 17,
+            "precision": 0.5666666666666667,
+            "recall": 0.10365853658536585,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1112,
+            "hits": 871,
+            "precision": 0.783273381294964,
+            "recall": 0.6284271284271284,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 7,
+            "hits": 6,
+            "precision": 0.8571428571428571,
+            "recall": 0.03468208092485549,
+            "support": 173
+          },
+          "end": {
+            "chosen": 27,
+            "hits": 19,
+            "precision": 0.7037037037037037,
+            "recall": 0.2753623188405797,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1257,
+            "hits": 791,
+            "precision": 0.6292760540970564,
+            "recall": 0.7862823061630219,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 111,
+            "hits": 57,
+            "precision": 0.5135135135135135,
+            "recall": 0.15405405405405406,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3894,
+            "hits": 2623,
+            "precision": 0.6736004108885465,
+            "recall": 0.7308442463081638,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 70,
+            "hits": 37,
+            "precision": 0.5285714285714286,
+            "recall": 0.08222222222222222,
+            "support": 450
+          }
+        },
+        "changed": 1888,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6393008474576272,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 672,
+            "hits": 386,
+            "precision": 0.5744047619047619,
+            "recall": 0.8894009216589862,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 7,
+            "hits": 4,
+            "precision": 0.5714285714285714,
+            "recall": 0.25,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 43,
+            "hits": 22,
+            "precision": 0.5116279069767442,
+            "recall": 0.30985915492957744,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 12,
+            "hits": 10,
+            "precision": 0.8333333333333334,
+            "recall": 0.23255813953488372,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 2,
+            "hits": 1,
+            "precision": 0.5,
+            "recall": 0.04,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 176,
+            "hits": 146,
+            "precision": 0.8295454545454546,
+            "recall": 0.5863453815261044,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 2,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 2,
+            "hits": 2,
+            "precision": 1.0,
+            "recall": 0.18181818181818182,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 211,
+            "hits": 133,
+            "precision": 0.6303317535545023,
+            "recall": 0.7348066298342542,
+            "support": 181
+          },
+          "other": {
+            "chosen": 15,
+            "hits": 7,
+            "precision": 0.4666666666666667,
+            "recall": 0.11290322580645161,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 734,
+            "hits": 491,
+            "precision": 0.6689373297002725,
+            "recall": 0.7220588235294118,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 12,
+            "hits": 5,
+            "precision": 0.4166666666666667,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 293,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.25,
+      "l2": 0.003,
+      "train": {
+        "accuracy": 0.6457986892301673,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3155,
+            "hits": 1817,
+            "precision": 0.5759112519809826,
+            "recall": 0.8144329896907216,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 80,
+            "hits": 31,
+            "precision": 0.3875,
+            "recall": 0.36046511627906974,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 344,
+            "hits": 219,
+            "precision": 0.6366279069767442,
+            "recall": 0.44693877551020406,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 165,
+            "hits": 95,
+            "precision": 0.5757575757575758,
+            "recall": 0.45454545454545453,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 75,
+            "hits": 37,
+            "precision": 0.49333333333333335,
+            "recall": 0.22560975609756098,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1283,
+            "hits": 954,
+            "precision": 0.7435697583787997,
+            "recall": 0.6883116883116883,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 18,
+            "hits": 9,
+            "precision": 0.5,
+            "recall": 0.05202312138728324,
+            "support": 173
+          },
+          "end": {
+            "chosen": 57,
+            "hits": 38,
+            "precision": 0.6666666666666666,
+            "recall": 0.5507246376811594,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1142,
+            "hits": 750,
+            "precision": 0.6567425569176882,
+            "recall": 0.7455268389662028,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 231,
+            "hits": 107,
+            "precision": 0.46320346320346323,
+            "recall": 0.2891891891891892,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3619,
+            "hits": 2516,
+            "precision": 0.6952196739430782,
+            "recall": 0.7010309278350515,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 54,
+            "hits": 29,
+            "precision": 0.5370370370370371,
+            "recall": 0.06444444444444444,
+            "support": 450
+          }
+        },
+        "changed": 541,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6472457627118644,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 647,
+            "hits": 368,
+            "precision": 0.5687789799072643,
+            "recall": 0.847926267281106,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.3125,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 53,
+            "hits": 32,
+            "precision": 0.6037735849056604,
+            "recall": 0.4507042253521127,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 32,
+            "hits": 23,
+            "precision": 0.71875,
+            "recall": 0.5348837209302325,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.2,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 207,
+            "hits": 160,
+            "precision": 0.7729468599033816,
+            "recall": 0.642570281124498,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 0,
+            "hits": 0,
+            "precision": null,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 8,
+            "hits": 6,
+            "precision": 0.75,
+            "recall": 0.5454545454545454,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 207,
+            "hits": 135,
+            "precision": 0.6521739130434783,
+            "recall": 0.7458563535911602,
+            "support": 181
+          },
+          "other": {
+            "chosen": 30,
+            "hits": 12,
+            "precision": 0.4,
+            "recall": 0.1935483870967742,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 679,
+            "hits": 473,
+            "precision": 0.6966126656848306,
+            "recall": 0.6955882352941176,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 7,
+            "hits": 3,
+            "precision": 0.42857142857142855,
+            "recall": 0.036585365853658534,
+            "support": 82
+          }
+        },
+        "changed": 88,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.5,
+      "l2": 0.003,
+      "train": {
+        "accuracy": 0.6523525383938179,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3231,
+            "hits": 1865,
+            "precision": 0.577220674713711,
+            "recall": 0.8359480053787539,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 79,
+            "hits": 31,
+            "precision": 0.3924050632911392,
+            "recall": 0.36046511627906974,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 333,
+            "hits": 220,
+            "precision": 0.6606606606606606,
+            "recall": 0.4489795918367347,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 123,
+            "hits": 82,
+            "precision": 0.6666666666666666,
+            "recall": 0.3923444976076555,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 54,
+            "hits": 29,
+            "precision": 0.5370370370370371,
+            "recall": 0.17682926829268292,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1233,
+            "hits": 942,
+            "precision": 0.7639902676399026,
+            "recall": 0.6796536796536796,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 12,
+            "hits": 6,
+            "precision": 0.5,
+            "recall": 0.03468208092485549,
+            "support": 173
+          },
+          "end": {
+            "chosen": 44,
+            "hits": 34,
+            "precision": 0.7727272727272727,
+            "recall": 0.4927536231884058,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1160,
+            "hits": 764,
+            "precision": 0.6586206896551724,
+            "recall": 0.7594433399602386,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 185,
+            "hits": 93,
+            "precision": 0.5027027027027027,
+            "recall": 0.25135135135135134,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3709,
+            "hits": 2569,
+            "precision": 0.6926395254785657,
+            "recall": 0.7157982724993034,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 60,
+            "hits": 34,
+            "precision": 0.5666666666666667,
+            "recall": 0.07555555555555556,
+            "support": 450
+          }
+        },
+        "changed": 949,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6509533898305084,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 660,
+            "hits": 376,
+            "precision": 0.5696969696969697,
+            "recall": 0.8663594470046083,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.3125,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 48,
+            "hits": 29,
+            "precision": 0.6041666666666666,
+            "recall": 0.4084507042253521,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 27,
+            "hits": 20,
+            "precision": 0.7407407407407407,
+            "recall": 0.46511627906976744,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 7,
+            "hits": 4,
+            "precision": 0.5714285714285714,
+            "recall": 0.16,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 199,
+            "hits": 158,
+            "precision": 0.7939698492462312,
+            "recall": 0.6345381526104418,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 5,
+            "hits": 5,
+            "precision": 1.0,
+            "recall": 0.45454545454545453,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 204,
+            "hits": 135,
+            "precision": 0.6617647058823529,
+            "recall": 0.7458563535911602,
+            "support": 181
+          },
+          "other": {
+            "chosen": 24,
+            "hits": 12,
+            "precision": 0.5,
+            "recall": 0.1935483870967742,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 695,
+            "hits": 480,
+            "precision": 0.6906474820143885,
+            "recall": 0.7058823529411765,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 150,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 0.75,
+      "l2": 0.003,
+      "train": {
+        "accuracy": 0.6493201604225766,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3272,
+            "hits": 1880,
+            "precision": 0.5745721271393643,
+            "recall": 0.842671447781264,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 74,
+            "hits": 29,
+            "precision": 0.3918918918918919,
+            "recall": 0.3372093023255814,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 307,
+            "hits": 208,
+            "precision": 0.6775244299674267,
+            "recall": 0.42448979591836733,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 109,
+            "hits": 77,
+            "precision": 0.7064220183486238,
+            "recall": 0.3684210526315789,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 43,
+            "hits": 22,
+            "precision": 0.5116279069767442,
+            "recall": 0.13414634146341464,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1192,
+            "hits": 925,
+            "precision": 0.7760067114093959,
+            "recall": 0.6673881673881674,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 9,
+            "hits": 5,
+            "precision": 0.5555555555555556,
+            "recall": 0.028901734104046242,
+            "support": 173
+          },
+          "end": {
+            "chosen": 34,
+            "hits": 25,
+            "precision": 0.7352941176470589,
+            "recall": 0.36231884057971014,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1192,
+            "hits": 771,
+            "precision": 0.6468120805369127,
+            "recall": 0.7664015904572564,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 148,
+            "hits": 76,
+            "precision": 0.5135135135135135,
+            "recall": 0.20540540540540542,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3781,
+            "hits": 2588,
+            "precision": 0.6844750066120074,
+            "recall": 0.7210922262468654,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 62,
+            "hits": 32,
+            "precision": 0.5161290322580645,
+            "recall": 0.07111111111111111,
+            "support": 450
+          }
+        },
+        "changed": 1256,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6509533898305084,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 671,
+            "hits": 383,
+            "precision": 0.5707898658718331,
+            "recall": 0.8824884792626728,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 7,
+            "precision": 0.7,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 47,
+            "hits": 28,
+            "precision": 0.5957446808510638,
+            "recall": 0.39436619718309857,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 22,
+            "hits": 19,
+            "precision": 0.8636363636363636,
+            "recall": 0.4418604651162791,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 6,
+            "hits": 3,
+            "precision": 0.5,
+            "recall": 0.12,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 189,
+            "hits": 152,
+            "precision": 0.8042328042328042,
+            "recall": 0.6104417670682731,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 4,
+            "hits": 4,
+            "precision": 1.0,
+            "recall": 0.36363636363636365,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 205,
+            "hits": 133,
+            "precision": 0.6487804878048781,
+            "recall": 0.7348066298342542,
+            "support": 181
+          },
+          "other": {
+            "chosen": 23,
+            "hits": 11,
+            "precision": 0.4782608695652174,
+            "recall": 0.1774193548387097,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 699,
+            "hits": 484,
+            "precision": 0.6924177396280401,
+            "recall": 0.711764705882353,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 193,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 1.0,
+      "l2": 0.003,
+      "train": {
+        "accuracy": 0.6481463366917735,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3286,
+            "hits": 1890,
+            "precision": 0.5751673767498479,
+            "recall": 0.8471537427162708,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 67,
+            "hits": 27,
+            "precision": 0.40298507462686567,
+            "recall": 0.313953488372093,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 300,
+            "hits": 204,
+            "precision": 0.68,
+            "recall": 0.4163265306122449,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 94,
+            "hits": 70,
+            "precision": 0.7446808510638298,
+            "recall": 0.3349282296650718,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 39,
+            "hits": 20,
+            "precision": 0.5128205128205128,
+            "recall": 0.12195121951219512,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1162,
+            "hits": 906,
+            "precision": 0.7796901893287436,
+            "recall": 0.6536796536796536,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 7,
+            "hits": 5,
+            "precision": 0.7142857142857143,
+            "recall": 0.028901734104046242,
+            "support": 173
+          },
+          "end": {
+            "chosen": 30,
+            "hits": 21,
+            "precision": 0.7,
+            "recall": 0.30434782608695654,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1219,
+            "hits": 780,
+            "precision": 0.6398687448728466,
+            "recall": 0.7753479125248509,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 130,
+            "hits": 67,
+            "precision": 0.5153846153846153,
+            "recall": 0.1810810810810811,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3826,
+            "hits": 2602,
+            "precision": 0.680083638264506,
+            "recall": 0.7249930342713848,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 63,
+            "hits": 34,
+            "precision": 0.5396825396825397,
+            "recall": 0.07555555555555556,
+            "support": 450
+          }
+        },
+        "changed": 1498,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6467161016949152,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 680,
+            "hits": 389,
+            "precision": 0.5720588235294117,
+            "recall": 0.8963133640552995,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 10,
+            "hits": 7,
+            "precision": 0.7,
+            "recall": 0.4375,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 46,
+            "hits": 27,
+            "precision": 0.5869565217391305,
+            "recall": 0.38028169014084506,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 16,
+            "hits": 14,
+            "precision": 0.875,
+            "recall": 0.32558139534883723,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 5,
+            "hits": 2,
+            "precision": 0.4,
+            "recall": 0.08,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 181,
+            "hits": 149,
+            "precision": 0.8232044198895028,
+            "recall": 0.5983935742971888,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 1,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 3,
+            "hits": 3,
+            "precision": 1.0,
+            "recall": 0.2727272727272727,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 205,
+            "hits": 131,
+            "precision": 0.6390243902439025,
+            "recall": 0.7237569060773481,
+            "support": 181
+          },
+          "other": {
+            "chosen": 21,
+            "hits": 9,
+            "precision": 0.42857142857142855,
+            "recall": 0.14516129032258066,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 709,
+            "hits": 485,
+            "precision": 0.6840620592383639,
+            "recall": 0.7132352941176471,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 11,
+            "hits": 5,
+            "precision": 0.45454545454545453,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 233,
+        "rows": 1888
+      }
+    },
+    {
+      "beta": 1.5,
+      "l2": 0.003,
+      "train": {
+        "accuracy": 0.6448205027878313,
+        "baseline_accuracy": 0.633669177345202,
+        "by_family": {
+          "ability": {
+            "chosen": 3299,
+            "hits": 1889,
+            "precision": 0.5725977568960291,
+            "recall": 0.8467055132227701,
+            "support": 2231
+          },
+          "attach_active": {
+            "chosen": 54,
+            "hits": 27,
+            "precision": 0.5,
+            "recall": 0.313953488372093,
+            "support": 86
+          },
+          "attach_backup": {
+            "chosen": 280,
+            "hits": 195,
+            "precision": 0.6964285714285714,
+            "recall": 0.3979591836734694,
+            "support": 490
+          },
+          "attach_munkidori": {
+            "chosen": 73,
+            "hits": 57,
+            "precision": 0.7808219178082192,
+            "recall": 0.2727272727272727,
+            "support": 209
+          },
+          "attach_other": {
+            "chosen": 25,
+            "hits": 15,
+            "precision": 0.6,
+            "recall": 0.09146341463414634,
+            "support": 164
+          },
+          "attack": {
+            "chosen": 1110,
+            "hits": 868,
+            "precision": 0.781981981981982,
+            "recall": 0.6262626262626263,
+            "support": 1386
+          },
+          "boss": {
+            "chosen": 7,
+            "hits": 6,
+            "precision": 0.8571428571428571,
+            "recall": 0.03468208092485549,
+            "support": 173
+          },
+          "end": {
+            "chosen": 20,
+            "hits": 16,
+            "precision": 0.8,
+            "recall": 0.2318840579710145,
+            "support": 69
+          },
+          "evolve": {
+            "chosen": 1261,
+            "hits": 793,
+            "precision": 0.6288659793814433,
+            "recall": 0.7882703777335984,
+            "support": 1006
+          },
+          "other": {
+            "chosen": 102,
+            "hits": 51,
+            "precision": 0.5,
+            "recall": 0.13783783783783785,
+            "support": 370
+          },
+          "play_other": {
+            "chosen": 3920,
+            "hits": 2636,
+            "precision": 0.6724489795918367,
+            "recall": 0.7344664251880747,
+            "support": 3589
+          },
+          "ultra_ball": {
+            "chosen": 72,
+            "hits": 39,
+            "precision": 0.5416666666666666,
+            "recall": 0.08666666666666667,
+            "support": 450
+          }
+        },
+        "changed": 1890,
+        "rows": 10223
+      },
+      "validation": {
+        "accuracy": 0.6371822033898306,
+        "baseline_accuracy": 0.635593220338983,
+        "by_family": {
+          "ability": {
+            "chosen": 676,
+            "hits": 387,
+            "precision": 0.5724852071005917,
+            "recall": 0.8917050691244239,
+            "support": 434
+          },
+          "attach_active": {
+            "chosen": 6,
+            "hits": 4,
+            "precision": 0.6666666666666666,
+            "recall": 0.25,
+            "support": 16
+          },
+          "attach_backup": {
+            "chosen": 42,
+            "hits": 21,
+            "precision": 0.5,
+            "recall": 0.29577464788732394,
+            "support": 71
+          },
+          "attach_munkidori": {
+            "chosen": 8,
+            "hits": 8,
+            "precision": 1.0,
+            "recall": 0.18604651162790697,
+            "support": 43
+          },
+          "attach_other": {
+            "chosen": 2,
+            "hits": 1,
+            "precision": 0.5,
+            "recall": 0.04,
+            "support": 25
+          },
+          "attack": {
+            "chosen": 175,
+            "hits": 145,
+            "precision": 0.8285714285714286,
+            "recall": 0.5823293172690763,
+            "support": 249
+          },
+          "boss": {
+            "chosen": 2,
+            "hits": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "support": 34
+          },
+          "end": {
+            "chosen": 2,
+            "hits": 2,
+            "precision": 1.0,
+            "recall": 0.18181818181818182,
+            "support": 11
+          },
+          "evolve": {
+            "chosen": 210,
+            "hits": 132,
+            "precision": 0.6285714285714286,
+            "recall": 0.7292817679558011,
+            "support": 181
+          },
+          "other": {
+            "chosen": 13,
+            "hits": 6,
+            "precision": 0.46153846153846156,
+            "recall": 0.0967741935483871,
+            "support": 62
+          },
+          "play_other": {
+            "chosen": 740,
+            "hits": 492,
+            "precision": 0.6648648648648648,
+            "recall": 0.7235294117647059,
+            "support": 680
+          },
+          "ultra_ball": {
+            "chosen": 12,
+            "hits": 5,
+            "precision": 0.4166666666666667,
+            "recall": 0.06097560975609756,
+            "support": 82
+          }
+        },
+        "changed": 299,
+        "rows": 1888
+      }
+    }
+  ],
+  "created_at": "2026-08-12T09:55:15.658742+00:00",
+  "gameplay_authority": false,
+  "lock_sha256": "1929bba0fc67170151aced4fe5055dc52d1d30e236ad42bea37681b47d6f8187",
+  "package_authority": false,
+  "result_sha256": "2da4f89dc3a0b9d0bc7a95576567ac0f41af926a7af2e8087c7bab0978e709f8",
+  "schema": "ptcg.dragapult-tempo-reranker.result.v1",
+  "selected": {
+    "beta": 1.0,
+    "l2": 0.0003,
+    "train": {
+      "accuracy": 0.6485376112687078,
+      "baseline_accuracy": 0.633669177345202,
+      "by_family": {
+        "ability": {
+          "chosen": 3265,
+          "hits": 1882,
+          "precision": 0.576416539050536,
+          "recall": 0.8435679067682653,
+          "support": 2231
+        },
+        "attach_active": {
+          "chosen": 73,
+          "hits": 33,
+          "precision": 0.4520547945205479,
+          "recall": 0.38372093023255816,
+          "support": 86
+        },
+        "attach_backup": {
+          "chosen": 298,
+          "hits": 205,
+          "precision": 0.6879194630872483,
+          "recall": 0.41836734693877553,
+          "support": 490
+        },
+        "attach_munkidori": {
+          "chosen": 98,
+          "hits": 73,
+          "precision": 0.7448979591836735,
+          "recall": 0.3492822966507177,
+          "support": 209
+        },
+        "attach_other": {
+          "chosen": 40,
+          "hits": 22,
+          "precision": 0.55,
+          "recall": 0.13414634146341464,
+          "support": 164
+        },
+        "attack": {
+          "chosen": 1156,
+          "hits": 902,
+          "precision": 0.7802768166089965,
+          "recall": 0.6507936507936508,
+          "support": 1386
+        },
+        "boss": {
+          "chosen": 8,
+          "hits": 6,
+          "precision": 0.75,
+          "recall": 0.03468208092485549,
+          "support": 173
+        },
+        "end": {
+          "chosen": 33,
+          "hits": 23,
+          "precision": 0.696969696969697,
+          "recall": 0.3333333333333333,
+          "support": 69
+        },
+        "evolve": {
+          "chosen": 1220,
+          "hits": 778,
+          "precision": 0.6377049180327868,
+          "recall": 0.7733598409542743,
+          "support": 1006
+        },
+        "other": {
+          "chosen": 143,
+          "hits": 71,
+          "precision": 0.4965034965034965,
+          "recall": 0.1918918918918919,
+          "support": 370
+        },
+        "play_other": {
+          "chosen": 3819,
+          "hits": 2599,
+          "precision": 0.6805446451950773,
+          "recall": 0.7241571468375592,
+          "support": 3589
+        },
+        "ultra_ball": {
+          "chosen": 70,
+          "hits": 36,
+          "precision": 0.5142857142857142,
+          "recall": 0.08,
+          "support": 450
+        }
+      },
+      "changed": 1508,
+      "rows": 10223
+    },
+    "validation": {
+      "accuracy": 0.6520127118644068,
+      "baseline_accuracy": 0.635593220338983,
+      "by_family": {
+        "ability": {
+          "chosen": 678,
+          "hits": 391,
+          "precision": 0.5766961651917404,
+          "recall": 0.9009216589861752,
+          "support": 434
+        },
+        "attach_active": {
+          "chosen": 10,
+          "hits": 7,
+          "precision": 0.7,
+          "recall": 0.4375,
+          "support": 16
+        },
+        "attach_backup": {
+          "chosen": 45,
+          "hits": 27,
+          "precision": 0.6,
+          "recall": 0.38028169014084506,
+          "support": 71
+        },
+        "attach_munkidori": {
+          "chosen": 18,
+          "hits": 16,
+          "precision": 0.8888888888888888,
+          "recall": 0.37209302325581395,
+          "support": 43
+        },
+        "attach_other": {
+          "chosen": 7,
+          "hits": 4,
+          "precision": 0.5714285714285714,
+          "recall": 0.16,
+          "support": 25
+        },
+        "attack": {
+          "chosen": 181,
+          "hits": 150,
+          "precision": 0.8287292817679558,
+          "recall": 0.6024096385542169,
+          "support": 249
+        },
+        "boss": {
+          "chosen": 2,
+          "hits": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 34
+        },
+        "end": {
+          "chosen": 3,
+          "hits": 3,
+          "precision": 1.0,
+          "recall": 0.2727272727272727,
+          "support": 11
+        },
+        "evolve": {
+          "chosen": 206,
+          "hits": 132,
+          "precision": 0.6407766990291263,
+          "recall": 0.7292817679558011,
+          "support": 181
+        },
+        "other": {
+          "chosen": 22,
+          "hits": 11,
+          "precision": 0.5,
+          "recall": 0.1774193548387097,
+          "support": 62
+        },
+        "play_other": {
+          "chosen": 705,
+          "hits": 485,
+          "precision": 0.6879432624113475,
+          "recall": 0.7132352941176471,
+          "support": 680
+        },
+        "ultra_ball": {
+          "chosen": 11,
+          "hits": 5,
+          "precision": 0.45454545454545453,
+          "recall": 0.06097560975609756,
+          "support": 82
+        }
+      },
+      "changed": 236,
+      "rows": 1888
+    }
+  },
+  "upload_authority": false,
+  "weights_sha256": "f2dde56e51b12d65d352baec2329b2ab8bda3d1f9a11d9cc3ae0e3aad1529adf"
+}

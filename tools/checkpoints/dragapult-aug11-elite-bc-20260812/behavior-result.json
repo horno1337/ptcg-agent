@@ -1,0 +1,64 @@
+{
+  "aggregate_opening_disclosed": true,
+  "arms": {
+    "card": {
+      "behavior_eligible": true,
+      "candidate_minus_parent_nll": -0.0263974888682994,
+      "decisions": 1052,
+      "disagreement_matches": {
+        "candidate": 24,
+        "neither": 12,
+        "parent": 11
+      },
+      "disagreements": 47,
+      "exact": {
+        "candidate": 773,
+        "parent": 760
+      },
+      "exact_rate": {
+        "candidate": 0.7347908745247148,
+        "parent": 0.7224334600760456
+      },
+      "games": 20,
+      "weighted_nll": {
+        "candidate": 0.8457743793028171,
+        "parent": 0.8721718681711165
+      }
+    },
+    "main": {
+      "behavior_eligible": true,
+      "candidate_minus_parent_nll": -0.03188717355966286,
+      "decisions": 1022,
+      "disagreement_matches": {
+        "candidate": 42,
+        "neither": 35,
+        "parent": 23
+      },
+      "disagreements": 100,
+      "exact": {
+        "candidate": 551,
+        "parent": 532
+      },
+      "exact_rate": {
+        "candidate": 0.5391389432485323,
+        "parent": 0.5205479452054794
+      },
+      "games": 20,
+      "weighted_nll": {
+        "candidate": 1.3449046582009327,
+        "parent": 1.3767918317605956
+      }
+    }
+  },
+  "created_at": "2026-08-12T09:13:37.484525+00:00",
+  "eligible_heads": [
+    "card",
+    "main"
+  ],
+  "lock_sha256": "448d9fdf4fcfb136bd419e1086575b33fdc1335feeff65efd699d27277b9197c",
+  "package_authority": false,
+  "promotion_authority": false,
+  "result_sha256": "c360034335b9537470d7f0ea95db02cd1c2312b80df6ee748fe98c299711556d",
+  "schema": "ptcg.dragapult-aug11-elite-bc.behavior-result.v1",
+  "upload_authority": false
+}

@@ -1,0 +1,83 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "collection_lock": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/lock.json",
+      "sha256": "dd32cc212759d163a262f6647446152e6032d33af02a96d704985f311ded346e"
+    },
+    "collection_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/result.json",
+      "sha256": "2174a123a92069dc5598c428859165924ccc0530ad352e931f62f90cb3d717b2"
+    },
+    "engine": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/engine/libcg.so",
+      "sha256": "73cc06473da0645d87d3c820ddec3c078610d95c24ee1080efcd98ef50650db7"
+    },
+    "labeler": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/label_dragapult_tempo_roots.py",
+      "sha256": "cf63917f655aa45eace1a80f4dc9ce8a55c5f3f9ad7fef34b385a1d1aa1f226b"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "privileged_roots": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/privileged-roots.jsonl",
+      "sha256": "cfc9fc93f94606ee96230cc67dd8f1f20e204e51d0057c7dc867a0dc9c9be3eb"
+    },
+    "public_roots": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-tempo-roots-v1-20260812/public-roots.jsonl",
+      "sha256": "94879b67c59dae94ad39dab3152eafa8536524574d29c097b2a956c73a5b0e6f"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    }
+  },
+  "collection_result_sha256": "37845bd6753fc3a153f5b80f999319ec88c39790aebd23e6bbd3aa19a0a9fad1",
+  "created_at": "2026-08-12T09:44:22.786881+00:00",
+  "interpretation": "privileged exact-state discovery only; no direct actor labels and no threshold tuning on future confirmation roots",
+  "lock_sha256": "0cf68e487536b4e06c99854dbcf79d45148b3e44e5b1e88814700617ada4d227",
+  "package_authority": false,
+  "promotion_authority": false,
+  "rollouts": {
+    "all_legal_root_actions": true,
+    "hop_cap": 500,
+    "learner_continuation": "exact dragapult-v2",
+    "native_rng_seedable": false,
+    "opponent_continuation": "frozen Qu-v2B",
+    "per_root": 4,
+    "root_and_branch_order": "independently balanced cyclic/reverse"
+  },
+  "schema": "ptcg.dragapult-tempo-panels.lock.v1",
+  "selection": {
+    "root_ids": [
+      "0003000c06521ba97741d3a45372accdee576005abe3a7ae2528492c3ab9669d",
+      "001378a61cbeb5aa15d91d3f0003ed0fa39db5a9e6a0167729b5dca68c16e4fd",
+      "0026dd589d2368620c22059c0b1f6389cac4cadda8a532dd75b22a11c1d0e891",
+      "00a6ab9d631b0478a735f4338516e8a83e557c447598f83e3533b0bd2d096a38",
+      "0112815c077729ed492d7039ad5e47a225e6967d8bfd1ffe8d996f368efbdc86",
+      "0163e4471a9b8007466d8a58c532b5895e541cbd4d4d9efa05aa64cfea4d105a",
+      "018187d49eaaeb7a2f90e6886d122d68a9228c5217e7cab0db094c481e3d1e7b",
+      "01ae3008adc5641a212987ec62194ea052c29981d9382fec8997c7d4b7046512",
+      "029aaef41bf2ba371045f73cbe6b257e7f1dbec91e1e1c507f76a1e0863cf9a0",
+      "02ced107739341440b61b57a12d089c92ae1c536cdfd92607835a0081702d5b7",
+      "02e989bd2132e9448fc22d3284b8c4c8d70004b4e33c3268d00ae29a9b075ff2",
+      "034401e862cf0a07eda4ebaf2cdd184b536e980139a0c9f99d92940e86ca711b"
+    ],
+    "root_order": "lowest root_id among discovery episodes",
+    "roots": 12,
+    "rule": "SHA256(seed:episode_id)[0] < 128",
+    "split": "discovery",
+    "split_seed": 2026081232
+  },
+  "upload_authority": false,
+  "written_before_terminal_rollout_outcomes": true
+}
