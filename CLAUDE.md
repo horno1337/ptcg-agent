@@ -375,6 +375,27 @@ This section supersedes older active-direction statements below.  The full
   Future use of losing games should be exact-list and state-conditioned (or a
   separate CARD-only screen), not a global 0.60 MAIN weight.  Artifacts live
   under `tools/checkpoints/dragapult-sixth-sense-weighted-bc-20260812/`.
+- The follow-on exact-list/state-conditioned and CARD-only sequence is also
+  complete, with no integration.  Seven previously unopened exact-`07bed`
+  Lucario loss roots where Boss and an attack were both legal were evaluated
+  across every legal action with 16 terminal continuations each; five
+  episode-disjoint roots were reserved and evaluated identically.  Discovery
+  contained one strong guide-aligned Prize route (+1.125 mean return): with an
+  80-HP Hariyama Active, Boss the fresh Mega Lucario and Phantom it instead of
+  cashing the easy one Prize.  Confirmation did not reproduce a public-state
+  Boss rule—Boss was generally worse there—so no Boss condition was encoded.
+  The stopping rule is binding.
+- A separately locked CARD-only loss-weight screen retained MAIN unchanged.
+  On the newer external cohort, loss weight 0.60 narrowly beat 0.15 and parent
+  on winner CARD NLL/agreement: 0.77086/68.70% versus 0.77285/68.49% and
+  0.82574/65.59%.  It passed the first exact-`07bed` 256-game screen at +7.42
+  pp, CI95 [-0.83,+15.67], with every named slice positive.  The required
+  fresh 512-game confirmation failed: -1.37 pp overall, CI95 [-6.77,+4.04],
+  and Mega Lucario regressed -13.73 pp with CI95 [-26.83,-0.62].  Dragapult
+  was +4.62 pp and Grim neutral, but the Lucario failure rejects the arm.
+  Do not integrate, retune, package, or upload either CARD arm.  Artifacts are
+  under `tools/checkpoints/dragapult-lucario-boss-roots-v1-20260812/` and
+  `tools/checkpoints/dragapult-sixth-sense-card-weighted-bc-20260812/`.
 - The 2026-08-12 ordered Dragapult sequencing/context experiment is complete;
   none of its candidates is authorized for integration or upload.  The exact
   parameter parent throughout was elite MAIN SHA-256 `793b230d...f966e0`;
