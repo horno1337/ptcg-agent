@@ -205,6 +205,15 @@ This section supersedes older active-direction statements below.  The full
   predict gameplay.  The next Dragapult experiment must select Boss/Phantom
   interventions with paired outcomes at learner-reached states and confirm on
   disjoint roots before another field gate.
+- The user has prospectively authorized **two byte-identical Kaggle
+  submissions** of the next Dragapult candidate that passes all behavior,
+  paired-gameplay, deterministic package, archive-runtime, and smoke gates.
+  Naming is delegated to the agent.  Use distinct probe names, bind both to
+  the same archive SHA-256/commit, read each upload receipt once, and combine
+  only provenance-verified replay episodes.  This authorization is
+  conditional on a genuinely passing candidate; it does not authorize
+  uploading the current rejected `dragapult-v2`, calibrator, allocator, or
+  Boss classifier.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a
