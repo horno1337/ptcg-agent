@@ -1,0 +1,561 @@
+{
+  "bias": {
+    "ability_drakloak": 0.1879112220714994,
+    "ability_munkidori": -0.5828791382950892,
+    "attach_dark": -0.17243788660864992,
+    "attach_fire": -0.23856388706165815,
+    "attach_psychic": -0.11898565646047068,
+    "boss": 0.14875232200420346,
+    "buddy_poffin": 0.1562574375743991,
+    "crispin": -0.3074625500939201,
+    "crushing_hammer": 0.04857487219985189,
+    "end": 0.15416434519548955,
+    "evolve_dragapult": -0.08448475624254022,
+    "evolve_drakloak": 0.03588424768883623,
+    "jamming_tower": 0.01596903663363205,
+    "night_stretcher": -0.11692854378261874,
+    "other": 3.326586373177002e-17,
+    "other_ability": 0.23196347734032702,
+    "other_attack": 0.03480844752280464,
+    "other_evolve": 3.326586373177002e-17,
+    "other_play": -0.1862465012606115,
+    "phantom": 0.5739803076095884,
+    "play_dreepy": -0.056738983776428116,
+    "play_munkidori": -0.06364675271895491,
+    "poke_pad": 0.13895483502603154,
+    "retreat": 0.0709704647199034,
+    "ultra_ball": 0.1301836407143748
+  },
+  "created_at": "2026-08-11T23:10:09.612925+00:00",
+  "integration_authority": true,
+  "lock_sha256": "635aff1a1a319b365ed222b5404da5ba3c4feaf93eeacfeb785304b71078d4be",
+  "package_authority": false,
+  "passed": true,
+  "result_sha256": "9f10fd40599ce001300cf35139cfe1b5d7d09be787064d1bdfa80d104302e4c7",
+  "schema": "ptcg.dragapult-plan-calibrator-training-result.v1",
+  "selection": {
+    "l2": 0.001,
+    "validation": {
+      "candidate": {
+        "exact": 564,
+        "exact_rate": 0.5117967332123412,
+        "n": 1102,
+        "offensive_exact": 70,
+        "offensive_exact_rate": 0.3225806451612903,
+        "offensive_total": 217,
+        "per_category": {
+          "ability_drakloak": {
+            "exact": 115,
+            "n": 195,
+            "rate": 0.5897435897435898
+          },
+          "ability_munkidori": {
+            "exact": 23,
+            "n": 37,
+            "rate": 0.6216216216216216
+          },
+          "attach_dark": {
+            "exact": 15,
+            "n": 24,
+            "rate": 0.625
+          },
+          "attach_fire": {
+            "exact": 13,
+            "n": 53,
+            "rate": 0.24528301886792453
+          },
+          "attach_psychic": {
+            "exact": 10,
+            "n": 42,
+            "rate": 0.23809523809523808
+          },
+          "boss": {
+            "exact": 0,
+            "n": 21,
+            "rate": 0.0
+          },
+          "buddy_poffin": {
+            "exact": 17,
+            "n": 34,
+            "rate": 0.5
+          },
+          "crispin": {
+            "exact": 5,
+            "n": 27,
+            "rate": 0.18518518518518517
+          },
+          "crushing_hammer": {
+            "exact": 46,
+            "n": 61,
+            "rate": 0.7540983606557377
+          },
+          "end": {
+            "exact": 36,
+            "n": 52,
+            "rate": 0.6923076923076923
+          },
+          "evolve_dragapult": {
+            "exact": 21,
+            "n": 43,
+            "rate": 0.4883720930232558
+          },
+          "evolve_drakloak": {
+            "exact": 42,
+            "n": 71,
+            "rate": 0.5915492957746479
+          },
+          "jamming_tower": {
+            "exact": 4,
+            "n": 28,
+            "rate": 0.14285714285714285
+          },
+          "night_stretcher": {
+            "exact": 4,
+            "n": 24,
+            "rate": 0.16666666666666666
+          },
+          "other_ability": {
+            "exact": 17,
+            "n": 28,
+            "rate": 0.6071428571428571
+          },
+          "other_attack": {
+            "exact": 18,
+            "n": 27,
+            "rate": 0.6666666666666666
+          },
+          "other_play": {
+            "exact": 48,
+            "n": 100,
+            "rate": 0.48
+          },
+          "phantom": {
+            "exact": 42,
+            "n": 62,
+            "rate": 0.6774193548387096
+          },
+          "play_dreepy": {
+            "exact": 24,
+            "n": 25,
+            "rate": 0.96
+          },
+          "play_munkidori": {
+            "exact": 16,
+            "n": 25,
+            "rate": 0.64
+          },
+          "poke_pad": {
+            "exact": 33,
+            "n": 58,
+            "rate": 0.5689655172413793
+          },
+          "retreat": {
+            "exact": 10,
+            "n": 26,
+            "rate": 0.38461538461538464
+          },
+          "ultra_ball": {
+            "exact": 5,
+            "n": 39,
+            "rate": 0.1282051282051282
+          }
+        },
+        "weighted_nll": 1.3703377274098776
+      },
+      "disagreements": 110,
+      "logged_action_on_disagreements": {
+        "candidate": 33,
+        "neither": 48,
+        "parent": 29
+      },
+      "parent": {
+        "exact": 560,
+        "exact_rate": 0.5081669691470054,
+        "n": 1102,
+        "offensive_exact": 67,
+        "offensive_exact_rate": 0.3087557603686636,
+        "offensive_total": 217,
+        "per_category": {
+          "ability_drakloak": {
+            "exact": 104,
+            "n": 195,
+            "rate": 0.5333333333333333
+          },
+          "ability_munkidori": {
+            "exact": 33,
+            "n": 37,
+            "rate": 0.8918918918918919
+          },
+          "attach_dark": {
+            "exact": 15,
+            "n": 24,
+            "rate": 0.625
+          },
+          "attach_fire": {
+            "exact": 14,
+            "n": 53,
+            "rate": 0.2641509433962264
+          },
+          "attach_psychic": {
+            "exact": 11,
+            "n": 42,
+            "rate": 0.2619047619047619
+          },
+          "boss": {
+            "exact": 0,
+            "n": 21,
+            "rate": 0.0
+          },
+          "buddy_poffin": {
+            "exact": 15,
+            "n": 34,
+            "rate": 0.4411764705882353
+          },
+          "crispin": {
+            "exact": 11,
+            "n": 27,
+            "rate": 0.4074074074074074
+          },
+          "crushing_hammer": {
+            "exact": 45,
+            "n": 61,
+            "rate": 0.7377049180327869
+          },
+          "end": {
+            "exact": 36,
+            "n": 52,
+            "rate": 0.6923076923076923
+          },
+          "evolve_dragapult": {
+            "exact": 22,
+            "n": 43,
+            "rate": 0.5116279069767442
+          },
+          "evolve_drakloak": {
+            "exact": 41,
+            "n": 71,
+            "rate": 0.5774647887323944
+          },
+          "jamming_tower": {
+            "exact": 3,
+            "n": 28,
+            "rate": 0.10714285714285714
+          },
+          "night_stretcher": {
+            "exact": 6,
+            "n": 24,
+            "rate": 0.25
+          },
+          "other_ability": {
+            "exact": 15,
+            "n": 28,
+            "rate": 0.5357142857142857
+          },
+          "other_attack": {
+            "exact": 18,
+            "n": 27,
+            "rate": 0.6666666666666666
+          },
+          "other_play": {
+            "exact": 50,
+            "n": 100,
+            "rate": 0.5
+          },
+          "phantom": {
+            "exact": 38,
+            "n": 62,
+            "rate": 0.6129032258064516
+          },
+          "play_dreepy": {
+            "exact": 23,
+            "n": 25,
+            "rate": 0.92
+          },
+          "play_munkidori": {
+            "exact": 15,
+            "n": 25,
+            "rate": 0.6
+          },
+          "poke_pad": {
+            "exact": 31,
+            "n": 58,
+            "rate": 0.5344827586206896
+          },
+          "retreat": {
+            "exact": 10,
+            "n": 26,
+            "rate": 0.38461538461538464
+          },
+          "ultra_ball": {
+            "exact": 4,
+            "n": 39,
+            "rate": 0.10256410256410256
+          }
+        },
+        "weighted_nll": 1.3988906786951616
+      }
+    }
+  },
+  "test": {
+    "candidate": {
+      "exact": 856,
+      "exact_rate": 0.5119617224880383,
+      "n": 1672,
+      "offensive_exact": 95,
+      "offensive_exact_rate": 0.2785923753665689,
+      "offensive_total": 341,
+      "per_category": {
+        "ability_drakloak": {
+          "exact": 181,
+          "n": 262,
+          "rate": 0.6908396946564885
+        },
+        "ability_munkidori": {
+          "exact": 38,
+          "n": 70,
+          "rate": 0.5428571428571428
+        },
+        "attach_dark": {
+          "exact": 15,
+          "n": 44,
+          "rate": 0.3409090909090909
+        },
+        "attach_fire": {
+          "exact": 9,
+          "n": 74,
+          "rate": 0.12162162162162163
+        },
+        "attach_psychic": {
+          "exact": 11,
+          "n": 71,
+          "rate": 0.15492957746478872
+        },
+        "boss": {
+          "exact": 1,
+          "n": 36,
+          "rate": 0.027777777777777776
+        },
+        "buddy_poffin": {
+          "exact": 36,
+          "n": 56,
+          "rate": 0.6428571428571429
+        },
+        "crispin": {
+          "exact": 13,
+          "n": 50,
+          "rate": 0.26
+        },
+        "crushing_hammer": {
+          "exact": 69,
+          "n": 99,
+          "rate": 0.696969696969697
+        },
+        "end": {
+          "exact": 30,
+          "n": 47,
+          "rate": 0.6382978723404256
+        },
+        "evolve_dragapult": {
+          "exact": 34,
+          "n": 66,
+          "rate": 0.5151515151515151
+        },
+        "evolve_drakloak": {
+          "exact": 87,
+          "n": 107,
+          "rate": 0.8130841121495327
+        },
+        "jamming_tower": {
+          "exact": 7,
+          "n": 37,
+          "rate": 0.1891891891891892
+        },
+        "night_stretcher": {
+          "exact": 9,
+          "n": 38,
+          "rate": 0.23684210526315788
+        },
+        "other_ability": {
+          "exact": 29,
+          "n": 56,
+          "rate": 0.5178571428571429
+        },
+        "other_attack": {
+          "exact": 50,
+          "n": 70,
+          "rate": 0.7142857142857143
+        },
+        "other_play": {
+          "exact": 53,
+          "n": 145,
+          "rate": 0.36551724137931035
+        },
+        "phantom": {
+          "exact": 68,
+          "n": 107,
+          "rate": 0.6355140186915887
+        },
+        "play_dreepy": {
+          "exact": 24,
+          "n": 31,
+          "rate": 0.7741935483870968
+        },
+        "play_munkidori": {
+          "exact": 21,
+          "n": 37,
+          "rate": 0.5675675675675675
+        },
+        "poke_pad": {
+          "exact": 49,
+          "n": 77,
+          "rate": 0.6363636363636364
+        },
+        "retreat": {
+          "exact": 16,
+          "n": 39,
+          "rate": 0.41025641025641024
+        },
+        "ultra_ball": {
+          "exact": 6,
+          "n": 53,
+          "rate": 0.11320754716981132
+        }
+      },
+      "weighted_nll": 1.364163079725904
+    },
+    "disagreements": 181,
+    "logged_action_on_disagreements": {
+      "candidate": 66,
+      "neither": 61,
+      "parent": 54
+    },
+    "parent": {
+      "exact": 844,
+      "exact_rate": 0.5047846889952153,
+      "n": 1672,
+      "offensive_exact": 85,
+      "offensive_exact_rate": 0.24926686217008798,
+      "offensive_total": 341,
+      "per_category": {
+        "ability_drakloak": {
+          "exact": 162,
+          "n": 262,
+          "rate": 0.6183206106870229
+        },
+        "ability_munkidori": {
+          "exact": 49,
+          "n": 70,
+          "rate": 0.7
+        },
+        "attach_dark": {
+          "exact": 22,
+          "n": 44,
+          "rate": 0.5
+        },
+        "attach_fire": {
+          "exact": 12,
+          "n": 74,
+          "rate": 0.16216216216216217
+        },
+        "attach_psychic": {
+          "exact": 12,
+          "n": 71,
+          "rate": 0.16901408450704225
+        },
+        "boss": {
+          "exact": 1,
+          "n": 36,
+          "rate": 0.027777777777777776
+        },
+        "buddy_poffin": {
+          "exact": 32,
+          "n": 56,
+          "rate": 0.5714285714285714
+        },
+        "crispin": {
+          "exact": 14,
+          "n": 50,
+          "rate": 0.28
+        },
+        "crushing_hammer": {
+          "exact": 70,
+          "n": 99,
+          "rate": 0.7070707070707071
+        },
+        "end": {
+          "exact": 27,
+          "n": 47,
+          "rate": 0.574468085106383
+        },
+        "evolve_dragapult": {
+          "exact": 39,
+          "n": 66,
+          "rate": 0.5909090909090909
+        },
+        "evolve_drakloak": {
+          "exact": 87,
+          "n": 107,
+          "rate": 0.8130841121495327
+        },
+        "jamming_tower": {
+          "exact": 7,
+          "n": 37,
+          "rate": 0.1891891891891892
+        },
+        "night_stretcher": {
+          "exact": 8,
+          "n": 38,
+          "rate": 0.21052631578947367
+        },
+        "other_ability": {
+          "exact": 24,
+          "n": 56,
+          "rate": 0.42857142857142855
+        },
+        "other_attack": {
+          "exact": 49,
+          "n": 70,
+          "rate": 0.7
+        },
+        "other_play": {
+          "exact": 64,
+          "n": 145,
+          "rate": 0.4413793103448276
+        },
+        "phantom": {
+          "exact": 56,
+          "n": 107,
+          "rate": 0.5233644859813084
+        },
+        "play_dreepy": {
+          "exact": 24,
+          "n": 31,
+          "rate": 0.7741935483870968
+        },
+        "play_munkidori": {
+          "exact": 21,
+          "n": 37,
+          "rate": 0.5675675675675675
+        },
+        "poke_pad": {
+          "exact": 45,
+          "n": 77,
+          "rate": 0.5844155844155844
+        },
+        "retreat": {
+          "exact": 15,
+          "n": 39,
+          "rate": 0.38461538461538464
+        },
+        "ultra_ball": {
+          "exact": 4,
+          "n": 53,
+          "rate": 0.07547169811320754
+        }
+      },
+      "weighted_nll": 1.3793706246927386
+    }
+  },
+  "upload_authority": false,
+  "weights_sha256": "663188ce6e405ab88e364b579f3aaaf8aed5bdf06a10adcd09afcfc707bffd64"
+}

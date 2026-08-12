@@ -1,0 +1,7 @@
+{
+  "attempt_sha256": "09c8bc2302a81ada2be0226e3675d0fd84b9356ad064e6647cd7b577b9b371e8",
+  "created_at": "2026-08-11T23:12:28.413818+00:00",
+  "lock_sha256": "60f5fb49b7215f29d97b477e3b8e90315e81230e2193cd682e75319ee2f34c6c",
+  "schema": "ptcg.dragapult-plan-calibrator-field-attempt.v1",
+  "written_before_first_engine_outcome": true
+}

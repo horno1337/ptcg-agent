@@ -1,0 +1,157 @@
+{
+  "artifacts": {
+    "behavior_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-plan-calibrator-v2-20260812/result.json",
+      "sha256": "6d513a6929d6d3c223937c7288765fecb19ddb1b4203420958419c1284d9130a"
+    },
+    "calibrator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-plan-calibrator-v2-20260812/plan_calibrator_weights.npz",
+      "sha256": "663188ce6e405ab88e364b579f3aaaf8aed5bdf06a10adcd09afcfc707bffd64"
+    },
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "controller": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_route_guards.py",
+      "sha256": "2ffca06749d5960daf6a9c3f53e5153707f84b7e6eaea717b13b44d242b54d29"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_plan_calibrator_field.py",
+      "sha256": "d45254f727496af62c37409779ed8b348ddfd7808ea29633975f8c4bc3fdf944"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "package": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-completion-1-unsigned.tar.gz",
+      "sha256": "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "trainer": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/train_dragapult_plan_calibrator.py",
+      "sha256": "fe51e7ae7ca2c1557f31d4575fb8007ed37b52fcdb49b78e3b5ce1fac51c0672"
+    }
+  },
+  "behavior_result_sha256": "9f10fd40599ce001300cf35139cfe1b5d7d09be787064d1bdfa80d104302e4c7",
+  "bias": {
+    "ability_drakloak": 0.1879112273454666,
+    "ability_munkidori": -0.5828791260719299,
+    "attach_dark": -0.1724378913640976,
+    "attach_fire": -0.2385638803243637,
+    "attach_psychic": -0.11898565292358398,
+    "boss": 0.14875231683254242,
+    "buddy_poffin": 0.15625743567943573,
+    "crispin": -0.30746254324913025,
+    "crushing_hammer": 0.04857487231492996,
+    "end": 0.15416434407234192,
+    "evolve_dragapult": -0.0844847559928894,
+    "evolve_drakloak": 0.03588424623012543,
+    "jamming_tower": 0.015969036146998405,
+    "night_stretcher": -0.11692854017019272,
+    "other": 3.326586242720806e-17,
+    "other_ability": 0.23196347057819366,
+    "other_attack": 0.0348084457218647,
+    "other_evolve": 3.326586242720806e-17,
+    "other_play": -0.18624649941921234,
+    "phantom": 0.5739803314208984,
+    "play_dreepy": -0.05673898383975029,
+    "play_munkidori": -0.06364675611257553,
+    "poke_pad": 0.13895483314990997,
+    "retreat": 0.07097046822309494,
+    "ultra_ball": 0.1301836371421814
+  },
+  "candidate": "dragapult-v2 plus frozen MAIN action-class calibration",
+  "control": "exact dragapult-v2 stack",
+  "created_at": "2026-08-11T23:12:22.744237+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "lock_sha256": "60f5fb49b7215f29d97b477e3b8e90315e81230e2193cd682e75319ee2f34c6c",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "games_per_arm": 1024,
+    "identical_schedule": true,
+    "key_slices": "Dragapult and Mega Lucario point delta >= -0.05",
+    "one_schedule_one_attempt": true,
+    "primary": "point delta >= 0 and CI95 lower > -0.025",
+    "seed": 2026081223,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "30d58d42a95b761c133b774746ec8ef4c94bebf5bcc63479d2f9b02a2d4fe6c5",
+  "schema": "ptcg.dragapult-plan-calibrator-field-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

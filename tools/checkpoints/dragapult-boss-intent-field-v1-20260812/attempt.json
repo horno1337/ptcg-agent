@@ -1,0 +1,7 @@
+{
+  "attempt_sha256": "ef81e0bc1faec01b75d684884cd1256b998316177eedc1c134330151384c0970",
+  "created_at": "2026-08-11T23:57:41.367811+00:00",
+  "lock_sha256": "65a99374947f7418994df484262183d19811c616774a6cef549d8e0094e451d5",
+  "schema": "ptcg.dragapult-boss-intent-field-attempt.v1",
+  "written_before_first_engine_outcome": true
+}

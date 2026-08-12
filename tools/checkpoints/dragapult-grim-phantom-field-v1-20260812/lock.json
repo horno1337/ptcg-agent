@@ -1,0 +1,132 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "controller": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_route_guards.py",
+      "sha256": "2ffca06749d5960daf6a9c3f53e5153707f84b7e6eaea717b13b44d242b54d29"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "direct_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-grim-phantom-allocator-v1-20260812/result.json",
+      "sha256": "877254cad8356bd345111f3a7b8ff2fd74dc1c9eed89b2d62304d2ef8557a32a"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_grim_phantom_allocator_field.py",
+      "sha256": "2eaf9eea0e37782830c0e6f34a959d8ea806b0a6bcc089a09dd19e2a0815fd18"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "package": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-completion-1-unsigned.tar.gz",
+      "sha256": "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "tests": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tests/test_dragapult_bc.py",
+      "sha256": "30825574220e84837c3e252f067cbbdf4e8c11d4c762a7054712a70acf0faafe"
+    }
+  },
+  "candidate": "exact dragapult-v2 plus Phantom dead-target allocator only after a public opposing Impidimp/Morgrem/Grimmsnarl reveal",
+  "control": "exact dragapult-v2",
+  "created_at": "2026-08-11T23:34:28.144074+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "direct_result_sha256": "561cdcc2fd24ab24ec9ffd349218b315bf2ef18cdb533fce26f04818e2a02c71",
+  "lock_sha256": "708a53875b009b9dddbf414d31583080a31700534c4b0c19612767b707edaea1",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "dragapult_lucario_guards": "each point delta >= -0.025",
+    "games_per_arm": 2048,
+    "grim_slice": "point delta >= 0 and CI95 lower > -0.075",
+    "identical_schedule": true,
+    "one_schedule_one_attempt": true,
+    "overall": "point delta >= 0 and CI95 lower > -0.01",
+    "seed": 2026081228,
+    "zero_faults": true
+  },
+  "public_grim_signature": [
+    646,
+    647,
+    648
+  ],
+  "schedule_manifest_sha256": "61aa2fd15d607bc46136b10a94e3add8e9537cce56395759c9fa25216f9aa37e",
+  "schema": "ptcg.dragapult-grim-phantom-field-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

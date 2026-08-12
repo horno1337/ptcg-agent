@@ -1,0 +1,150 @@
+{
+  "artifacts": {
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "controller": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_route_guards.py",
+      "sha256": "2ffca06749d5960daf6a9c3f53e5153707f84b7e6eaea717b13b44d242b54d29"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "dobi_card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/md_v2_card_weights.npz",
+      "sha256": "1aef7068130072dd00afe0e85d6485d9749c6326351597339c1bd33d6d239cf7"
+    },
+    "dobi_main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v3-mirror-league-100k-v2/training/terminal-update-16-candidate/candidate-qu-v2a-weights.npz",
+      "sha256": "bf93b3b7c114c0f406dea549ea8b7ac0aa783e0e80b3814fa4ea42ac412f679c"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_grim_phantom_allocator.py",
+      "sha256": "91422cd5b120f252f2aa572a84089f009d47d375743e68446263cc0fd166be62"
+    },
+    "grim_deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/md_v1_grimmsnarl.csv",
+      "sha256": "92b92bac9f9163ecff933b3dc39294d2cc154c8684f3c8497877661419ebc59d"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "md_weights": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/md-v1/md-v1-weights.npz",
+      "sha256": "5784b7ea693d2adc3a8cf0b7422b6940481042181051ef2941b982094dabe78c"
+    },
+    "package": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-completion-1-unsigned.tar.gz",
+      "sha256": "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "prior": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-v2-vs-grim-champions-20260812/result.json",
+      "sha256": "8eda8a11a0979459282e94a2e0ed199424ab39ed73fc024ab6dcc656def9d334"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "tests": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tests/test_dragapult_bc.py",
+      "sha256": "30825574220e84837c3e252f067cbbdf4e8c11d4c762a7054712a70acf0faafe"
+    }
+  },
+  "candidate": "exact dragapult-v2 plus Phantom dead-target retargeting inside the exact-Grim opponent gate",
+  "control": "exact dragapult-v2",
+  "created_at": "2026-08-11T23:23:55.498906+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "deployment_scope_if_eligible": "only when a public Marnie's Impidimp/Morgrem/Grimmsnarl signature is visible; this direct exact-Grim gate is necessary but not sufficient",
+  "lock_sha256": "2e217f0da2ee615bfad070ce2c9d077580a46c712f3511034cd939046a3708cb",
+  "package_authority": false,
+  "prior_result_sha256": "7fe94d4592dfb14826a0a352906fb64a7087c37151e36992fc886d53d32358fa",
+  "promotion_authority": false,
+  "protocol": {
+    "aggregate_primary": "point delta > 0 and CI95 lower > -0.025",
+    "games_per_arm_opponent": 512,
+    "identical_schedule_per_arm": true,
+    "one_schedule_one_attempt": true,
+    "opponent_guards": "each point delta >= -0.05",
+    "opponents": [
+      "md-v1",
+      "dobi-v1"
+    ],
+    "seed": 2026081227,
+    "zero_faults": true
+  },
+  "schedules": {
+    "dobi-v1": "ecc7b47b07f6356c280505e2a1f68d7e456fca7f0a5dfc3fbd15705444aa498f",
+    "md-v1": "e222a64e880a75eb75ef34bf3eb39f3fca499ea0c5c3c413a9685cb1f2c2b1f3"
+  },
+  "schema": "ptcg.dragapult-grim-phantom-allocator-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

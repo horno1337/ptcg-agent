@@ -1,0 +1,138 @@
+{
+  "artifacts": {
+    "behavior_result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-boss-fresh-behavior-20260812/result.json",
+      "sha256": "f11ab3e503e01594026764b0de9e59f876b1828892746cb592f41f4a8e7227f3"
+    },
+    "card": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_card_weights.npz",
+      "sha256": "1a9b3867e81e791e35d68f0a147b9c338162ed707e5657633a06ff867cdb9d43"
+    },
+    "classifier": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/dragapult-boss-turn-v1-20260811/boss_turn_weights.npz",
+      "sha256": "78eece3520bc0085acb4334eb33b1a3ede85cce54652ce6eaeddb6059de0e3ee"
+    },
+    "controller": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_route_guards.py",
+      "sha256": "2ffca06749d5960daf6a9c3f53e5153707f84b7e6eaea717b13b44d242b54d29"
+    },
+    "deck": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/dragapult_07bed.csv",
+      "sha256": "730515d5b8e9d6f7b9a87c160cd87b43c95535c917688d2b15f46d82fc054485"
+    },
+    "evaluator": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_dragapult_boss_intent_field.py",
+      "sha256": "7b293e2bb9b7b1929e71299a08399bf4ccd55eeae4e7b8dded1ddd893b11fce4"
+    },
+    "main": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_elite_main_weights.npz",
+      "sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0"
+    },
+    "package": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dragapult-completion-1-unsigned.tar.gz",
+      "sha256": "ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3"
+    },
+    "policy": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/dragapult_bc.py",
+      "sha256": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6"
+    },
+    "qu": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/qu-v2b-field-v1/candidate-qu-v2a-weights.npz",
+      "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+    },
+    "tests": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tests/test_dragapult_bc.py",
+      "sha256": "30825574220e84837c3e252f067cbbdf4e8c11d4c762a7054712a70acf0faafe"
+    },
+    "trainer": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/train_dragapult_boss_turn_classifier.py",
+      "sha256": "ef64d583bb1146f44ac4d6cb71479aac25f54694b62d502897d4f295d9e19d7e"
+    }
+  },
+  "behavior_result_sha256": "ee78cf4db566ed8cd15eea4da2384d8e8bf6e14c0fed8f4ba2847a2b78c4ef5b",
+  "candidate": "exact dragapult-v2 plus frozen Boss intent classifier",
+  "classifier": {
+    "threshold": 0.5,
+    "weights_sha256": "78eece3520bc0085acb4334eb33b1a3ede85cce54652ce6eaeddb6059de0e3ee"
+  },
+  "control": "exact dragapult-v2",
+  "created_at": "2026-08-11T23:57:35.428063+00:00",
+  "deck": [
+    2,
+    2,
+    2,
+    2,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    112,
+    112,
+    119,
+    119,
+    119,
+    119,
+    120,
+    120,
+    120,
+    120,
+    121,
+    121,
+    121,
+    140,
+    235,
+    235,
+    1071,
+    1080,
+    1086,
+    1086,
+    1086,
+    1086,
+    1097,
+    1097,
+    1120,
+    1120,
+    1120,
+    1120,
+    1121,
+    1121,
+    1121,
+    1121,
+    1152,
+    1152,
+    1152,
+    1152,
+    1182,
+    1182,
+    1182,
+    1198,
+    1198,
+    1198,
+    1213,
+    1227,
+    1227,
+    1227,
+    1227,
+    1231,
+    1246,
+    1246
+  ],
+  "lock_sha256": "65a99374947f7418994df484262183d19811c616774a6cef549d8e0094e451d5",
+  "package_authority": false,
+  "promotion_authority": false,
+  "protocol": {
+    "games_per_arm": 1024,
+    "identical_schedule": true,
+    "key_slices": "Dragapult, Mega Lucario, Alakazam, Grimmsnarl each point delta >= -0.05",
+    "one_schedule_one_attempt": true,
+    "overall": "point delta > 0 and CI95 lower > -0.025",
+    "seed": 2026081229,
+    "zero_faults": true
+  },
+  "schedule_manifest_sha256": "46e89ad8870eaeca1b17f4be5cf585a8ead8bc1184a00a9571e3e41dcaa1a18c",
+  "schema": "ptcg.dragapult-boss-intent-field-lock.v1",
+  "upload_authority": false,
+  "written_before_engine_outcomes": true
+}

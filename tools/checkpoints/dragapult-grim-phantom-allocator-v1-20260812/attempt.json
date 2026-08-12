@@ -1,0 +1,7 @@
+{
+  "attempt_sha256": "17b8aee90f18be2ccd54a7653065ab864fa6d55c3aef2e09649dc1edb416d101",
+  "created_at": "2026-08-11T23:24:02.133014+00:00",
+  "lock_sha256": "2e217f0da2ee615bfad070ce2c9d077580a46c712f3511034cd939046a3708cb",
+  "schema": "ptcg.dragapult-grim-phantom-allocator-attempt.v1",
+  "written_before_first_engine_outcome": true
+}

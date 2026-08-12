@@ -156,6 +156,55 @@ This section supersedes older active-direction statements below.  The full
   comparison combines elite-head and completion changes and uses a different
   schedule.  It does not isolate the completion rule or make the matchup
   competitive.
+- The next broad learned corrections were also isolated and rejected.  A
+  high-precision Phantom-commit classifier had no validation-eligible model
+  (best diagnostic precision only 38.46%).  A frozen MAIN action-category
+  calibrator improved exact expert behavior on its one-shot test (overall
+  exact agreement 50.48% -> 51.20%; Phantom 52.34% -> 63.55%), but failed
+  gameplay decisively: 61.82% versus 67.29% for exact `dragapult-v2`, paired
+  -5.47 pp, CI95 [-9.47,-1.47].  Do not revive unconditional action-class
+  biases; they improve imitation while damaging turn plans.
+- The purchased Dragapult/Hammers guide has been converted to a derived,
+  list-aware evidence inventory at
+  `tools/research/DRAGAPULT_GUIDE_EVIDENCE_20260812.md`.  The guide's Turin
+  list is not exact `07bed`; exact-list replay evidence wins on conflicts.
+  Hammer is a sequencing issue, not a global suppression target: experts used
+  it immediately on 39.4% of offered prompts versus our 52.9%, but eventually
+  used it on 379/420 eligible turns (90.2%) versus our 332/420 (79.0%).  Only
+  21.1% of expert Hammer turns included Stamp/Judge and 78.6% ended in an
+  attack.  Never implement "Hammer only with disruption."
+- Boss is a genuine plan gap.  Of 163 exact-list expert gusts, 95 were visible
+  same-turn KO proxies, 49 deliberately banked damage without a KO proxy, and
+  19 did not attack.  Fezandipiti ex was the dominant non-KO target (19/49),
+  but a presence-only `Boss legal + Phantom live + Fez benched` trigger had
+  only 19.7% precision and is rejected.  Our head chose Boss anywhere on the
+  same expert trajectories only 4/163 times.  Keep KO and tempo/damage-bank
+  intents separate; a single immediate-KO rule cannot learn the deck.
+- The Phantom dead-target allocator passed a direct exact-Grim diagnostic
+  (+1.86 pp aggregate over 1,024 paired units; MD +3.71 pp, Dobi neutral;
+  1,435 fires, zero faults) but failed its separately locked public-signature
+  current-field confirmation.  The valid 2,048-game/arm field result was
+  -0.78 pp overall, CI95 [-3.59,+2.03], and exactly neutral on 102 Grim games;
+  result `30c6f420...a753ee`.  It is opponent-policy-specific evidence, not a
+  transferable runtime improvement.  Keep `ENABLE_PHANTOM_TARGET_GUARD=False`.
+- A one-time refresh of exact-list submissions `55425689` and `55411079`
+  downloaded 15 new replay files (19 exact seats including mirrors), disjoint
+  from the 162-file audit.  The unchanged rejected Boss classifier scored
+  9 TP / 4 FP / 30 TN / 17 FN on 60 fresh commitment turns: precision 69.23%,
+  recall 34.62%, FPR 11.76%.  This clears its original thresholds on a later
+  cohort without retraining and authorizes only the locked paired gameplay
+  experiment in `tools/research/eval_dragapult_boss_intent_field.py`; it does
+  not authorize integration, packaging, or upload by itself.
+- That paired Boss gameplay experiment is complete and rejected.  It was
+  valid, zero-fault, and made 364 actual overrides, but scored 63.62%
+  (651-372-1) versus 64.11% (656-367-1) for exact `dragapult-v2`: paired
+  -0.49 pp, CI95 [-4.45,+3.47].  Alakazam improved +3.29 pp and Lucario was
+  neutral, but the Dragapult slice regressed -4.26 pp.  Result SHA-256
+  `a0b2c230...d9de9e9`.  Do not integrate, retune its opened threshold,
+  package, or upload it.  Fresh expert-action precision again failed to
+  predict gameplay.  The next Dragapult experiment must select Boss/Phantom
+  interventions with paired outcomes at learner-reached states and confirm on
+  disjoint roots before another field gate.
 
 - The project is now explicitly focused on Lucario and Dragapult.  Kaggle
   ladder submissions are part of the development loop, not deferred until a

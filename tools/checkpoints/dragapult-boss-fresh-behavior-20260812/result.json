@@ -1,0 +1,94 @@
+{
+  "artifacts": {
+    "evaluator_sha256": "be5bdcc54a59bcaeab798117b88954fb4ff25d32429924f1b19a650dcd7b6e16",
+    "main_sha256": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0",
+    "trainer_sha256": "ef64d583bb1146f44ac4d6cb71479aac25f54694b62d502897d4f295d9e19d7e",
+    "weights_sha256": "78eece3520bc0085acb4334eb33b1a3ede85cce54652ce6eaeddb6059de0e3ee"
+  },
+  "classifier_unchanged_after_prior_test": true,
+  "created_at": "2026-08-11T23:55:34.507441+00:00",
+  "integration_authority": false,
+  "metrics": {
+    "accuracy": 0.65,
+    "false_positive_rate": 0.11764705882352941,
+    "fn": 17,
+    "fp": 4,
+    "n": 60,
+    "positive": 26,
+    "precision": 0.6923076923076923,
+    "recall": 0.34615384615384615,
+    "tn": 30,
+    "tp": 9
+  },
+  "package_authority": false,
+  "passed_development_screen": true,
+  "posthoc_independent_refresh": true,
+  "result_sha256": "ee78cf4db566ed8cd15eea4da2384d8e8bf6e14c0fed8f4ba2847a2b78c4ef5b",
+  "rows": 60,
+  "schema": "ptcg.dragapult-boss-fresh-behavior-result.v1",
+  "source_manifest": [
+    {
+      "episode": "92095946",
+      "sha256": "fc63e93277bfcbed5cc6efd01223be26bfa5dbfdc307091c58ccc6755b3c4ed0"
+    },
+    {
+      "episode": "92099725",
+      "sha256": "468dd6b9169cfb7dc4c9195cfc670af020245f2f780084dba85911f0eaebc119"
+    },
+    {
+      "episode": "92102608",
+      "sha256": "823d2637c0bf1a48a287aa5791d7aceb8cdcb4ed66bd65ad641993567449209c"
+    },
+    {
+      "episode": "92109194",
+      "sha256": "0aecf9903842dfe8006290aa2ad0a24668259b36fdcfe75e30302daeb9ed2709"
+    },
+    {
+      "episode": "92109205",
+      "sha256": "1c7f7882bce1c0f2a3482871593ea1a435594df7f6f84935de37f43c740273ed"
+    },
+    {
+      "episode": "92110122",
+      "sha256": "f882489d48c1c319c8a499bbe59285b5592fad7168f18b6a4a445f05ee651704"
+    },
+    {
+      "episode": "92112767",
+      "sha256": "a7dd877d40af298afeb304fd300d83fb0160008bdbe584a4641b1bc2d1acf1f7"
+    },
+    {
+      "episode": "92112912",
+      "sha256": "94bc47995cf3f7baa1e7f8d8fd985e03101605cbf15940fb623764f0b87e796d"
+    },
+    {
+      "episode": "92120246",
+      "sha256": "878ccfa745bca00a475d12537da3a109f7a3ce97d9cb6ad16bfb23f40a775012"
+    },
+    {
+      "episode": "92121164",
+      "sha256": "3af367fa56f7d19c54bf4fd23e94f488b5de7558389b9a78f202bcebf5078027"
+    },
+    {
+      "episode": "92121280",
+      "sha256": "177fc59e488502ed966e0b71f1417b70f2dd91b4619dc5d3c28b187a9d775eb1"
+    },
+    {
+      "episode": "92122071",
+      "sha256": "c999dc0a54581446c9384ca2872f5199f84dd63f6943e2b52bdee060fc19b5a7"
+    },
+    {
+      "episode": "92126088",
+      "sha256": "e97ee702b1f12000add6e25e7bdec070a4f382646df725bc03db2caf5d61a1f5"
+    },
+    {
+      "episode": "92126870",
+      "sha256": "d207fd431a3c26005bd2416c5eb2c89a47abc8e7016078f3a547fabc00cf2edd"
+    },
+    {
+      "episode": "92129761",
+      "sha256": "a499a6b898d87caed79d44f02077a87102eb14b5994a2fda175b1a233150389d"
+    }
+  ],
+  "threshold": 0.5,
+  "threshold_unchanged": true,
+  "upload_authority": false
+}

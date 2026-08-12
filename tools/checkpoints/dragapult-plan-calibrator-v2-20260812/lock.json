@@ -1,0 +1,747 @@
+{
+  "artifacts": {
+    "main": "793b230dbf9c67c3ece2b53b3f1a8b0f284765830ec397c6b746b35db2f966e0",
+    "policy": "14fef2a6472972bdf41182da595022807fde072fa5149983cbb1190328e2dae6",
+    "trainer": "fe51e7ae7ca2c1557f31d4575fb8007ed37b52fcdb49b78e3b5ce1fac51c0672"
+  },
+  "categories": [
+    "other",
+    "phantom",
+    "other_attack",
+    "end",
+    "retreat",
+    "attach_fire",
+    "attach_psychic",
+    "attach_dark",
+    "ultra_ball",
+    "boss",
+    "jamming_tower",
+    "crispin",
+    "buddy_poffin",
+    "night_stretcher",
+    "crushing_hammer",
+    "poke_pad",
+    "ability_drakloak",
+    "ability_munkidori",
+    "other_ability",
+    "evolve_dragapult",
+    "evolve_drakloak",
+    "other_evolve",
+    "play_dreepy",
+    "play_munkidori",
+    "other_play"
+  ],
+  "counts": {
+    "test": 1672,
+    "train": 5769,
+    "validation": 1102
+  },
+  "created_at": "2026-08-11T23:04:38.765258+00:00",
+  "integration_authority": false,
+  "lock_sha256": "635aff1a1a319b365ed222b5404da5ba3c4feaf93eeacfeb785304b71078d4be",
+  "logged_categories": {
+    "ability_drakloak": 1311,
+    "ability_munkidori": 290,
+    "attach_dark": 234,
+    "attach_fire": 388,
+    "attach_psychic": 352,
+    "boss": 163,
+    "buddy_poffin": 292,
+    "crispin": 249,
+    "crushing_hammer": 478,
+    "end": 298,
+    "evolve_dragapult": 337,
+    "evolve_drakloak": 542,
+    "jamming_tower": 193,
+    "night_stretcher": 189,
+    "other_ability": 213,
+    "other_attack": 335,
+    "other_play": 720,
+    "phantom": 543,
+    "play_dreepy": 223,
+    "play_munkidori": 190,
+    "poke_pad": 430,
+    "retreat": 270,
+    "ultra_ball": 303
+  },
+  "package_authority": false,
+  "protocol": {
+    "candidate_l2": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "game_disjoint": true,
+    "model": "one centered additive bias per legal MAIN action class",
+    "offensive_categories": [
+      "attach_fire",
+      "attach_psychic",
+      "boss",
+      "phantom",
+      "ultra_ball"
+    ],
+    "test_gate": "the identical eligibility rule, opened once",
+    "training_outcome_weights": {
+      "nonwin": 0.35,
+      "win": 1.0
+    },
+    "validation_selection": "lowest weighted NLL among arms with lower NLL than parent, overall exact rate no worse than -1 pp, more offensive exact actions, >=20 changed actions, and disagreement majority"
+  },
+  "rows": 8543,
+  "schema": "ptcg.dragapult-plan-calibrator-training-lock.v1",
+  "source": "/home/horn/Desktop/ptcg_dragapult_top_20260811",
+  "source_manifest": [
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91693785.json",
+      "sha256": "8af4e85d4af6f4a96e78bab43e055d47a656fd5f3b3726722803473fb09174e3"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91694786.json",
+      "sha256": "3bb8b497f2bafdcb29b7c9885c5c96872ea07fbfe78e747f895c67aede0fa240"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91695737.json",
+      "sha256": "957f1d9dd37afa26893e7c2416a9544ab4b289965d0b1d2872a9f722ff3b6c19"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91696683.json",
+      "sha256": "ca42a4b92cd4a51b925a6cc5b7fb15fcbebc011efc37f9849d3ca2d358c84957"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91697610.json",
+      "sha256": "c65996eb68e002ba5b44314a24f908afe66b06b4f994f8014f2fc254e1c5fce3"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91698547.json",
+      "sha256": "af98aab5f95e315125068864fe9ffa0a289a23ed01406adb197d8c18d6df44cc"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91699477.json",
+      "sha256": "a4d668417401ae63c1df069b7d6a13de9e53b2f7e2406bee700a9e6ae460c575"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91700416.json",
+      "sha256": "de8205b4db2829779988325a0d98b6d1a4ebde8f36eb1bfeb2527bce987d1834"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91700470.json",
+      "sha256": "95d80a5e82a7fa3561353202f6052c61f851ff213bfef5ae90a89ab78f16f17e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91701356.json",
+      "sha256": "a8bf87dfa8f952927c4475f85c8cedb348ef4271ca33b5cc0ed13c8953b87e67"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91702286.json",
+      "sha256": "e180c53d7412f0b8bab8a60dc8acaaf6c2dcfd040381e79cfba7b7500c0cb2be"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91703213.json",
+      "sha256": "50cc55ce15ba487630f3677ba1fe3a304265034db07b20073e4b2d86b2740260"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91704172.json",
+      "sha256": "f8110a3af31bbf81353d34c4a11811d0dc7fce07a008b879b3277612b10546b8"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91705121.json",
+      "sha256": "68b4de72e6d753da574c641c8d5139dd0e11c485bd7bad96adf062f81fb5bb5a"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91706042.json",
+      "sha256": "8d4665d31c0b8b7139c5ef0f48b29383e5e142eedf23d0c38cd857d4d7829f83"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91706970.json",
+      "sha256": "0da05c04b67853b443b3ab8b48151511a9ea7f570ed54de540fee3e95cd96fe8"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91707914.json",
+      "sha256": "c64e532c09c64a181aff2952ffff7aa685a0ff18c467c3f0380927f1108ca663"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91708863.json",
+      "sha256": "5be696aa7310a45896f6431c50f59ada00813d4adde7f5365346a807140babac"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91709794.json",
+      "sha256": "f3e5e038543684bc3f184ac6746e0bc3d7d1cb351ea38348c9d65c0d28bd9d0d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91710676.json",
+      "sha256": "eb83e3c658e4516667763e9a02822b99259368827c53b61770deb015e45c41dc"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91711647.json",
+      "sha256": "f10e479ab79db66462178c2813a3ea92129b4496f07261f380c7b5efb766d155"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91712582.json",
+      "sha256": "225007fd481ee8c8441a5c8a7dc809dd95f66d620e0eedf72a38ca689c010004"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91713507.json",
+      "sha256": "6fae9fe966a1dcfd69bbbdcfce59b526ada3a4cf91b05e4d4b88fc8c6a311a0b"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91714456.json",
+      "sha256": "46682e433bdfda352f3fe156b4173b63b9700b3c8f97e1ceb4ce47799738c57d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91715384.json",
+      "sha256": "1416741fe29bbc46ad3b4e59e2ef520010c565851e6493335f3e3524d0351134"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91716313.json",
+      "sha256": "9fb98e1ff0fca5a3c222fb71d81d9acad51a670d75d9ef84c649bdea23828e83"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91716386.json",
+      "sha256": "38f6a9dd7d8317eee60e8c0f82977eacf1376c2ff45549496a29da1e062e650b"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91717239.json",
+      "sha256": "066582d5036559fa72ca7c508c01a426c02078c992cf9a1312016ae1ceb25a16"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91718164.json",
+      "sha256": "4680c0331a429664740055f4ceae336a83bb2b05c040498cda85a22025988844"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91719077.json",
+      "sha256": "66a312fde1037e9fd3975d737e88c2aa0ee71d405bb60c801a07f4b0cd819aa0"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91720001.json",
+      "sha256": "7a470f5b48d74a771da447aa31bc19e3c158b670cb82a15c4c1dc4ff0e2fae0b"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91720945.json",
+      "sha256": "6097723066c13f25fdaf6b7a3448049b142399545a024a0c3e1f46ffb03a219e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91721875.json",
+      "sha256": "49274fa2f9089b97c14a6f4d2655e04edcd7ed93222b80333b9550d64b88a9a0"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91722796.json",
+      "sha256": "33936520672fd492b32c082a44afcd40955206572f1fb630974549443cb9a966"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91723741.json",
+      "sha256": "6f30c5154323657fed621b7712b9791cad300a3894ff39cd9b8fc30986a4b6e9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91724655.json",
+      "sha256": "7767540e6dbca628b2cb11d167b0d304ad1e9cdfd682a1f8b3e3ba7773e21ba9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91725581.json",
+      "sha256": "99b53878f24eb1266b0990bc1cdb2d6fa3b158b17b25dd25aa60af4719c16985"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91726505.json",
+      "sha256": "ab4ed5567bdcb74f673ae2c5415eea273115410984aa8e47cf381d4112e39499"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91727431.json",
+      "sha256": "2640e976532bcc2d1fe1e1d79aa2c128997102c3fa9d8852ca15d530157723ff"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91728355.json",
+      "sha256": "b802db7546960b41cdf94bfa4a1eb48a661808d394b6d041d6f89a34dd50b586"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91729293.json",
+      "sha256": "cf639feee4c3ba2fc33ba4e91ed531ac4a4b8d451b41779616e6eeec5256b10b"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91730210.json",
+      "sha256": "83e79cf7f1b4bc5b4b1a071bf7a518512154fcbbac39b7fef9a19c3f0145e5a7"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91731123.json",
+      "sha256": "49e3cfba247a774d9e9f368c664cc381f58d7765afaf165c923633188caea44c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91732049.json",
+      "sha256": "ce8b4ab8599d4f693bbaadba7f67a15b6f0ac4417521ac5d76977de017791550"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91732984.json",
+      "sha256": "ba7f8fc784776ac01dcc594f2520cbec079cb2a570cd64630489480db5726602"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91733927.json",
+      "sha256": "ca65bd6bb8cf96fe41b93b3427de6b7a6c2cf2823832817a57e6c56b017674ba"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91734890.json",
+      "sha256": "af4081f91f086491fe911fce94b3bfcef21785dc0c8883b848ff61fb76477c71"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91735810.json",
+      "sha256": "341d7b2c59eb2f8a3eb47719939e2966b63d2f4c747c32b7eda5f76c52f23cf4"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91736736.json",
+      "sha256": "c2813cebdfed3ab15d26ddc6cffa36e408ad412999ac56cde02aa568771ba51d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91736845.json",
+      "sha256": "cbb06a3426947b1c33bd163718de8faf76c23290236feee78ae8517f04a3c019"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91737669.json",
+      "sha256": "f4cd1238a1b4b952c60790e077a0a33542a191e96106981fa8ccf4517c51ae64"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91738594.json",
+      "sha256": "01cfd8e56da94b8f858c3b4ee567f77f12b99e6953ffb429968bbbf7dabde7da"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91739519.json",
+      "sha256": "e34491c8f0f13074fc58974a2654d04acd3707d9858e0224105b31adc520257e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91742364.json",
+      "sha256": "c0c03ebfd5c3736bc0d7fe1214796e36baed4662e95b8e3564c7b655362cf93c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91743954.json",
+      "sha256": "58ec43535661ea16b59e3620f0197de249623c46ddeae77307ae3b5a06ea2c04"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91749763.json",
+      "sha256": "97d6c15d11078714a32ebc25e9672f8c2b44662de23cbe0db1ee70687b5cd677"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91753485.json",
+      "sha256": "16cc83db370ac230337d07183a71d17dc1c3dec8e4fc48991744c2e68efb06ee"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91758945.json",
+      "sha256": "8a81eec790e85367d7dd7c596a321eb874a2ee52d1f267b35ebd737bf1002a45"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91765439.json",
+      "sha256": "31361207bdfcdeba246cdd6855c09dbf1142aaddb5a0d3ad5bc030833d2aa34d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91771984.json",
+      "sha256": "ba8096670903d79db1c5c876cac8979db26b1f309f1e3c974d94b879face820e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91772557.json",
+      "sha256": "10e0457fce3093bfce1b7ad5ffb2eea3958f8f04e3c9e4bda41811e4690ef524"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91779265.json",
+      "sha256": "0c468d553a195077b5146afb83f985e1a82eeab5d842670e9f4832e09fb3ecd9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91783799.json",
+      "sha256": "5ba647858c299e615c7cff562c8a66eae9115cb2e112dd27370e501bba6c92e6"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91789433.json",
+      "sha256": "3159cc8c3b7d503792e7c0e34396a2771d99241815f5698e1f557f2bd662ac87"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91796856.json",
+      "sha256": "dc61d9c6f90d3e282e0e655dbf3960c6d9de5bc96467527ea74843d38c53e57d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91817313.json",
+      "sha256": "ddf8e9a9eafe30ef06d5915ead7e6378a4199ce1c5047a709b2a6c5535c51ec5"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91849009.json",
+      "sha256": "ad7f27115031eadefa981b74e09b451219d248dac597d8e52dcc48947f6f7083"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91869343.json",
+      "sha256": "4b4c2aabd2d66168b97751ef99f166fe08338c700fe9585eaa9f129d7bee36ef"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91879678.json",
+      "sha256": "246941b639766a636cfa2837de52a0b080430e76893f5235027cce8a81014d5f"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91882539.json",
+      "sha256": "b044903dd74191762c686bd65ac4ea8df503d285980c6fccafd2b1d639a0f5e7"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91894728.json",
+      "sha256": "a83a851ad49b930b58ec726498983d32bbc3c543c911d6e2dcbec19959b56851"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91895277.json",
+      "sha256": "3922ddf4b6dbc40a2c32af7c9b302aa91b32f8f2761812c6f9ff5bbd8e48862c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91896289.json",
+      "sha256": "d151923dbe27a5d049e27fdc358e2935d79ba2c216d4666b140e3613aa92a272"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91897213.json",
+      "sha256": "e01babe24bfeb68e31bd74147514a1749854c88fbd8c20dceff049037ee3fa4d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91898147.json",
+      "sha256": "2eae41646ad8af479c627f926a100f82b7cb2d5299dc8818dd193beb17b38c1d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91899095.json",
+      "sha256": "2a3e6de188bf4d386fd66088d351022b18b0f08293a58cdea14a46c72b2ae872"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91899263.json",
+      "sha256": "d3f5154a156a4867ba86bd9ca38c66df448944c74adcd8def31e217c1063a9ea"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91900044.json",
+      "sha256": "742fd95b2c1082a171ce9c047946e8c169c0d001dfff9b03e2304bab30763a97"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91900993.json",
+      "sha256": "fec831636a49b7b118fafb7e10e75ba04ebec54840a007d3490dd10280288572"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91901942.json",
+      "sha256": "8d678c4cb3344f92923ef9fd5afb4f0f150631a1746d47d17aabb537e0ac3562"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91902889.json",
+      "sha256": "87558321d99c4802440eb851b026bc7fcca100e65efb9d0b00587303f8117760"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91903826.json",
+      "sha256": "13a13031181ac1184f8efa986914cf5bb67976bb50ade01880bd736fb7b00e08"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91904756.json",
+      "sha256": "cf47b9468eb9f3480d9f48e808335c10c6fd75f00f26224757293127f1ad7d94"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91905925.json",
+      "sha256": "8a88a632499a3084a6e31751730c75cdb452e989facef746b2d6899d6f53e444"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91906620.json",
+      "sha256": "c4bc3436c815c86261de550276579141c4760823b4baf8168680eb9069856486"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91907568.json",
+      "sha256": "58a7b40dc2898093f684a41e230fa70f47d42ba142c348991831bf9dee72443d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91908528.json",
+      "sha256": "8cdd835c8aaaf39d5e94d8e98374a4299c7d0d41fbb538a98422f2e97eaca4d0"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91909459.json",
+      "sha256": "c495417d8d4830f3dc7ba240e4148a864b6bfd5032be735d10cce54e1855ed7e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91910412.json",
+      "sha256": "36025242e91384cc083aa9c0f8587cbe45427f51864ec830b2c6ffc8c5c3c289"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91911334.json",
+      "sha256": "f72ed2ab40c3587a9fa0b64a663b4890da281a1ebff57f14731345b228fd6ec6"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91912370.json",
+      "sha256": "40227a9a2621208492b025913db284024f34e489aa2fb94aa6bad7555924f14c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91913247.json",
+      "sha256": "a7b462e61b3de32ca4165d46e1f90b5b47486d8ccef0316aabc398f9b832acf9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91914164.json",
+      "sha256": "dd99bc22e67b7d3f1c35ff7b4c67ad7e2d72dfc8a75dc7c1be1772deade61e0e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91914178.json",
+      "sha256": "20621c6b01548546f34639dcb0a6ecb525fd624e2f5c055b90ef3ffb3abf1b9f"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91915109.json",
+      "sha256": "801a9bb774cf60763b7f86ac39cf00e81e41504270f6881ff7d1da1c1b8a9745"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91915196.json",
+      "sha256": "7a744a6a197ae34f405cf26e15411166e020714caea69e32a8dd576dd61defe5"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91916059.json",
+      "sha256": "c6f12031c1ae063f85cb1113fc4937968b332735821a9590e10bebd44c8bad54"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91916298.json",
+      "sha256": "4d5a5c34d118398c5e232ada59e3fec1a47b68aaab6a494719e72da762f7c0e9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91917000.json",
+      "sha256": "bd1d01fcdbe5012e251bb172fc2cd18b1543b1c506dcff976645dc0bc59f3bee"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91917931.json",
+      "sha256": "1d422c7c40e188b8887edf1410ab64e4b99507751e205d5cb232e1465ea7c4c5"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91918938.json",
+      "sha256": "e4edd1ed6c6081f7c210951cebce222269f3eb092cc334daf7479431ab16e40b"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91919832.json",
+      "sha256": "fe2e9a11ad1f8d2e238b134e14ed34c69d3a7174c71ff83a31abb01daef5bc59"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91920016.json",
+      "sha256": "cf16fed2312ba9239638b8c43e1538812f2500a414fea94079814b2b79e3bb5e"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91920781.json",
+      "sha256": "3a441bba89870534fdd6fdd2f226379c1045f6d14544686fb61b95aea895c7f1"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91921720.json",
+      "sha256": "f309e847e6f45ae327c9b371da2e2aca6d90ddfe21dd7b87c2c2fd30609cdd4c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91922672.json",
+      "sha256": "c4d3a3112dfdbd24f6e22466551f89c138f126750f71a9c0371a58e39adc7c41"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91922705.json",
+      "sha256": "7b44d6654abeb08b018c8bbda8128d8546ed5443181567b494b83335e44e1b28"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91923607.json",
+      "sha256": "fc59d1b6385620d15201740e277b0bd6cff9691eadc1fa72967dd9adc8ef9077"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91924546.json",
+      "sha256": "fa782354fd6e985a3c057a462af2e67a8b6905c12c7363a3955d7360ab11425d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91925488.json",
+      "sha256": "947874160dfc04b45d89405b02d7bc1f8e85687cca96448af66ae2f30fd03b6d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91926436.json",
+      "sha256": "4af4a16d9ddfac0418f5d1cc1b7bde4164514f1a5f2d11e0529f0a3dbc8f1da6"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91927371.json",
+      "sha256": "835cd2657d836f081ee40162591f01b9a6cf55dbef570d96765bf8b8ff9fa18c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91928309.json",
+      "sha256": "6e586d6cc0adc062726c50db57ed0b3ce574dc586b0807107dd8990528dc6610"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91929239.json",
+      "sha256": "7628010ac4dee61c0a2c1bd2e5382b9f1941ddcd7a047565663458af58c398dc"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91930167.json",
+      "sha256": "ec9aaa45c41b0f4860c9e96ec1f3c31333999fc318866dc9f36671a9fc1a40c3"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91931088.json",
+      "sha256": "2c2ed4f5de255f4feb43a47b0898f431749d24843f9d0046192859db43f5d90d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91932060.json",
+      "sha256": "14165de9a977716fd6879b96f211bce7436fdc659cc2778d0257e0279867be69"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91932933.json",
+      "sha256": "9f09f0d86ade401f935aba2b416f67ade59bcaa456789f7609c7f552718dcd61"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91933905.json",
+      "sha256": "1d8c22c62a0833a0c133582cdb3fc578c1e1d434cefdcaedccfe9c75769e8128"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91933909.json",
+      "sha256": "d2f91ba712750d9a7a35a561da2e22260acb91194d94dda75894d3b068e5d71f"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91934825.json",
+      "sha256": "d959558ef7fe5333251146301c3cc2bf0ab62464c6684740ce930248bd9e7abf"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91935760.json",
+      "sha256": "45a215b0b4657875fbe2d9330ddee5d86b58dc83e301e54c172943b023e086fa"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91936687.json",
+      "sha256": "9a1946ba5eb2c59e4cdd648b71e2757e32a859dbc17966898df845426c0267aa"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91937664.json",
+      "sha256": "d4ce028d188feaec2163df3800034e8f886d747f770285eff517d2ae0da149eb"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91938578.json",
+      "sha256": "22c7fe36d783c1154c91af476068e7a82a923d17e57afa36855090bbccbd3981"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91939517.json",
+      "sha256": "5d588be9bb7e1b6ba5efda10014f066708e1c930c92ef034de649cd6664cfa83"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91940497.json",
+      "sha256": "1c1c4353abdc5c73ca1e66470ea06de5937d612418fb1bf1980ac609a06175f9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91941373.json",
+      "sha256": "bf5e1e5d56a768e6dff44c67d7145d20ec2e63843b7b8f4d392b347e2aff715f"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91942419.json",
+      "sha256": "8486c2c2170264acc1f7da5c4b95915877735d5aa35167b93ea7936a7ef95a6d"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91946112.json",
+      "sha256": "52613e0285a1adeb4a53fbe51af0c3d11a174347593a41701d9da6485a7b8385"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91954545.json",
+      "sha256": "9f8a79c4f522f3f83a772e504e75244defbc9dd57b90c0054b46ec546b12dbcc"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91955426.json",
+      "sha256": "03ab538ee030f5321bfbac8ab3aec93d028a50b92401cec640b3be8163ea85c0"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91959005.json",
+      "sha256": "7f79e71765c5581e54da51b722563f2a1e5a20aba80964388aa2bcab13b4437a"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91974193.json",
+      "sha256": "0674b543484b6ddf6582a6c81a44b9dc78417c977c71e82cbb46afc871c24cb7"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91977843.json",
+      "sha256": "561cf03bad6ca36473711d76558cec5d229bed70bc51f4478f4645afd93e3d55"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91979483.json",
+      "sha256": "5779dd7e8e65b65ef245752b727b96818dbab52b33e9811517fb51b18613e7ea"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91980662.json",
+      "sha256": "a2b595f6ac77167ef8990227ed020252fe248267ebe777b53faae75138f991e0"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91987049.json",
+      "sha256": "f45a8033070f6f1e5b923bb5f5dfc6cc14a21e93f224a63233d469ecaa9f9527"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91989850.json",
+      "sha256": "a69c2e44922f6ac6aebb190bd44f7c4f3aa324423ff96dc0635eba2240876bf9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/91998188.json",
+      "sha256": "76d2d587d4e68e4e4fb39fb703f37c1162ab5cc21343340f6cdb9a03ddfb73dc"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92002093.json",
+      "sha256": "590eccffbfbb2d0a2a79004345df5e48c556e371ec29ed511b2a9e66c1df5af8"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92003144.json",
+      "sha256": "4eadfc31db3f0bd69622f6b3dec5056d1a262e7331231b7f3f773e382f99d367"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92028462.json",
+      "sha256": "aa170a8d220247e9ad1d5b6e06a210415531dbb6b6a5f2556751a2c7b8383407"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92032049.json",
+      "sha256": "a561ca11806b4e92b1f9e109d3eb84fb42c924f872d4bb6f8cd9cf8cf430a0cf"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92033151.json",
+      "sha256": "c40b72d6879f156afae09cda9a7deafd49eba2f8cbbf7d3aae08b0744998c65a"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92034923.json",
+      "sha256": "5ae7cd6a20f15c6a4352496bf0f199a9c88d001f4428bcee55eda5a518d8748c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92038717.json",
+      "sha256": "5c3e3c5b821a36f162b9525053cc63d576abbcdd955c06d56ac95a1b36a7b869"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92043495.json",
+      "sha256": "f93548ebca9522dd09794967f78adbedfb6c89ee281cc5d537be27b6667f81bc"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92065138.json",
+      "sha256": "9cdbeb8633f076bf8fb8eece3e9e92e6f9e017a5405240989c447fc148398736"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92065833.json",
+      "sha256": "28033f76f0ffecf38a0b4f1d73a70f3df309beb955afec0a3a6a0350aeff14e9"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92067730.json",
+      "sha256": "74a51a424c2090f8df22ecdf4d44b72ceedeaabcef263fb4ace10f73607fb96c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92075383.json",
+      "sha256": "b6546008f858d58370256d7bc6378a1a85389cdb8d330c640f725ebc4eff179c"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92076525.json",
+      "sha256": "ae865785c9230187caf0ecd759ec5d9787597fbbe9eeb80eeea32248632ca79b"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92079330.json",
+      "sha256": "52def2a7ebf4bbd4491f4022d524dd3e202f13cd070066869f88cb264efedbab"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92080120.json",
+      "sha256": "4303ee345a9ee6ea0349858c116450d3ef3e49a0f4036c7f58610e234ff0a136"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92083824.json",
+      "sha256": "c3e3302408777257e58842077f070f1a5fcafe884663bb9cd8f7e249fe08c6f0"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92084753.json",
+      "sha256": "1c847e7b369d8c4355af54604a07cdc4944878566b9fe07c6a15a720a0302b8a"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92085852.json",
+      "sha256": "e8eb6f83001ce6c13f68cd4e06b32fef1f54b8415c43cd4ed23a58594a796960"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92086630.json",
+      "sha256": "bfc6a1745ec33e885faebce4dd698f9a05f3efe97163f74b29cfb16a0d834772"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92088480.json",
+      "sha256": "ea8a8f82ca767ad172e49df9d56977ad2a51a0f760a24e27868f327ff82cea41"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92090357.json",
+      "sha256": "2cf587a209349f3144416c4c2f4e3cae26e5ec68dd5c1dd4434fcdae9f2a5982"
+    },
+    {
+      "path": "/home/horn/Desktop/ptcg_dragapult_top_20260811/92091277.json",
+      "sha256": "8f752552cc5b9bf6f6e556cb19adfe1bda66190c4c05de57fd7a3da60cda5c6c"
+    }
+  ],
+  "split": "sha256(episode_id) modulo 10: 0-6 train, 7 validation, 8-9 test",
+  "upload_authority": false
+}
