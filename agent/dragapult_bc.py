@@ -15,6 +15,7 @@ from .obsview import (
     OT_ATTACH,
     OT_ATTACK,
     OT_END,
+    OT_EVOLVE,
     OT_PLAY,
     ST_CARD,
     ST_MAIN,
@@ -54,7 +55,12 @@ JET_HEADBUTT = 153
 PHANTOM_DIVE = 154
 NEUTRALIZATION_ZONE = 1247
 FULL_METAL_LAB = 1244
+CRUSHING_HAMMER = 1120
+UNFAIR_STAMP = 1080
+ULTRA_BALL = 1121
+JAMMING_TOWER = 1246
 DRAGAPULT_LINE = frozenset((DREEPY, DRAKLOAK, DRAGAPULT_EX))
+HAMMER_SAFE_SETUP_ITEMS = frozenset((1086, 1097, 1152))
 RECON_SAFE_DECK_COUNT = 8
 EARLY_SETUP_LAST_TURN = 4
 ENGINE_TARGETS = frozenset((DRAKLOAK, 131, 132, 133, 326))
@@ -64,6 +70,7 @@ ENGINE_TARGETS = frozenset((DRAKLOAK, 131, 132, 133, 326))
 ENABLE_EXPERIMENTAL_ROUTE_GUARDS = False
 ENABLE_PHANTOM_COMPLETION_GUARD = True
 ENABLE_PHANTOM_TARGET_GUARD = False
+ENABLE_HAMMER_SEQUENCE_GUARD = False
 
 
 def supports_deck(registered_deck: Sequence[int]) -> bool:
@@ -299,6 +306,53 @@ def _guard_phantom_completion(view: ObsView, picks: list[int]) -> list[int]:
     return [completing[0]] if commits_turn else picks
 
 
+def _hammer_safe_setup_option(view: ObsView, option: dict) -> bool:
+    """Whether an action safely precedes a still-held Crushing Hammer."""
+    kind = option.get("type")
+    if kind in (OT_ABILITY, OT_EVOLVE):
+        return True
+    if kind != OT_PLAY:
+        return False
+    card_id = view.semantic_option_card_id(option)
+    info = cards.card(card_id) or {}
+    return bool(
+        info.get("cardType") == 0
+        or card_id in HAMMER_SAFE_SETUP_ITEMS
+        or card_id == JAMMING_TOWER
+    )
+
+
+def _guard_hammer_sequencing(view: ObsView, logits, picks: list[int]) -> list[int]:
+    """Delay chosen Hammer behind safe setup without suppressing its use.
+
+    Attachments, supporters, retreats, attacks, END, Unfair Stamp, and Ultra
+    Ball are deliberately excluded. After the safe action the next MAIN prompt
+    is decoded afresh, so Hammer remains available and wins once setup is done.
+    """
+    if view.select_type != ST_MAIN or len(picks) != 1:
+        return picks
+    chosen = picks[0]
+    if not isinstance(chosen, int) or not 0 <= chosen < len(view.options):
+        return picks
+    option = view.options[chosen]
+    if (
+        option.get("type") != OT_PLAY
+        or view.semantic_option_card_id(option) != CRUSHING_HAMMER
+    ):
+        return picks
+    alternatives = [
+        index for index, row in enumerate(view.options)
+        if index != chosen and _hammer_safe_setup_option(view, row)
+    ]
+    if not alternatives:
+        return picks
+    values = list(logits)
+    if len(values) != len(view.options) + 1:
+        return picks
+    replacement = max(alternatives, key=lambda index: (values[index], -index))
+    return [replacement]
+
+
 def _stadium_id(view: ObsView) -> int | None:
     stadium = (view.current or {}).get("stadium")
     if isinstance(stadium, list):
@@ -524,6 +578,8 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
         ):
             picks = _apply_main_route_guards(view, logits, picks)
         if view.select_type == ST_MAIN:
+            if ENABLE_HAMMER_SEQUENCE_GUARD:
+                picks = _guard_hammer_sequencing(view, logits, picks)
             return (
                 _guard_phantom_completion(view, picks)
                 if ENABLE_PHANTOM_COMPLETION_GUARD else picks
