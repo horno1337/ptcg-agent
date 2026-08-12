@@ -50,6 +50,7 @@ MUNKIDORI = 112
 DREEPY = 119
 DRAKLOAK = 120
 DRAGAPULT_EX = 121
+MEGA_LUCARIO_EX = 678
 BOSS = 1182
 JET_HEADBUTT = 153
 PHANTOM_DIVE = 154
@@ -71,6 +72,8 @@ ENABLE_EXPERIMENTAL_ROUTE_GUARDS = False
 ENABLE_PHANTOM_COMPLETION_GUARD = True
 ENABLE_PHANTOM_TARGET_GUARD = False
 ENABLE_HAMMER_SEQUENCE_GUARD = False
+ENABLE_BOSS_SETUP_MATE_GUARD = False
+ENABLE_PHANTOM_SECURE_PRIZE_GUARD = True
 
 
 def supports_deck(registered_deck: Sequence[int]) -> bool:
@@ -489,6 +492,79 @@ def _boss_immediate_prize_target(view: ObsView) -> list[int] | None:
     return [target] if target is not None else None
 
 
+def _one_prize_left(view: ObsView) -> bool:
+    prizes = (view.me or {}).get("prize")
+    return isinstance(prizes, list) and len(prizes) == 1
+
+
+def _missing_phantom_energy_in_hand(view: ObsView) -> bool:
+    """Whether one public manual attachment can make Active Phantom-ready.
+
+    This is used only during Boss target selection, after the MAIN menu that
+    proved the attachment legal has disappeared.  It deliberately requires
+    the attachment not to have been spent and the exact missing Basic Energy
+    to remain visible in hand.
+    """
+    current = view.current or {}
+    if current.get("energyAttached") is not False:
+        return False
+    active = _active(view.me)
+    if not isinstance(active, dict) or active.get("id") != DRAGAPULT_EX:
+        return False
+    energy = _energy_ids(active)
+    missing = [
+        kind for kind in (FIRE_ENERGY, PSYCHIC_ENERGY)
+        if kind not in energy
+    ]
+    if len(missing) != 1:
+        return False
+    hand = (view.me or {}).get("hand")
+    return isinstance(hand, list) and any(
+        isinstance(card, dict) and card.get("id") == missing[0]
+        for card in hand
+    )
+
+
+def _boss_setup_mate_main(view: ObsView) -> list[int] | None:
+    """Force only a visible Boss -> completing attachment -> final-Prize KO."""
+    if (
+        view.select_type != ST_MAIN
+        or not _one_prize_left(view)
+        or not _phantom_completion_options(view)
+        or _reachable_dragapult_ko(view, _active(view.opp), 200)
+    ):
+        return None
+    boss = next((
+        index for index, option in enumerate(view.options)
+        if option.get("type") == OT_PLAY
+        and view.semantic_option_card_id(option) == BOSS
+    ), None)
+    if boss is None:
+        return None
+    has_target = any(
+        _reachable_dragapult_ko(view, entry, 200)
+        and _valuable_boss_target(view, entry)
+        for entry in (view.opp or {}).get("bench") or []
+        if isinstance(entry, dict)
+    )
+    return [boss] if has_target else None
+
+
+def _boss_setup_mate_target(view: ObsView) -> list[int] | None:
+    """Select the public final-Prize target after the guarded Boss play."""
+    if (
+        view.select_type != ST_CARD
+        or view.context != CTX_SWITCH
+        or view.effect_card_id != BOSS
+        or not _one_prize_left(view)
+        or not _missing_phantom_energy_in_hand(view)
+        or _reachable_dragapult_ko(view, _active(view.opp), 200)
+    ):
+        return None
+    target = _best_boss_ko(view, 200)
+    return [target] if target is not None else None
+
+
 def _guard_phantom_dive_target(
     view: ObsView,
     picks: list[int],
@@ -539,6 +615,64 @@ def _guard_phantom_dive_target(
     return [replacement]
 
 
+def _visible_mega_lucario(view: ObsView) -> bool:
+    return any(
+        isinstance(entry, dict) and entry.get("id") == MEGA_LUCARIO_EX
+        for entry in (
+            list((view.opp or {}).get("active") or [])
+            + list((view.opp or {}).get("bench") or [])
+        )
+    )
+
+
+def _guard_phantom_secure_prize(
+    view: ObsView,
+    picks: list[int],
+) -> list[int]:
+    """Convert remaining Phantom counters into the best visible bench KO.
+
+    This is intentionally matchup-visible and conservative. If the learned
+    target is already KO-able with the remaining counters and worth the most
+    Prizes among such targets, it is preserved. Otherwise choose the lowest-HP
+    target at that same maximum Prize value. No target preference is invented
+    when the remaining counters cannot visibly finish a Pokemon.
+    """
+    if (
+        view.select_type != ST_CARD
+        or view.context != CTX_DAMAGE_COUNTER_ANY
+        or view.effect_card_id != DRAGAPULT_EX
+        or len(picks) != 1
+        or not _visible_mega_lucario(view)
+    ):
+        return picks
+    remain = view.select.get("remainDamageCounter")
+    if (
+        not isinstance(remain, int) or isinstance(remain, bool)
+        or not 1 <= remain <= 6
+    ):
+        return picks
+    candidates: list[tuple[int, int, int]] = []
+    for index, option in enumerate(view.options):
+        if option.get("playerIndex", view.my_index) == view.my_index:
+            continue
+        entry = view.option_board_entry(option)
+        hp = (entry or {}).get("hp") if isinstance(entry, dict) else None
+        if (
+            isinstance(hp, int) and not isinstance(hp, bool)
+            and 0 < hp <= remain * 10
+        ):
+            candidates.append((_prize_value(entry), hp, index))
+    if not candidates:
+        return picks
+    max_prizes = max(row[0] for row in candidates)
+    best = [row for row in candidates if row[0] == max_prizes]
+    chosen = picks[0]
+    if any(index == chosen for _, _, index in best):
+        return picks
+    _, _, replacement = min(best, key=lambda row: (row[1], row[2]))
+    return [replacement]
+
+
 def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
     """Route exact-deck MAIN/CARD prompts to their field-gated BC heads."""
     if (
@@ -549,12 +683,20 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
         return None
     if view.select_type == ST_MAIN:
         head = "main"
+        if ENABLE_BOSS_SETUP_MATE_GUARD:
+            boss = _boss_setup_mate_main(view)
+            if boss is not None:
+                return boss
         if ENABLE_EXPERIMENTAL_ROUTE_GUARDS:
             boss = _boss_immediate_prize_main(view)
             if boss is not None:
                 return boss
     elif view.select_type == ST_CARD:
         head = "card"
+        if ENABLE_BOSS_SETUP_MATE_GUARD:
+            boss_target = _boss_setup_mate_target(view)
+            if boss_target is not None:
+                return boss_target
         if ENABLE_EXPERIMENTAL_ROUTE_GUARDS:
             boss_target = _boss_immediate_prize_target(view)
             if boss_target is not None:
@@ -584,9 +726,10 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
                 _guard_phantom_completion(view, picks)
                 if ENABLE_PHANTOM_COMPLETION_GUARD else picks
             )
-        return (
-            _guard_phantom_dive_target(view, picks)
-            if ENABLE_PHANTOM_TARGET_GUARD else picks
-        )
+        if ENABLE_PHANTOM_SECURE_PRIZE_GUARD:
+            picks = _guard_phantom_secure_prize(view, picks)
+        if ENABLE_PHANTOM_TARGET_GUARD:
+            picks = _guard_phantom_dive_target(view, picks)
+        return picks
     except Exception:
         return None
