@@ -1,4 +1,4 @@
-"""Read-only behavioral audit of Kaggle submission 55457370.
+"""Read-only behavioral audit of a Kaggle Dragapult submission.
 
 The submission uses a Venture Bomb / Watchtower Dragapult list rather than the
 repository's exact 07bed Dragapult list.  This script therefore treats its
@@ -28,6 +28,7 @@ from tools import index_corpus  # noqa: E402
 from tools.research.analyze_top_dragapult_divergence import (  # noqa: E402
     action_label,
     attack_name,
+    available_buckets,
     card_name,
     coarse,
     decisions,
@@ -36,8 +37,8 @@ from tools.research.analyze_top_dragapult_divergence import (  # noqa: E402
 )
 
 
-SUBMISSION_ID = 55457370
-TEAM = "Sixth Sense"
+DEFAULT_SUBMISSION_ID = 55457370
+DEFAULT_TEAM = "Sixth Sense"
 BOSS = 1182
 PHANTOM_DIVE = "Phantom Dive"
 
@@ -103,7 +104,7 @@ def predict_head(view: ObsView, deck: list[int]) -> list[int] | None:
     return picks
 
 
-def audit(inputs: list[Path]) -> dict[str, Any]:
+def audit(inputs: list[Path], submission_id: int, team: str) -> dict[str, Any]:
     select_heads("elite")
     files: list[str] = []
     for value in inputs:
@@ -112,6 +113,8 @@ def audit(inputs: list[Path]) -> dict[str, Any]:
     games = []
     matchup = defaultdict(Counter)
     agreement = defaultdict(Counter)
+    agreement_by_result = defaultdict(Counter)
+    main_rates = defaultdict(Counter)
     boss_lines = []
     phantom_targets = Counter()
     first_attacks = Counter()
@@ -126,7 +129,7 @@ def audit(inputs: list[Path]) -> dict[str, Any]:
         rewards = document.get("rewards") or [None, None]
         episode_id = document.get("id") or (document.get("info") or {}).get("EpisodeId")
         for seat, name in enumerate(teams):
-            if name != TEAM or seat not in decks:
+            if name != team or seat not in decks:
                 continue
             deck_hash = index_corpus.deck_sha256(decks[seat])
             actor_hashes[deck_hash] += 1
@@ -156,6 +159,14 @@ def audit(inputs: list[Path]) -> dict[str, Any]:
                     head = "MAIN" if view.select_type == ST_MAIN else "CARD"
                     agreement[head]["n"] += 1
                     agreement[head]["agree"] += list(ours) == list(logged)
+                    agreement_by_result[(result, head)]["n"] += 1
+                    agreement_by_result[(result, head)]["agree"] += list(ours) == list(logged)
+
+                if view.select_type == ST_MAIN:
+                    selected = coarse(view, logged)
+                    for available in available_buckets(view):
+                        main_rates[result][f"offered::{available}"] += 1
+                        main_rates[result][f"selected::{available}"] += selected == available
 
                 if view.select_type == ST_MAIN and logged:
                     option = view.options[logged[0]]
@@ -197,8 +208,8 @@ def audit(inputs: list[Path]) -> dict[str, Any]:
     total_n = sum(row["n"] for row in agreement.values())
     total_agree = sum(row["agree"] for row in agreement.values())
     return {
-        "submission_id": SUBMISSION_ID,
-        "team": TEAM,
+        "submission_id": submission_id,
+        "team": team,
         "files": len(files),
         "actor_deck_hashes": dict(actor_hashes),
         "games": games,
@@ -208,6 +219,27 @@ def audit(inputs: list[Path]) -> dict[str, Any]:
             "total": {"n": total_n, "agree": total_agree,
                       "rate": total_agree / total_n if total_n else None},
             **{key: {**value, "rate": value["agree"] / value["n"]} for key, value in agreement.items()},
+        },
+        "agreement_by_result": {
+            f"{result}:{head}": {
+                "n": value["n"], "agree": value["agree"],
+                "rate": value["agree"] / value["n"] if value["n"] else None,
+            }
+            for (result, head), value in agreement_by_result.items()
+        },
+        "main_action_rates_by_result": {
+            result: {
+                action: {
+                    "offered": value[f"offered::{action}"],
+                    "selected": value[f"selected::{action}"],
+                    "rate": value[f"selected::{action}"] / value[f"offered::{action}"],
+                }
+                for action in sorted(
+                    key.removeprefix("offered::") for key in value
+                    if key.startswith("offered::") and value[key]
+                )
+            }
+            for result, value in main_rates.items()
         },
         "first_attacks": dict(first_attacks),
         "first_phantom_turns": dict(first_phantom_turns),
@@ -221,10 +253,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("inputs", type=Path, nargs="+")
     parser.add_argument("--json-out", type=Path)
+    parser.add_argument("--submission-id", type=int, default=DEFAULT_SUBMISSION_ID)
+    parser.add_argument("--team", default=DEFAULT_TEAM)
+    parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args()
-    report = audit(args.inputs)
+    report = audit(args.inputs, args.submission_id, args.team)
     text = json.dumps(report, indent=2, ensure_ascii=False, default=dict)
-    print(text)
+    if not args.quiet:
+        print(text)
     if args.json_out:
         args.json_out.write_text(text + "\n")
     return 0

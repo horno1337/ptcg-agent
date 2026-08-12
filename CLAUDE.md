@@ -348,6 +348,33 @@ This section supersedes older active-direction statements below.  The full
   difference.  Durable diagnostic:
   `tools/research/analyze_submission_55457370.py`; current report:
   `tools/checkpoints/submission-55457370-20260812/analysis.json`.
+- Older rank-one-participant submission `55439076` supplied 85 replay files:
+  one exact self-mirror plus 84 non-mirror `674ec310...` seats, 58-26 (69.0%).
+  This is the same Venture Bomb/Watchtower registration as `55457370`.  It
+  went 16-4 against exact `07bed`, 5-5 against exact `77a53ffc` Lucario and
+  4-0 against exact `c20a8` Grim in this selected sample.  Winning Boss uses
+  converted to a same-turn attack 65/69 times versus only 19/30 losing uses.
+  When legally offered, losing games selected END 4.27% versus 2.41% in wins,
+  Phantom Dive 20.0% versus 23.7%, and Munkidori ability 71.8% versus 50.3%.
+  Losing lines contain useful labels, but also systematically more utility and
+  less Prize conversion; outcome weighting is not harmless credit assignment.
+- A preregistered MAIN-only loss-weight screen compared historical 0.15 with
+  proposed 0.60, both initialized from exact deployed elite MAIN SHA-256
+  `793b230d...f966e0` and trained only on `55439076`.  Weight 0.60 improved
+  internal validation objective (1.35591 versus 1.40995) and newer-cohort
+  winner NLL/agreement slightly (1.27567/51.98% versus 1.27857/51.74%; parent
+  1.32205/51.26%).  It nevertheless matched only 36/65 actual winning Phantom
+  prompts, versus 38/65 for 0.15 and 37/65 for the parent, failing the frozen
+  attack guardrail.  Do not integrate or gameplay-test the 0.60 MAIN arm.
+- The behavior-eligible 0.15 candidate then failed its exact-`07bed` paired
+  256-game field screen: -4.49 pp overall, CI95 [-12.15,+3.17], including
+  Mega Lucario -16.35 pp, Grim -8.33 pp, Alakazam -2.50 pp, and Dragapult
+  +1.61 pp.  The gate was valid and candidate eligibility is false.  Neither
+  trained head is integrated.  This repeats the project-wide warning that
+  better imitation of a related-deck teacher does not imply better gameplay.
+  Future use of losing games should be exact-list and state-conditioned (or a
+  separate CARD-only screen), not a global 0.60 MAIN weight.  Artifacts live
+  under `tools/checkpoints/dragapult-sixth-sense-weighted-bc-20260812/`.
 - The 2026-08-12 ordered Dragapult sequencing/context experiment is complete;
   none of its candidates is authorized for integration or upload.  The exact
   parameter parent throughout was elite MAIN SHA-256 `793b230d...f966e0`;
