@@ -162,6 +162,41 @@ def collect_leaves(sink: list, cap: int = 1 << 20):
         _leaf_sink, _leaf_cap = previous, previous_cap
 
 
+def complete_roots(records: list[dict]) -> dict[int, list[dict]]:
+    """Return only leaves belonging to roots that committed.
+
+    Rejects roots with no commit marker (a later action column timed out),
+    roots whose leaf count disagrees with the marker, and roots where any
+    action column is missing or carries the wrong particle count.
+    """
+    markers, decks, leaves = {}, {}, defaultdict(list)
+    for row in records:
+        kind = row.get("kind")
+        if kind == "root_complete":
+            markers[row["root_id"]] = row
+        elif kind == "decks":
+            decks[row["root_id"]] = row
+        else:
+            leaves[row["root_id"]].append(row)
+
+    out: dict[int, list[dict]] = {}
+    for root_id, marker in markers.items():
+        rows = leaves.get(root_id, [])
+        if len(rows) != marker["leaves_expected"]:
+            continue
+        by_action = defaultdict(list)
+        for row in rows:
+            by_action[row["action_i"]].append(row)
+        if len(by_action) != marker["n_actions"]:
+            continue
+        if any(len(v) != marker["n_particles"] for v in by_action.values()):
+            continue
+        if any(a not in by_action for a in range(marker["n_actions"])):
+            continue
+        out[root_id] = rows
+    return out
+
+
 def _emit_leaves(plan, root_player: int, action_i: int,
                  deck_idx: tuple[int, ...], values: tuple[float, ...]) -> None:
     sink = _leaf_sink
@@ -1425,6 +1460,19 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
                 columns.append(values)
             if len(columns) == n_root:
                 paired_scores = np.asarray(columns, dtype=np.float64).T.tolist()
+                if _leaf_sink is not None and len(_leaf_sink) < _leaf_cap:
+                    # Commit marker. Leaves are emitted per action column, so
+                    # a later column timing out would otherwise strand earlier
+                    # actions' leaves in the sink as though the root had
+                    # produced a search result. Only a root that completed
+                    # every column is scoreable.
+                    _leaf_sink.append({
+                        "root_id": _leaf_root_id,
+                        "kind": "root_complete",
+                        "n_actions": n_root,
+                        "n_particles": valid_worlds,
+                        "leaves_expected": n_root * valid_worlds,
+                    })
     except Exception as exc:
         if os.environ.get("PTCG_TURN_SEARCH_DEBUG"):
             import traceback

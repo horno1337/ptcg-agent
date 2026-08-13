@@ -203,3 +203,56 @@ class TestShadowLeafCollection(unittest.TestCase):
         with TS.collect_leaves(sink, cap=4):
             TS._emit_leaves(plan, 0, 0, tuple(range(10)), tuple(0.0 for _ in range(10)))
         self.assertLessEqual(len(sink), 4)
+
+
+def leaf(root_id, action_i, particle_i):
+    return {"root_id": root_id, "action_i": action_i, "particle_i": particle_i,
+            "deck_i": 0, "root_player": 0, "leaf_seat": 0,
+            "heuristic": 0.0, "obs": {}}
+
+
+def marker(root_id, n_actions, n_particles):
+    return {"root_id": root_id, "kind": "root_complete",
+            "n_actions": n_actions, "n_particles": n_particles,
+            "leaves_expected": n_actions * n_particles}
+
+
+class TestRootIntegrity(unittest.TestCase):
+    """A root is scoreable only if every action column completed."""
+
+    def _rows(self, root_id, n_actions, n_particles):
+        return [leaf(root_id, a, p)
+                for a in range(n_actions) for p in range(n_particles)]
+
+    def test_committed_root_is_returned(self):
+        rows = self._rows(1, 3, 5) + [marker(1, 3, 5)]
+        self.assertEqual(len(TS.complete_roots(rows)[1]), 15)
+
+    def test_uncommitted_root_is_rejected(self):
+        # Actions 0-1 emitted, action 2 timed out: no marker was written.
+        rows = self._rows(1, 2, 5)
+        self.assertEqual(TS.complete_roots(rows), {})
+
+    def test_missing_action_column_is_rejected(self):
+        rows = [leaf(1, a, p) for a in (0, 2) for p in range(5)]
+        rows.append(marker(1, 3, 5))
+        self.assertEqual(TS.complete_roots(rows), {})
+
+    def test_wrong_particle_count_is_rejected(self):
+        rows = self._rows(1, 3, 5)
+        rows = [r for r in rows if not (r["action_i"] == 1 and r["particle_i"] == 4)]
+        rows.append(leaf(1, 0, 9))          # right total, wrong distribution
+        rows.append(marker(1, 3, 5))
+        self.assertEqual(TS.complete_roots(rows), {})
+
+    def test_truncated_dump_rejects_only_the_broken_root(self):
+        rows = (self._rows(1, 2, 3) + [marker(1, 2, 3)]
+                + self._rows(2, 2, 3))     # root 2 never committed
+        kept = TS.complete_roots(rows)
+        self.assertEqual(list(kept), [1])
+
+    def test_deck_header_is_not_counted_as_a_leaf(self):
+        rows = ([{"root_id": 1, "kind": "decks", "decks": [], "root_player": 0,
+                  "n_actions": 2}]
+                + self._rows(1, 2, 3) + [marker(1, 2, 3)])
+        self.assertEqual(len(TS.complete_roots(rows)[1]), 6)
