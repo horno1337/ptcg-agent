@@ -848,6 +848,77 @@ they conflict.  Historical sections remain for research provenance.
 
 ## Evaluation & gates
 
+### Gate power is standardized — measured 2026-08-13
+
+- An **A/A null** (byte-identical weights in BOTH arms, `pool:8`) returns
+  **+3.03 pp at n=512**, +0.66 pp at n=2,048, and -0.52 pp at n=8,192, with
+  SE 1.784 / 0.884 / 0.437 pp.  SE scales as 1/sqrt(n) to three digits
+  (ratios 2.018, 2.023 against theory 2.000), so the estimator was always
+  sound and **sample size was always the binding constraint**.  That A/A ran
+  at a ~91% operating point; at the 50-65% where real gates live, multiply SE
+  by ~1.7.  Evidence: `tools/research/run_parallel_gate.py`, A/A series in
+  the session log.
+- Therefore every historical "rejected, CI crossed zero" verdict at
+  n<=2,048 is **uninformative about effects below ~4 pp**, and any "passed"
+  screen at n<=1,024 (for example the setup-mate guard's +4.74 pp that then
+  failed confirmation) is inside the noise floor.  Do not cite those as
+  evidence for or against a candidate.
+- The "paired" estimator buys only **~15% variance reduction** because the
+  native engine RNG is unseedable; arms diverge immediately.  Power is
+  essentially unpaired binomial.  Buy power with games, not with pairing.
+- **Standard prospective sizes** (fixed in `run_parallel_gate.SIZES`, chosen
+  before running, never from an observed point estimate):
+  `--size 2pp` = **8,192 games/arm** for effects around 2 pp;
+  `--size 1pp` = **32,768 games/arm** when a 1 pp effect is practically
+  valuable.  Measured throughput is ~64 games/s on 16 cores, so 8,192/arm is
+  about 2.6 minutes and 32,768/arm about 10 minutes per arm.
+- Two runners, both emitting self-hashed results with
+  `promotion_authority=false`:
+  `tools/research/run_parallel_gate.py` shards `eval_ab.py`; and
+  `tools/research/run_sharded_specialist_gate.py` shards the **specialist**
+  current-field gates by importing their construction functions.  Neither
+  edits nor re-enters a historical locked evaluator — those `lock`/`attempt`/
+  `result` triples stay immutable evidence.  A new specialist is added as an
+  `Adapter`, never by modifying the locked script.
+- Both runners bind full experiment identity — schedule, opponent policy,
+  learner deck, meta content hash, routing flags, passthrough args, env vars,
+  and current candidate/base/evaluator/safety hashes — and refuse to resume
+  shards written under a different identity.  Shard topology is part of
+  schedule identity: the episode SET is invariant across `--workers` values
+  but the episode->opponent MAPPING is not, so never mix shard files across
+  worker counts.  Integrity checks are covered by
+  `tests/test_parallel_gate.py`.
+- Do not reopen several previously rejected candidates at once; that
+  recreates a selection/multiplicity problem.  One candidate per cycle, fresh
+  seed, size fixed in advance.
+
+### 2026-08-13 Lucario neural v2 confirmation at 8,192/arm
+
+- First candidate re-measured under the new standard.  Preregistered before
+  running (`preregistration.json`, `99c5b3f5...`), fresh seed 2026081301,
+  size fixed at `--size 2pp` from the standard table rather than from the
+  candidate's previously observed +1.98 pp.  Frozen current-field schedule
+  unchanged.  Valid, zero-fault, 27,346 candidate reranks and 0 control
+  reranks.
+- Result: **+1.20 pp, CI95 [-0.05,+2.45], SE 0.637 pp** over 8,192 paired
+  units.  It **passes** the positive and noninferiority criteria and **misses
+  strict superiority by 0.045 pp**.  Disposition is unchanged from the
+  consumed 2,048-game gate, but the interval is twice as tight, so this is now
+  a well-measured small positive rather than an inconclusive one.  The point
+  estimate regressed 1.98 -> 1.20 pp, which is what re-measuring a
+  low-power effect is expected to do.
+- **No slice-level story from the consumed gate reproduced.**  The Lucario
+  mirror was recorded there as the only negative slice at -1.88 pp; at four
+  times the power it is the *best* slice at **+3.39 pp**.  Dragapult was
+  recorded +2.23 pp; here it is -0.22 pp.  Both original readings were noise.
+  Slice CIs are +/-2 to +/-6 pp even at 8,192 games/arm, so **never veto or
+  promote on a slice measured at n < ~1,000**.
+- Evidence: `tools/checkpoints/lucario-neural-v2-confirm-8192-20260813/`
+  (`preregistration.json`, `result.json`, `adjudication.json`
+  `dfbc3257...`).  This is a local current-field measurement of an already-live
+  policy (Kaggle submission `55482233`); it is not a ladder-strength claim and
+  authorizes no promotion, packaging, or upload.
+
 - Local win rates do not predict ladder rank; use them only for A/B between
   our own agents (150+ games, paired seats) and crash-catching. 60-game
   evals swing ±13%.

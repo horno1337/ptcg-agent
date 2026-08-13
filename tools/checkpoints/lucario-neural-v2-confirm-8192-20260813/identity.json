@@ -1,0 +1,74 @@
+{
+  "identity": {
+    "adapter": "lucario-neural-v2",
+    "artifacts": {
+      "adapter": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/lucario-neural-context-main-v2-20260812/lucario_neural_context_main_v2_weights.npz",
+        "sha256": "7803975cfbe2c0eb1ccf3ce15233f7257fd6f12069dc6f8c5df6df19ea1a6fe6"
+      },
+      "base_evaluator": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_lucario_neural_context_current_field.py",
+        "sha256": "73fa58ffe416afa325432c9d4392bccc4df8f07be17228d8019456ed2819c40c"
+      },
+      "day1_card": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_card_weights.npz",
+        "sha256": "ab33e7b706701dad82a5ce74d2ffba9fda46ee5085d479f22c2bbe08ab714e14"
+      },
+      "driver": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/run_sharded_specialist_gate.py",
+        "sha256": "bafbacba7aef971f0fc1a051d958dae45a019605a43f40651e3a5dd3dc46ed06"
+      },
+      "evaluator": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_lucario_neural_context_current_field.py",
+        "sha256": "73fa58ffe416afa325432c9d4392bccc4df8f07be17228d8019456ed2819c40c"
+      },
+      "features": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_turn_context_v2.py",
+        "sha256": "4478fc5caf538c093c3650c21b425997da3042241d4895409ee3431c99270462"
+      },
+      "hydrapple_representative": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/grim-bounded-refresh-20260812/hydrapple-representative-aug11.json",
+        "sha256": "d631f0686c95da2fc935f7c9557e4b030dd219713a2843d22a9854c35c30d8fd"
+      },
+      "learner_deck": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/lucario_majkel1337_hariyama.csv",
+        "sha256": "5ddb7ca2790518e3c1eac6e2ff8b7fdb6ff0a817bf888536349a090ec7582a9f"
+      },
+      "parent_main": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_main_weights.npz",
+        "sha256": "ca415c6de9cedf4060092160d1fa755120d50f83352994feb3e7e35ebbb24d78"
+      },
+      "policy": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_bc.py",
+        "sha256": "771d989edcedc3eda3d57099c62821073a901f56dd4c967b60a670f80c3720e9"
+      },
+      "qu": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/weights.npz",
+        "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+      },
+      "source_field": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/recent-field-20260801-05/recent-field-20260801-05.json",
+        "sha256": "f558119122a1fe63b289b032e3bef9a91851c105e5cd670ae85e58ee7398dfbd"
+      },
+      "training_lock": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/lucario-neural-context-main-v1-20260812/lock.json",
+        "sha256": "a7c17e0bbdb39f56957de0fb8ee55d614e53cacba31b3c995ee91292dd759b0c"
+      },
+      "training_result": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/lucario-neural-context-main-v2-20260812/result.json",
+        "sha256": "6ed710904189292b3a5728e5bca1f04a606a71c078794981636cb90c997bdc82"
+      }
+    },
+    "learner_deck_sha256": "77a53ffc32f89b22562f6b4ac0b8cbde9e8210923cd0ef512551b8a8eb9003f8",
+    "schedule": {
+      "arms": [
+        "candidate",
+        "control"
+      ],
+      "games_per_arm": 8192,
+      "num_shards": 16,
+      "seed": 2026081301
+    }
+  },
+  "identity_sha256": "e9a919275b812684dcde37452a40ff806840fd1ad7bf9174b709f66fc1963741"
+}

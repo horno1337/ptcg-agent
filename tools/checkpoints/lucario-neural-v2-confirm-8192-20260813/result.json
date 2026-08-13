@@ -1,0 +1,223 @@
+{
+  "arm_valid": {
+    "candidate": true,
+    "control": true
+  },
+  "arms": {
+    "candidate": {
+      "draws": 9,
+      "games": 8192,
+      "losses": 2017,
+      "score": 0.75323486328125,
+      "wins": 6166
+    },
+    "control": {
+      "draws": 12,
+      "games": 8192,
+      "losses": 2114,
+      "score": 0.7412109375,
+      "wins": 6066
+    }
+  },
+  "candidate_minus_control": {
+    "ci95": [
+      -0.0004526239617424696,
+      0.02450047552424247
+    ],
+    "estimator": "paired normal CI95 over assignment score deltas",
+    "mean_delta": 0.01202392578125,
+    "paired_units": 8192,
+    "standard_error": 0.006365703574864591
+  },
+  "created_at": "2026-08-13T14:36:01.720695+00:00",
+  "diagnostics": {
+    "candidate": {
+      "learner_calls": 549495,
+      "learner_context_reranks": 27346
+    },
+    "control": {
+      "learner_calls": 557041,
+      "learner_context_reranks": 0
+    }
+  },
+  "faults": {
+    "candidate": {
+      "agent_error": 0,
+      "engine_error": 0,
+      "infrastructure_error": 0,
+      "truncated": 0
+    },
+    "control": {
+      "agent_error": 0,
+      "engine_error": 0,
+      "infrastructure_error": 0,
+      "truncated": 0
+    }
+  },
+  "identity": {
+    "adapter": "lucario-neural-v2",
+    "artifacts": {
+      "adapter": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/lucario-neural-context-main-v2-20260812/lucario_neural_context_main_v2_weights.npz",
+        "sha256": "7803975cfbe2c0eb1ccf3ce15233f7257fd6f12069dc6f8c5df6df19ea1a6fe6"
+      },
+      "base_evaluator": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_lucario_neural_context_current_field.py",
+        "sha256": "73fa58ffe416afa325432c9d4392bccc4df8f07be17228d8019456ed2819c40c"
+      },
+      "day1_card": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_card_weights.npz",
+        "sha256": "ab33e7b706701dad82a5ce74d2ffba9fda46ee5085d479f22c2bbe08ab714e14"
+      },
+      "driver": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/run_sharded_specialist_gate.py",
+        "sha256": "bafbacba7aef971f0fc1a051d958dae45a019605a43f40651e3a5dd3dc46ed06"
+      },
+      "evaluator": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/eval_lucario_neural_context_current_field.py",
+        "sha256": "73fa58ffe416afa325432c9d4392bccc4df8f07be17228d8019456ed2819c40c"
+      },
+      "features": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_turn_context_v2.py",
+        "sha256": "4478fc5caf538c093c3650c21b425997da3042241d4895409ee3431c99270462"
+      },
+      "hydrapple_representative": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/grim-bounded-refresh-20260812/hydrapple-representative-aug11.json",
+        "sha256": "d631f0686c95da2fc935f7c9557e4b030dd219713a2843d22a9854c35c30d8fd"
+      },
+      "learner_deck": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/lucario_majkel1337_hariyama.csv",
+        "sha256": "5ddb7ca2790518e3c1eac6e2ff8b7fdb6ff0a817bf888536349a090ec7582a9f"
+      },
+      "parent_main": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_main_weights.npz",
+        "sha256": "ca415c6de9cedf4060092160d1fa755120d50f83352994feb3e7e35ebbb24d78"
+      },
+      "policy": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/lucario_bc.py",
+        "sha256": "771d989edcedc3eda3d57099c62821073a901f56dd4c967b60a670f80c3720e9"
+      },
+      "qu": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/weights.npz",
+        "sha256": "ec69a2db7660c38e6623e9711ed910718c650780a020369148836d40119a8447"
+      },
+      "source_field": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/recent-field-20260801-05/recent-field-20260801-05.json",
+        "sha256": "f558119122a1fe63b289b032e3bef9a91851c105e5cd670ae85e58ee7398dfbd"
+      },
+      "training_lock": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/lucario-neural-context-main-v1-20260812/lock.json",
+        "sha256": "a7c17e0bbdb39f56957de0fb8ee55d614e53cacba31b3c995ee91292dd759b0c"
+      },
+      "training_result": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/lucario-neural-context-main-v2-20260812/result.json",
+        "sha256": "6ed710904189292b3a5728e5bca1f04a606a71c078794981636cb90c997bdc82"
+      }
+    },
+    "learner_deck_sha256": "77a53ffc32f89b22562f6b4ac0b8cbde9e8210923cd0ef512551b8a8eb9003f8",
+    "schedule": {
+      "arms": [
+        "candidate",
+        "control"
+      ],
+      "games_per_arm": 8192,
+      "num_shards": 16,
+      "seed": 2026081301
+    }
+  },
+  "identity_sha256": "e9a919275b812684dcde37452a40ff806840fd1ad7bf9174b709f66fc1963741",
+  "package_authority": false,
+  "promotion_authority": false,
+  "prospective_size": "2pp",
+  "result_sha256": "bc080af2dd7e00c7ea137561195a7a9e175be5f36616eb1d858e99e6226c26da",
+  "schema": "ptcg.sharded-specialist-gate.result.v1",
+  "slices": {
+    "Dragapult/qu-v2b": {
+      "candidate_score": 0.7347356664184661,
+      "ci95": [
+        -0.02592791958666958,
+        0.02146030975792796
+      ],
+      "control_score": 0.736969471332837,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": -0.0022338049143708115,
+      "paired_units": 2686,
+      "standard_error": 0.01208905615572272
+    },
+    "Fezandipiti ex/qu-v2b": {
+      "candidate_score": 0.6473880597014925,
+      "ci95": [
+        -0.028884162791108402,
+        0.08858565532842183
+      ],
+      "control_score": 0.6175373134328358,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": 0.029850746268656716,
+      "paired_units": 536,
+      "standard_error": 0.029967340993537938
+    },
+    "Grimmsnarl/qu-v2b": {
+      "candidate_score": 0.34851301115241634,
+      "ci95": [
+        -0.06421542293744477,
+        0.049345534461608345
+      ],
+      "control_score": 0.3559479553903346,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": -0.007434944237918215,
+      "paired_units": 538,
+      "standard_error": 0.028970164323122126
+    },
+    "Hydrapple ex/qu-v2b": {
+      "candidate_score": 0.8043143297380585,
+      "ci95": [
+        -0.02091882328849278,
+        0.04094963992947891
+      ],
+      "control_score": 0.7942989214175655,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": 0.010015408320493066,
+      "paired_units": 1298,
+      "standard_error": 0.01578306124652857
+    },
+    "Mega Kangaskhan ex/qu-v2b": {
+      "candidate_score": 0.9471649484536082,
+      "ci95": [
+        -0.0012716404660363181,
+        0.038213221222050064
+      ],
+      "control_score": 0.9286941580756014,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": 0.018470790378006873,
+      "paired_units": 1164,
+      "standard_error": 0.01007285388903519
+    },
+    "Mega Lopunny ex/qu-v2b": {
+      "candidate_score": 0.9714640198511166,
+      "ci95": [
+        0.004132605917676852,
+        0.04177310127835293
+      ],
+      "control_score": 0.9485111662531017,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": 0.02295285359801489,
+      "paired_units": 806,
+      "standard_error": 0.00960234362916347
+    },
+    "Mega Lucario ex/qu-v2b": {
+      "candidate_score": 0.6297250859106529,
+      "ci95": [
+        -0.0054601472960324055,
+        0.07332956310359254
+      ],
+      "control_score": 0.5957903780068728,
+      "estimator": "paired normal CI95 over assignment score deltas",
+      "mean_delta": 0.033934707903780066,
+      "paired_units": 1164,
+      "standard_error": 0.0200997852565425
+    }
+  },
+  "upload_authority": false,
+  "valid": true,
+  "wall_seconds": 469.46304
+}

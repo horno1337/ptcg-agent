@@ -1,0 +1,63 @@
+{
+  "adjudication_sha256": "dfbc3257e3a2aa0f70285a51f5ac0487f6015c4170c854d53cb52361ede8c188",
+  "comparison_to_consumed_gate": {
+    "confirmation": {
+      "ci95_pp": [
+        -0.045,
+        2.45
+      ],
+      "delta_pp": 1.202,
+      "games_per_arm": 8192,
+      "seed": 2026081301
+    },
+    "note": "Point estimate regressed 1.98 -> 1.20 pp as expected when an effect first observed at low power is re-measured, and stayed positive.",
+    "original": {
+      "ci95_pp": [
+        -0.56,
+        4.52
+      ],
+      "delta_pp": 1.98,
+      "games_per_arm": 2048,
+      "seed": 2026081264
+    }
+  },
+  "created_at": "2026-08-13T14:44:59.041458+00:00",
+  "criteria": {
+    "noninferior_lower_ge_-1.5pp": true,
+    "positive": true,
+    "strict_superiority_lower_gt_0": false,
+    "valid": true
+  },
+  "outcome": {
+    "candidate_reranks": 27346,
+    "ci95_pp": [
+      -0.045,
+      2.45
+    ],
+    "overall_pp": 1.202,
+    "paired_units": 8192,
+    "standard_error_pp": 0.6366,
+    "valid": true
+  },
+  "package_authority": false,
+  "preregistration_sha256": "99c5b3f5e1c0b8db00468a2fa2026faec69d29530348033df4f0188352676cd3",
+  "promotion_authority": false,
+  "result_sha256": "bc080af2dd7e00c7ea137561195a7a9e175be5f36616eb1d858e99e6226c26da",
+  "schema": "ptcg.lucario-neural-v2.confirm-8192.adjudication.v1",
+  "scope": "This is a local current-field measurement of an already-live policy (Kaggle submission 55482233). It is not a ladder-strength claim and does not by itself authorize promotion, packaging, or upload.",
+  "slice_reproduction": {
+    "finding": "No slice-level story from the consumed gate reproduced. The Lucario mirror was reported as the only negative slice at -1.88 pp; at 4x power it is the BEST slice at +3.39 pp. Dragapult was reported +2.23 pp; here it is -0.22 pp. Both original readings were noise at n~300-700.",
+    "rule": "Do not veto or promote on a slice measured at n < ~1000. Slice CIs here are +/-2 to +/-6 pp even at 8,192 games/arm.",
+    "slices_pp": {
+      "Dragapult/qu-v2b": -0.22,
+      "Fezandipiti ex/qu-v2b": 2.99,
+      "Grimmsnarl/qu-v2b": -0.74,
+      "Hydrapple ex/qu-v2b": 1.0,
+      "Mega Kangaskhan ex/qu-v2b": 1.85,
+      "Mega Lopunny ex/qu-v2b": 2.3,
+      "Mega Lucario ex/qu-v2b": 3.39
+    }
+  },
+  "upload_authority": false,
+  "verdict": "PASSES positive and noninferiority; MISSES strict superiority by 0.045 pp. Same disposition as the original 2,048-game gate but with a 2x tighter interval, so the candidate is now a well-measured small positive rather than an inconclusive one."
+}
