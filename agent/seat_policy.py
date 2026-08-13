@@ -324,8 +324,20 @@ class SeatPolicyTable:
     def act(self, obs: Mapping[str, Any], seat: int) -> list[int]:
         return self.decide(obs, seat).action
 
-    def score_actions(self, obs: Mapping[str, Any], seat: int) -> np.ndarray:
-        policy, deck = self._require(seat)
+    def score_actions(self, obs: Mapping[str, Any], seat: int,
+                      deck: Sequence[int] | None = None) -> np.ndarray:
+        policy, bound = self._require(seat)
+        if deck is None:
+            deck = bound
+        else:
+            deck = tuple(deck)
+            if len(deck) != 60:
+                raise SeatPolicyError(
+                    f"believed deck for seat {seat} must be 60 cards, "
+                    f"got {len(deck)}")
+        # The POLICY binding is never overridable -- only the deck it is
+        # conditioned on. A simulated opponent therefore still cannot be
+        # scored with our deck-conditioned specialists.
         return policy.score_actions(obs, deck, seat)
 
     def _require(self, seat: int):
