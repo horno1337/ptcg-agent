@@ -1,0 +1,189 @@
+{
+  "best_coverage": 0.8448275862068966,
+  "candidates": [
+    {
+      "budget_s": 3.0,
+      "coverage": 0.7039445166883398,
+      "cpu_per_wall": 1.1653458173448374,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.24664065886432596,
+      "min_bank_s": 500.98810026980937,
+      "override_rate": 0.07672301690507152,
+      "overrides_per_game": 2.765625,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 798,
+        "insufficient_evidence": 569,
+        "low_margin": 649,
+        "robust_override": 177,
+        "root_width": 114
+      },
+      "reserve_fires": 0,
+      "result_sha256": "0222452a152d506051e0b595d7a31958a75af1724188fbabcb130587a69d0b19",
+      "search_s_per_game": 53.03682114490584,
+      "searched": 2307,
+      "source": "tools/checkpoints/dobi-v2-turn-search-budget-sweep-20260813/b3.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 4.0,
+      "coverage": 0.8025652771415483,
+      "cpu_per_wall": 1.1417006995368744,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.15895556573522676,
+      "min_bank_s": 489.5525220336858,
+      "override_rate": 0.09024278515803939,
+      "overrides_per_game": 3.078125,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 762,
+        "insufficient_evidence": 347,
+        "low_margin": 793,
+        "robust_override": 197,
+        "root_width": 84
+      },
+      "reserve_fires": 0,
+      "result_sha256": "cdd7c838a7ddaf12d03fcfdb5dbe35a3e75185d348182c1d0b03edf982c21f03",
+      "search_s_per_game": 56.973051374789065,
+      "searched": 2183,
+      "source": "tools/checkpoints/dobi-v2-turn-search-budget-sweep-20260813/b4.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 5.0,
+      "coverage": 0.8367263843648208,
+      "cpu_per_wall": 1.1420630399048142,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.11970684039087948,
+      "min_bank_s": 417.8926678856369,
+      "override_rate": 0.10586319218241043,
+      "overrides_per_game": 4.0625,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 898,
+        "insufficient_evidence": 294,
+        "low_margin": 897,
+        "robust_override": 260,
+        "root_width": 107
+      },
+      "reserve_fires": 0,
+      "result_sha256": "2201221586e03585393fc99bd8cb12cd62dd90305c6f6a9e1981ce2a183c4abe",
+      "search_s_per_game": 70.47280578529899,
+      "searched": 2456,
+      "source": "tools/checkpoints/dobi-v2-turn-search-budget-sweep-20260813/b5.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 6.0,
+      "coverage": 0.8448275862068966,
+      "cpu_per_wall": 1.1462126064437637,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.11307137129109864,
+      "min_bank_s": 396.77101478003897,
+      "override_rate": 0.09743384121892543,
+      "overrides_per_game": 3.796875,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 937,
+        "insufficient_evidence": 282,
+        "low_margin": 927,
+        "robust_override": 243,
+        "root_width": 105
+      },
+      "reserve_fires": 0,
+      "result_sha256": "3334bba2c8b5ed00c0d70abd4a381c6ca14b83f0472653fe4e2af8708ef2914c",
+      "search_s_per_game": 79.93959861448093,
+      "searched": 2494,
+      "source": "tools/checkpoints/dobi-v2-turn-search-budget-sweep-20260813/b6.0/result.json",
+      "threads": 2,
+      "workers": 8
+    }
+  ],
+  "created_at": "2026-08-13T18:58:36.292975+00:00",
+  "freeze_sha256": "5f3c6131e0f5a637e5f2177e6c55b765502432ba47c5f488f64ef80fdd3a3be0",
+  "frozen": {
+    "benchmark_threads": 2,
+    "benchmark_workers": 8,
+    "budget_s": 5.0,
+    "evidence_floor": 5,
+    "max_particles": 8,
+    "measured_cpu_per_wall": 1.1420630399048142,
+    "topology_caveat": "cpu_per_wall near 1.2 means the benchmark is lower-contention emulation, not a 2 vCPU deployment equivalent; Kaggle should meet or exceed these coverage and override rates"
+  },
+  "gameplay_authority": false,
+  "justification": {
+    "coverage": 0.8367263843648208,
+    "faults_total": 0,
+    "insufficient_rate": 0.11970684039087948,
+    "min_bank_s": 417.8926678856369,
+    "override_rate": 0.10586319218241043,
+    "overrides_per_game": 4.0625,
+    "reserve_fires": 0,
+    "search_s_per_game": 70.47280578529899
+  },
+  "outcome_fields_stripped": [
+    "outcome_sanity"
+  ],
+  "plateau_budgets": [
+    5.0,
+    6.0
+  ],
+  "promotion_authority": false,
+  "schema": "ptcg.turn-search-budget-freeze.v1",
+  "selection_rule": {
+    "plateau_tolerance_pp": 2.0,
+    "required_bank_headroom_s": 100.0,
+    "reserve_s": 150.0,
+    "rule": "smallest budget within tolerance of best coverage, zero faults, bank comfortably above reserve; ties smaller"
+  },
+  "unchanged_during_optimization": [
+    "beam width",
+    "evidence floor",
+    "leaf evaluator",
+    "override margin"
+  ],
+  "written_before_any_gameplay_outcome_was_read": true
+}

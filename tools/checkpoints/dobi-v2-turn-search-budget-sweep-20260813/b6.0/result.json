@@ -1,0 +1,74 @@
+{
+  "clock": {
+    "bank_exhausted": false,
+    "min_remaining_overage_s": 396.77101478003897,
+    "reserve_guard_fires": 0,
+    "reserve_s": 150.0,
+    "search_seconds_per_game": 79.93959861448093,
+    "total_search_seconds": 5116.134311326779
+  },
+  "config": {
+    "budget_s": 6.0,
+    "games": 64,
+    "num_shards": 8,
+    "opp": "pool:8",
+    "particles": 8,
+    "seed": 424242,
+    "threads_per_worker": 2
+  },
+  "cpu_topology": {
+    "cpu_per_wall_max": 1.176264362329561,
+    "cpu_per_wall_mean": 1.1462126064437637,
+    "cpu_per_wall_min": 1.1032524186461146,
+    "effectively_multicore": false,
+    "note": "cpu_per_wall near 1.0 means each worker used one useful CPU regardless of the BLAS thread setting, so the run is lower-contention emulation rather than a true 2 vCPU pair",
+    "threads_requested": 2,
+    "workers": 8
+  },
+  "created_at": "2026-08-13T18:45:04.638376+00:00",
+  "decisions": {
+    "calls": 5597,
+    "fell_back": 1314,
+    "no_search": 3103,
+    "overrides": 243,
+    "searched": 2494
+  },
+  "evidence": {
+    "coverage": 0.8448275862068966,
+    "insufficient_evidence_rate": 0.11307137129109864,
+    "reached_floor": 2107,
+    "searched": 2494
+  },
+  "faults": {
+    "agent_error": 0,
+    "controller_exceptions": {},
+    "engine_error": 0,
+    "infrastructure_error": 0,
+    "overlay_faults": {},
+    "truncated": 0
+  },
+  "gameplay_authority": false,
+  "games_recorded": 64,
+  "gate_valid": true,
+  "outcome_sanity": {
+    "draws": 0,
+    "losses": 2,
+    "note": "sanity signal only; no promotion authority",
+    "score": 0.96875,
+    "wins": 62
+  },
+  "override_rate_of_searched": 0.09743384121892543,
+  "overrides_per_game": 3.796875,
+  "passed": true,
+  "promotion_authority": false,
+  "reasons": {
+    "agrees_reflex": 937,
+    "insufficient_evidence": 282,
+    "low_margin": 927,
+    "robust_override": 243,
+    "root_width": 105
+  },
+  "result_sha256": "3334bba2c8b5ed00c0d70abd4a381c6ca14b83f0472653fe4e2af8708ef2914c",
+  "schema": "ptcg.dobi-v2-turn-search-smoke.v1",
+  "wall_seconds": 781.338372
+}
