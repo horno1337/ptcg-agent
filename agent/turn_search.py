@@ -31,6 +31,7 @@ import hashlib
 import itertools
 import json
 import math
+import contextlib
 import os
 import random
 import time
@@ -120,6 +121,47 @@ class _BeliefPlan:
 
 
 _meta_cache: list[dict] | None = None
+
+
+class SeatAmbiguity(RuntimeError):
+    """Raised when a simulated decision cannot be attributed to a bound seat.
+
+    This is deliberately NOT folded into the generic fail-soft path: planning
+    a seat with the wrong deck-conditioned policy silently produces confident
+    nonsense, so the planner fails closed instead.
+    """
+
+
+# Optional Dobi-aware planning context. Shipped dispatch never sets this, so
+# the default path is byte-identical to the pre-existing behaviour.
+_seat_context: tuple | None = None
+
+
+@contextlib.contextmanager
+def seat_context(table, root_seat: int):
+    """Bind a ``SeatPolicyTable`` for the duration of one analysis.
+
+    ``table`` must already bind every seat that can act in simulation, each to
+    its own policy and its own registered or believed deck.
+    """
+    global _seat_context
+    previous = _seat_context
+    _seat_context = (table, int(root_seat))
+    try:
+        yield
+    finally:
+        _seat_context = previous
+
+
+def _seat_logits(table, obs: dict) -> np.ndarray:
+    seat = (obs.get("current") or {}).get("yourIndex")
+    if not isinstance(seat, int) or seat not in table.seats():
+        raise SeatAmbiguity(
+            f"acting seat {seat!r} is not bound; bound seats are "
+            f"{table.seats()}"
+        )
+    scores = table.score_actions(obs, seat)
+    return np.asarray(scores, dtype=np.float64).reshape(-1)
 
 
 def _record(reason: str, started: float, **extra) -> None:
@@ -779,6 +821,16 @@ def _predict_particle(view: ObsView, my_deck_list: list[int],
 
 
 def _policy_logits(net, obs: dict) -> np.ndarray:
+    """Score one simulated decision for whichever seat is acting.
+
+    With a seat context bound, each seat is scored by its OWN policy under its
+    OWN registered or believed deck, so a simulated opponent is never scored
+    with our deck-conditioned specialists. Without one, this keeps the legacy
+    encoder path -- which is incompatible with Qu-v2 nets and is why the
+    planner has never produced an action on the shipped net family.
+    """
+    if _seat_context is not None:
+        return _seat_logits(_seat_context[0], obs)
     view = ObsView(obs)
     st = FE.encode_state(view)
     cids, feats = FE.encode_options_for_net(view, net)
@@ -1072,7 +1124,16 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
     root_turn = (view.current or {}).get("turn")
     root_actions = tuple((token,) for token in semantic_options(view.obs))
     try:
-        reflex = SP._reflex(net, view.obs)
+        if _seat_context is not None:
+            table, bound_root = _seat_context
+            if bound_root != root_player:
+                raise SeatAmbiguity(
+                    f"root seat {root_player} does not match the bound "
+                    f"context seat {bound_root}"
+                )
+            reflex = table.act(view.obs, root_player)
+        else:
+            reflex = SP._reflex(net, view.obs)
         reflex_i = reflex[0] if reflex and len(reflex) == 1 else None
         if not isinstance(reflex_i, int) or not 0 <= reflex_i < n_root:
             _record("no_reflex", started)
@@ -1208,6 +1269,10 @@ def analyze(view: ObsView, net, my_deck_list: list[int],
     started = time.monotonic()
     try:
         return _analyze_impl(view, net, my_deck_list, budget_s, max_particles)
+    except SeatAmbiguity:
+        # Fail closed rather than fall back: a mis-attributed seat means the
+        # plan was built against the wrong deck-conditioned policy.
+        raise
     except Exception as exc:
         if os.environ.get("PTCG_TURN_SEARCH_DEBUG"):
             import traceback
