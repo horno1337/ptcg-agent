@@ -105,7 +105,8 @@ z_e(r,a) = c_e(r,a) / rms_e(r)
 `z` is therefore dimensionless and unit-variance per root, so heuristic and
 neural arms are directly comparable and blendable.
 
-**Degenerate roots.** If `rms_e(r) < 1e-9` for ANY arm, the root is dropped
+**Degenerate roots.** *(WITHDRAWN — superseded by B1; do not implement.)*
+If `rms_e(r) < 1e-9` for ANY arm, the root is dropped
 from EVERY arm. Dropping per-arm would give each arm a different population
 and silently favour whichever arm is least often flat. The dropped count is
 reported per arm and in total.
@@ -194,6 +195,11 @@ downstream work.
 ---
 
 # Appendix B — amendments, before any leaf was scored
+
+**APPENDIX B IS AUTHORITATIVE.** Where B conflicts with any earlier
+section, B governs. Specifically **B1 governs, not A1**: A1's rule of
+dropping degenerate roots from every arm is WITHDRAWN and must not be
+implemented. The withdrawn text is retained below only as history.
 
 These supersede the named sections above. The superseded text is left in place
 rather than rewritten, so the reasoning that changed stays visible.
