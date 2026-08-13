@@ -45,7 +45,43 @@ class SmokeError(RuntimeError):
     pass
 
 
-def build_controller(runtime, deck, budget: float, particles: int, net, collect: bool = False):
+SAMPLER_SEED = 20260814          # frozen; part of the draw, never tuned
+SAMPLE_RATE = 0.05
+_SAMPLE_THRESHOLD = int(SAMPLE_RATE * (1 << 64))
+
+
+def _is_sampled(schedule_seed: int, num_shards: int, episode_id: int,
+                ordinal: int) -> bool:
+    """Deterministic 5% draw, decided BEFORE the root is searched.
+
+    Keyed on canonical bytes covering the sampler seed, the schedule identity
+    (seed and topology) and the zero-based eligible-root ordinal within the
+    episode, so selection cannot correlate with how a search turned out.
+    A 64-bit threshold comparison is used rather than modulo, which would bias
+    the rate.  Both arms evaluate this identical predicate.
+    """
+    blob = b"|".join((
+        b"ptcg-c3-sample-v1",
+        str(SAMPLER_SEED).encode(), str(schedule_seed).encode(),
+        str(num_shards).encode(), str(episode_id).encode(),
+        str(ordinal).encode(),
+    ))
+    return int.from_bytes(hashlib.sha256(blob).digest()[:8], "big") \
+        < _SAMPLE_THRESHOLD
+
+
+def _snapshot(obs: dict) -> str:
+    """Emit-time conversion to a compact, reference-free value.
+
+    Releases the engine's parsed state graph immediately instead of holding it
+    until the analysis ends.
+    """
+    return json.dumps(obs, separators=(",", ":"), default=str)
+
+
+def build_controller(runtime, deck, budget: float, particles: int, net,
+                     collect: bool = False, schedule_seed: int = 0,
+                     num_shards: int = 1):
     from agent import turn_search as TS
     from agent.obsview import ObsView
     from agent.seat_policy import (
@@ -66,6 +102,14 @@ def build_controller(runtime, deck, budget: float, particles: int, net, collect:
             # cost lands inside the deadline (where it must be measured) while
             # retention stays bounded.
             self._sink: list = []
+            self._writer = None
+            self.sampled_reasons: Counter[str] = Counter()
+            self._episode_id = -1
+            self._ordinal = 0
+
+        def begin_episode(self, spec) -> None:
+            self._episode_id = int(getattr(spec, "episode_id", -1))
+            self._ordinal = 0
 
         def act(self, obs: dict) -> list[int]:
             import time
@@ -83,14 +127,22 @@ def build_controller(runtime, deck, budget: float, particles: int, net, collect:
                 self._collect(ours)
                 return list(baseline)
 
+            # Eligible-root ordinal advances for EVERY search-eligible root,
+            # in both arms, so the draw is identical regardless of collection.
+            ordinal = self._ordinal
+            self._ordinal += 1
+            sampled = _is_sampled(schedule_seed, num_shards,
+                                  self._episode_id, ordinal)
+
             theirs = QuV2BasePolicy(runtime)
             table = (SeatPolicyTable().bind(seat, ours, deck)
                                       .bind(1 - seat, theirs, TS.field_prior_deck()))
             started = time.monotonic()
             try:
                 with TS.seat_context(table, seat):
-                    if collect:
-                        with TS.collect_leaves(self._sink):
+                    if collect and sampled:
+                        with TS.collect_leaves(self._sink,
+                                               snapshot=_snapshot):
                             action = TS.decide(view, net, list(deck),
                                                budget_s=budget,
                                                max_particles=particles)
@@ -109,12 +161,25 @@ def build_controller(runtime, deck, budget: float, particles: int, net, collect:
                 self.exceptions[type(error).__name__] += 1
                 action = None
             self.search_seconds += time.monotonic() - started
-            if collect:
-                # Counted and released AFTER the timed region: a real run
-                # serializes here, outside any deadline.
+            reason = str(TS.last_stats.get("reason"))
+            if sampled:
+                self.counts["sampled_searched"] += 1
+                self.sampled_reasons[reason] += 1
+            if collect and sampled:
+                # Serialize this completed root immediately -- after
+                # analyze() returned, therefore outside its deadline -- then
+                # drop every observation reference before the next root begins.
                 self.counts["leaves"] += len(self._sink)
+                self.counts["leaf_bytes"] += sum(
+                    len(r["obs"]) for r in self._sink if isinstance(r.get("obs"), str))
+                if self._writer is not None:
+                    for row in TS.complete_roots(self._sink).values():
+                        for record in row:
+                            self._writer.write(
+                                json.dumps(record, separators=(",", ":"),
+                                           default=str) + "\n")
                 self._sink.clear()
-            self.reasons[str(TS.last_stats.get("reason"))] += 1
+            self.reasons[reason] += 1
             self._collect(ours, theirs)
             self.counts["searched"] += 1
             if action is None:
@@ -136,6 +201,7 @@ def build_controller(runtime, deck, budget: float, particles: int, net, collect:
                 "fallbacks": self.counts["fell_back"],
                 "counts": dict(self.counts),
                 "reasons": dict(self.reasons),
+                "sampled_reasons": dict(self.sampled_reasons),
                 "search_seconds": self.search_seconds,
                 "min_remaining_overage_s": (
                     None if self.min_remaining == float("inf")
@@ -174,7 +240,8 @@ def run_shard(spec: dict) -> str:
                                      spec["shard_index"], spec["num_shards"])
     controller = build_controller(runtime, deck, spec["budget"],
                                   spec["particles"], net,
-                                  bool(spec.get("collect")))
+                                  bool(spec.get("collect")),
+                                  int(spec["seed"]), int(spec["num_shards"]))
     series = EVAL.run_series("dobi-v2-turn-search-smoke", controller, deck,
                              opponents, schedule, max_selects=5000,
                              time_bank_s=600.0, verbose=False)
@@ -289,10 +356,12 @@ def main(argv=None) -> int:
                  "lower-contention emulation rather than a true 2 vCPU pair"),
     }
     counts, reasons, exceptions, overlay = Counter(), Counter(), Counter(), Counter()
+    sampled_reasons: Counter = Counter()
     search_seconds = 0.0
     min_remaining = []
     for d in diags:
         counts.update(d["counts"]); reasons.update(d["reasons"])
+        sampled_reasons.update(d.get("sampled_reasons", {}))
         exceptions.update(d["exceptions"]); overlay.update(d["overlay_faults"])
         search_seconds += d["search_seconds"]
         if d["min_remaining_overage_s"] is not None:
@@ -347,6 +416,19 @@ def main(argv=None) -> int:
             counts["overrides"] / counts["searched"] if counts["searched"] else 0.0),
         "overrides_per_game": counts["overrides"] / max(len(records), 1),
         "reasons": dict(reasons),
+        "sampled_evidence": {
+            "sampled_searched": counts.get("sampled_searched", 0),
+            "reasons": dict(sampled_reasons),
+            "coverage": ((sampled_reasons.get("agrees_reflex", 0)
+                          + sampled_reasons.get("low_margin", 0)
+                          + sampled_reasons.get("robust_override", 0))
+                         / counts["sampled_searched"])
+            if counts.get("sampled_searched") else 0.0,
+            "rate_of_searched": (counts.get("sampled_searched", 0)
+                                 / counts["searched"]) if counts["searched"] else 0.0,
+            "note": ("PRIMARY criterion for C3. Overall coverage is diluted "
+                     "~20x by unsampled roots and is diagnostic only."),
+        },
         "clock": {
             "total_search_seconds": search_seconds,
             "search_seconds_per_game": search_seconds / max(len(records), 1),
@@ -375,6 +457,10 @@ def main(argv=None) -> int:
     print(f"  reasons          {dict(reasons)}")
     print(f"  search/game      {payload['clock']['search_seconds_per_game']:.1f}s")
     ev = payload["evidence"]
+    se = payload["sampled_evidence"]
+    print(f"  sampled roots    {se['sampled_searched']} "
+          f"({100*se['rate_of_searched']:.2f}% of searched)")
+    print(f"  SAMPLED coverage {100*se['coverage']:.1f}%   <-- primary")
     print(f"  coverage         {100*ev['coverage']:.1f}%  "
           f"(insufficient {100*ev['insufficient_evidence_rate']:.1f}%)")
     print(f"  cpu/wall         mean {topology['cpu_per_wall_mean']:.2f} "

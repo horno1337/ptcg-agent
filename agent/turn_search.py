@@ -143,23 +143,29 @@ _seat_context: tuple | None = None
 _leaf_sink: list | None = None
 _leaf_cap: int = 0
 _leaf_root_id: int = -1
+# Optional emit-time transform for the leaf observation. Storing the raw dict
+# keeps the engine's parsed state graph alive until the whole analysis ends,
+# which measurably costs completion coverage (Appendix C1). A snapshot
+# callable lets a caller convert the leaf to a compact, reference-free value
+# the moment it is emitted, so nothing survives the action column that made it.
+_leaf_snapshot = None
 
 
 @contextlib.contextmanager
-def collect_leaves(sink: list, cap: int = 1 << 20):
+def collect_leaves(sink: list, cap: int = 1 << 20, snapshot=None):
     """Record decisive leaves for OFFLINE evaluation.
 
     Deliberately does not evaluate anything: scoring a leaf inside the budget
     would consume search time, reduce coverage, and change the very decisions
     being measured.
     """
-    global _leaf_sink, _leaf_cap
-    previous, previous_cap = _leaf_sink, _leaf_cap
-    _leaf_sink, _leaf_cap = sink, int(cap)
+    global _leaf_sink, _leaf_cap, _leaf_snapshot
+    previous = (_leaf_sink, _leaf_cap, _leaf_snapshot)
+    _leaf_sink, _leaf_cap, _leaf_snapshot = sink, int(cap), snapshot
     try:
         yield sink
     finally:
-        _leaf_sink, _leaf_cap = previous, previous_cap
+        _leaf_sink, _leaf_cap, _leaf_snapshot = previous
 
 
 def complete_roots(records: list[dict]) -> dict[int, list[dict]]:
@@ -218,7 +224,7 @@ def _emit_leaves(plan, root_player: int, action_i: int,
             "root_player": root_player,
             "leaf_seat": leaf_seat,
             "heuristic": values[particle_i] if particle_i < len(values) else None,
-            "obs": obs,
+            "obs": obs if _leaf_snapshot is None else _leaf_snapshot(obs),
         })
 
 
