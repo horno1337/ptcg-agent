@@ -49,6 +49,8 @@ from tools.research.run_parallel_gate import (  # noqa: E402
 # --------------------------------------------------------------------------
 
 class Adapter:
+    ENV: dict = {}          # applied to the worker env BEFORE any import
+
     """Binds one specialist gate's construction to the sharded driver."""
 
     name: str
@@ -160,6 +162,11 @@ class LucarioNeuralV2(Adapter):
 
 
 class TurnSearchCurrentField(Adapter):
+    # turn_search.ENABLED is read at IMPORT time, so this must be in the
+    # worker's environment before the process starts -- setting it inside the
+    # worker would be too late and the planner would silently stay disabled.
+    ENV = {"PTCG_TURN_SEARCH": "1"}
+
     """Dobi-aware turn search versus the packaged frozen Dobi-v2 router.
 
     Candidate binds a seat table -- our seat to the frozen Dobi policy, the
@@ -380,6 +387,10 @@ def _subprocess_worker(spec: dict) -> str:
     for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS",
                 "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
         env[key] = threads
+    # Adapter-declared variables are applied to the child's environment, so
+    # they are in place before the interpreter imports numpy, the agent
+    # package or the evaluator.
+    env.update(getattr(ADAPTERS[spec["adapter"]], "ENV", {}))
     proc = subprocess.run(
         [sys.executable, str(Path(__file__).resolve()), "--worker-spec",
          json.dumps(spec)],
@@ -450,6 +461,7 @@ def main(argv=None) -> int:
         "schedule": {"games_per_arm": games, "seed": args.seed,
                      "num_shards": num_shards, "arms": list(adapter.arms),
                      "threads_per_worker": args.threads},
+        "worker_env": dict(getattr(adapter, "ENV", {})),
         "artifacts": {name: {"path": str(path.resolve()),
                              "sha256": file_sha256(path)}
                       for name, path in sorted(adapter.artifacts().items())},

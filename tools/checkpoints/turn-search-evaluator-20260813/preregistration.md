@@ -320,3 +320,36 @@ lifetime bug rather than fix it.
 244,679 full public observations per 128 games is not a storable artifact at
 all-root scale. Whatever method passes, the collection run writes compressed
 records and stores only fields `encode_public_observation` consumes.
+
+## C2 result — per-analysis lifetime FAILED (track parked)
+
+Method 2 (emit-time snapshot, releasing the parsed state graph immediately)
+was measured against the same OFF baseline, 128 games, 5.0s, 8w x 2t,
+seed 20260817:
+
+```
+             coverage    delta vs off      CI95              search/game
+off            83.6%          -              -                 69.1s
+method 1       80.2%      -3.40 pp    [-4.93,-1.87]  4.3 SE     75.7s (+9.6%)
+method 2       78.5%      -5.10 pp    [-6.67,-3.53]  6.4 SE     75.0s (+8.5%)
+                                       threshold +/-1.0 pp             2%
+```
+
+**Method 2 is worse than method 1.** Serializing at emit time costs more than
+the GC pressure it avoids: ~4.3 KB x ~51 leaves per root is a larger bill
+inside the deadline than holding the graphs was. Storage measured at
+4,290 B/leaf => 1.03 GB per 128 games.
+
+Note the literal C2 prescription (serialize after `analyze()` returns) was a
+structural no-op: the sink was already scoped per analysis in method 1 and
+cleared outside the timed region. The binding constraint is releasing
+references before the next action *column*, not the next root.
+
+C3 sampling is implemented (commit 2794db5) but **unmeasured** — the paired
+screen was stopped before completion when the track was deprioritized in
+favour of answering the direct gameplay question.
+
+**Track parked, not closed.** If search wins its gameplay gate, evaluator
+collection is worth revisiting. If search loses decisively, this becomes the
+primary diagnostic route, since a miscalibrated leaf evaluator is then the
+leading suspect.
