@@ -156,3 +156,50 @@ class TestNoPrivilegedDeck(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestShadowLeafCollection(unittest.TestCase):
+    """Collection must be inert: references in, no scoring, no time spent."""
+
+    def tearDown(self):
+        TS._leaf_sink, TS._leaf_cap = None, 0
+
+    def test_disabled_by_default(self):
+        self.assertIsNone(TS._leaf_sink)
+        # A no-op even when called, so search behaviour is identical when off.
+        TS._emit_leaves(TS._BeliefPlan((), (), {}), 0, 0, (), ())
+
+    def test_context_restores_previous_sink(self):
+        outer = []
+        with TS.collect_leaves(outer):
+            self.assertIs(TS._leaf_sink, outer)
+            with TS.collect_leaves([]):
+                self.assertIsNot(TS._leaf_sink, outer)
+            self.assertIs(TS._leaf_sink, outer)
+        self.assertIsNone(TS._leaf_sink)
+
+    def test_records_reference_the_leaf_without_scoring_it(self):
+        obs = obs_with([{"type": 1}], my_index=1)
+        plan = TS._BeliefPlan(({"observation": obs},), (0,), {})
+        sink = []
+        with TS.collect_leaves(sink):
+            TS._emit_leaves(plan, 0, 3, (7,), (1.25,))
+        self.assertEqual(len(sink), 1)
+        row = sink[0]
+        self.assertIs(row["obs"], obs, "the leaf must be stored by reference")
+        self.assertEqual(row["action_i"], 3)
+        self.assertEqual(row["deck_i"], 7)
+        self.assertEqual(row["root_player"], 0)
+        self.assertEqual(row["leaf_seat"], 1)
+        self.assertEqual(row["heuristic"], 1.25)
+        # No neural value is present: scoring happens offline, not in budget.
+        self.assertNotIn("value", row)
+
+    def test_cap_is_respected(self):
+        plan = TS._BeliefPlan(
+            tuple({"observation": obs_with([{"type": 1}])} for _ in range(10)),
+            tuple(0 for _ in range(10)), {})
+        sink = []
+        with TS.collect_leaves(sink, cap=4):
+            TS._emit_leaves(plan, 0, 0, tuple(range(10)), tuple(0.0 for _ in range(10)))
+        self.assertLessEqual(len(sink), 4)

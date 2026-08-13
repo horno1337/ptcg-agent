@@ -136,6 +136,57 @@ class SeatAmbiguity(RuntimeError):
 # the default path is byte-identical to the pre-existing behaviour.
 _seat_context: tuple | None = None
 
+# Shadow leaf collection. Records references only -- no encoding, no forward
+# pass, no serialization -- so the five-second deadline buys the same amount of
+# search whether collection is on or off. Neural evaluators are run offline
+# against the dumped leaves, never inside the budget.
+_leaf_sink: list | None = None
+_leaf_cap: int = 0
+_leaf_root_id: int = -1
+
+
+@contextlib.contextmanager
+def collect_leaves(sink: list, cap: int = 1 << 20):
+    """Record decisive leaves for OFFLINE evaluation.
+
+    Deliberately does not evaluate anything: scoring a leaf inside the budget
+    would consume search time, reduce coverage, and change the very decisions
+    being measured.
+    """
+    global _leaf_sink, _leaf_cap
+    previous, previous_cap = _leaf_sink, _leaf_cap
+    _leaf_sink, _leaf_cap = sink, int(cap)
+    try:
+        yield sink
+    finally:
+        _leaf_sink, _leaf_cap = previous, previous_cap
+
+
+def _emit_leaves(plan, root_player: int, action_i: int,
+                 deck_idx: tuple[int, ...], values: tuple[float, ...]) -> None:
+    sink = _leaf_sink
+    if sink is None or len(sink) >= _leaf_cap:
+        return
+    for particle_i, state in enumerate(plan.states):
+        if len(sink) >= _leaf_cap:
+            return
+        obs = state.get("observation") or {}
+        leaf_seat = (obs.get("current") or {}).get("yourIndex")
+        sink.append({
+            "root_id": _leaf_root_id,
+            "action_i": action_i,
+            "particle_i": particle_i,
+            # Which believed deck this particle's opponent holds, so the
+            # offline scorer can encode the leaf under the same registration
+            # the planner simulated it with.
+            "deck_i": deck_idx[particle_i] if particle_i < len(deck_idx) else None,
+            "root_player": root_player,
+            "leaf_seat": leaf_seat,
+            "heuristic": values[particle_i] if particle_i < len(values) else None,
+            "obs": obs,
+        })
+
+
 # Believed opponent decks for the analysis in flight, indexed per particle.
 # A simulated opponent is scored under the deck of the world it inhabits, so a
 # particle drawn from hypothesis B is never scored as hypothesis A.
@@ -1063,8 +1114,8 @@ def _plan_rank(plan: _BeliefPlan, root_player: int) -> float:
 
 def _belief_beam_values(lib, initial_states: list[dict],
                         deck_idx: tuple[int, ...], net,
-                        root_player: int, root_turn, deadline: float
-                        ) -> tuple[float, ...] | None:
+                        root_player: int, root_turn, deadline: float,
+                        action_i: int = -1) -> tuple[float, ...] | None:
     """Search one root action jointly over all paired belief particles.
 
     A beam element is an observable strategy, not a single determinized line.
@@ -1135,7 +1186,9 @@ def _belief_beam_values(lib, initial_states: list[dict],
     if not completed:
         return None
     best = max(completed, key=lambda p: _plan_rank(p, root_player))
-    return _plan_values(best, root_player)
+    values = _plan_values(best, root_player)
+    _emit_leaves(best, root_player, action_i, deck_idx, values)
+    return values
 
 
 def _begin_world(lib, view: ObsView, my_deck_list: list[int],
@@ -1345,15 +1398,26 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
         # paired even though each root counterfactual has its own best plan.
         if valid_worlds >= EVIDENCE_FLOOR and \
                 valid_known_worlds >= EVIDENCE_FLOOR:
-            global _particle_decks
+            global _particle_decks, _leaf_root_id
             _particle_decks = tuple(
                 deck for deck, _i in sorted(deck_table.items(),
                                             key=lambda kv: kv[1]))
+            if _leaf_sink is not None and len(_leaf_sink) < _leaf_cap:
+                # One deck table per analysis rather than a 60-card list on
+                # every leaf record.
+                _leaf_root_id += 1
+                _leaf_sink.append({
+                    "root_id": _leaf_root_id,
+                    "kind": "decks",
+                    "decks": [list(d) for d in _particle_decks],
+                    "root_player": root_player,
+                    "n_actions": n_root,
+                })
             columns = []
-            for children in root_children:
+            for action_i, children in enumerate(root_children):
                 values = _belief_beam_values(
                     lib, children, tuple(deck_idx), net,
-                    root_player, root_turn, deadline)
+                    root_player, root_turn, deadline, action_i)
                 if values is None or len(values) != valid_worlds or not all(
                         math.isfinite(v) for v in values):
                     columns = []
