@@ -1,0 +1,151 @@
+{
+  "archive_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+  "budgets": [
+    {
+      "agrees_with_dobi": 3,
+      "analyzed_roots": 3,
+      "budget_s": 0.05,
+      "clock_per_root_s": 0.05116798809845932,
+      "cumulative_clock_s": 10.233597619691864,
+      "eligible_by_dobi_route": {
+        "md_v1": 200
+      },
+      "errors": 0,
+      "latency_ms": {
+        "max": 90.08812718093395,
+        "mean": 51.16798809845932,
+        "p50": 52.14126291684806,
+        "p95": 59.60156489163637
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {},
+      "override_rate_of_eligible": 0.0,
+      "overrides": 0,
+      "reasons": {
+        "agrees_reflex": 3,
+        "insufficient_evidence": 191,
+        "root_width": 6
+      },
+      "root_eligible": 200,
+      "valid_particle_samples": 194,
+      "valid_particles_mean": 0.12371134020618557
+    },
+    {
+      "agrees_with_dobi": 16,
+      "analyzed_roots": 16,
+      "budget_s": 0.25,
+      "clock_per_root_s": 0.23561471238033846,
+      "cumulative_clock_s": 47.12294247606769,
+      "eligible_by_dobi_route": {
+        "md_v1": 200
+      },
+      "errors": 0,
+      "latency_ms": {
+        "max": 293.2659490033984,
+        "mean": 235.61471238033846,
+        "p50": 252.41931714117527,
+        "p95": 259.74934292025864
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {},
+      "override_rate_of_eligible": 0.0,
+      "overrides": 0,
+      "reasons": {
+        "agrees_reflex": 16,
+        "insufficient_evidence": 177,
+        "low_margin": 1,
+        "root_width": 6
+      },
+      "root_eligible": 200,
+      "valid_particle_samples": 194,
+      "valid_particles_mean": 0.7010309278350515
+    },
+    {
+      "agrees_with_dobi": 23,
+      "analyzed_roots": 23,
+      "budget_s": 0.5,
+      "clock_per_root_s": 0.44812355460831893,
+      "cumulative_clock_s": 89.62471092166379,
+      "eligible_by_dobi_route": {
+        "md_v1": 200
+      },
+      "errors": 0,
+      "latency_ms": {
+        "max": 518.0319349747151,
+        "mean": 448.12355460831895,
+        "p50": 502.29576393030584,
+        "p95": 504.6518030576408
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {},
+      "override_rate_of_eligible": 0.0,
+      "overrides": 0,
+      "reasons": {
+        "agrees_reflex": 23,
+        "insufficient_evidence": 165,
+        "low_margin": 6,
+        "root_width": 6
+      },
+      "root_eligible": 200,
+      "valid_particle_samples": 194,
+      "valid_particles_mean": 1.1958762886597938
+    },
+    {
+      "agrees_with_dobi": 29,
+      "analyzed_roots": 31,
+      "budget_s": 1.0,
+      "clock_per_root_s": 0.845098489363445,
+      "cumulative_clock_s": 169.019697872689,
+      "eligible_by_dobi_route": {
+        "md_v1": 200
+      },
+      "errors": 0,
+      "latency_ms": {
+        "max": 1015.9008479677141,
+        "mean": 845.098489363445,
+        "p50": 1002.4912499357015,
+        "p95": 1004.7102209646255
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {
+        "md_v1": 2
+      },
+      "override_rate_of_eligible": 0.01,
+      "overrides": 2,
+      "reasons": {
+        "agrees_reflex": 29,
+        "insufficient_evidence": 154,
+        "low_margin": 9,
+        "robust_override": 2,
+        "root_width": 6
+      },
+      "root_eligible": 200,
+      "valid_particle_samples": 194,
+      "valid_particles_mean": 1.6494845360824741
+    }
+  ],
+  "collection": {
+    "dobi_routes": {
+      "dobi_card": 88,
+      "md_v1": 885,
+      "md_v2_card": 72,
+      "qu_v2b": 1038
+    },
+    "games": 24,
+    "opp": "pool:8",
+    "prompts": 2083,
+    "seed": 20260813,
+    "st_main_roots_measured": 200
+  },
+  "created_at": "2026-08-13T15:20:08.676602+00:00",
+  "gameplay_authority": false,
+  "gate_authority": false,
+  "milestone": "2-measurement",
+  "recommended_budget_s": 1.0,
+  "result_sha256": "c7ffa712263baa09504d4c0f955694c6145da1083c8cf11acf550629b139fa9a",
+  "schema": "ptcg.dobi-v2-turn-search-measurement.v1",
+  "selection_rule": "a budget is viable only with nonzero overrides, zero errors and at least one analyzed root; ties break to the cheapest clock",
+  "viable_budgets": [
+    1.0
+  ]
+}

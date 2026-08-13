@@ -1,0 +1,200 @@
+{
+  "archive_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+  "bank": {
+    "planner_reserve_s": 150.0,
+    "time_bank_s": 600.0,
+    "usable_bank_s": 450.0
+  },
+  "budgets": [
+    {
+      "agrees_with_dobi": 41,
+      "budget_s": 2.0,
+      "eligible_by_dobi_route": {
+        "md_v1": 261
+      },
+      "evidence_coverage": 0.421455938697318,
+      "evidence_floor": 5,
+      "faults": {},
+      "latency_ms": {
+        "max": 2013.7607019860297,
+        "p50": 2001.4212308451533,
+        "p95": 2004.6021670568734
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {
+        "md_v1": 12
+      },
+      "override_margin": {
+        "max": 94.0259939148073,
+        "mean": 8.873737595137724,
+        "min": 0.10000000000000142,
+        "n": 12
+      },
+      "override_rate_per_eligible_root": 0.04597701149425287,
+      "overrides_per_game": 1.5,
+      "particle_histogram": {
+        "0": 141,
+        "8": 110
+      },
+      "particles_mean": 3.50597609561753,
+      "per_game_clock_s": {
+        "games": 8,
+        "max": 72.65965127735399,
+        "p50": 53.58312329999171,
+        "p95": 72.65965127735399,
+        "p95_fraction_of_usable": 0.1614658917274533,
+        "p95_within_bank": true,
+        "roots_per_game_mean": 32.625,
+        "usable_bank_s": 450.0
+      },
+      "reasons": {
+        "agrees_reflex": 41,
+        "insufficient_evidence": 141,
+        "low_margin": 57,
+        "robust_override": 12,
+        "root_width": 10
+      },
+      "robust_overrides": 12,
+      "root_eligible": 261,
+      "roots_reaching_floor": 110,
+      "viable": false
+    },
+    {
+      "agrees_with_dobi": 47,
+      "budget_s": 3.0,
+      "eligible_by_dobi_route": {
+        "md_v1": 261
+      },
+      "evidence_coverage": 0.524904214559387,
+      "evidence_floor": 5,
+      "faults": {},
+      "latency_ms": {
+        "max": 3032.331906957552,
+        "p50": 2384.229593910277,
+        "p95": 3004.582528024912
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {
+        "md_v1": 15
+      },
+      "override_margin": {
+        "max": 94.0259939148073,
+        "mean": 13.325483955544609,
+        "min": 0.10000000000000142,
+        "n": 15
+      },
+      "override_rate_per_eligible_root": 0.05747126436781609,
+      "overrides_per_game": 1.875,
+      "particle_histogram": {
+        "0": 114,
+        "8": 137
+      },
+      "particles_mean": 4.366533864541832,
+      "per_game_clock_s": {
+        "games": 8,
+        "max": 94.61040580039844,
+        "p50": 74.27772433264181,
+        "p95": 94.61040580039844,
+        "p95_fraction_of_usable": 0.21024534622310764,
+        "p95_within_bank": true,
+        "roots_per_game_mean": 32.625,
+        "usable_bank_s": 450.0
+      },
+      "reasons": {
+        "agrees_reflex": 47,
+        "insufficient_evidence": 114,
+        "low_margin": 75,
+        "robust_override": 15,
+        "root_width": 10
+      },
+      "robust_overrides": 15,
+      "root_eligible": 261,
+      "roots_reaching_floor": 137,
+      "viable": true
+    },
+    {
+      "agrees_with_dobi": 55,
+      "budget_s": 4.0,
+      "eligible_by_dobi_route": {
+        "md_v1": 261
+      },
+      "evidence_coverage": 0.632183908045977,
+      "evidence_floor": 5,
+      "faults": {},
+      "latency_ms": {
+        "max": 4005.6517000775784,
+        "p50": 2349.9484451022,
+        "p95": 4003.9860769174993
+      },
+      "max_particles": 8,
+      "override_by_dobi_route": {
+        "md_v1": 23
+      },
+      "override_margin": {
+        "max": 94.0259939148073,
+        "mean": 12.818491762802207,
+        "min": 0.10000000000000142,
+        "n": 23
+      },
+      "override_rate_per_eligible_root": 0.08812260536398467,
+      "overrides_per_game": 2.875,
+      "particle_histogram": {
+        "0": 86,
+        "8": 165
+      },
+      "particles_mean": 5.258964143426295,
+      "per_game_clock_s": {
+        "games": 8,
+        "max": 110.96023551677354,
+        "p50": 91.84310229751281,
+        "p95": 110.96023551677354,
+        "p95_fraction_of_usable": 0.24657830114838564,
+        "p95_within_bank": true,
+        "roots_per_game_mean": 32.625,
+        "usable_bank_s": 450.0
+      },
+      "reasons": {
+        "agrees_reflex": 55,
+        "insufficient_evidence": 86,
+        "low_margin": 87,
+        "robust_override": 23,
+        "root_width": 10
+      },
+      "robust_overrides": 23,
+      "root_eligible": 261,
+      "roots_reaching_floor": 165,
+      "viable": true
+    }
+  ],
+  "collection": {
+    "dobi_routes": {
+      "dobi_card": 49,
+      "md_v1": 845,
+      "md_v2_card": 51,
+      "qu_v2b": 1013
+    },
+    "games_measured": 8,
+    "games_played": 24,
+    "opp": "pool:8",
+    "prompts": 1958,
+    "seed": 20260813,
+    "st_main_roots": 261
+  },
+  "created_at": "2026-08-13T15:54:32.863447+00:00",
+  "gameplay_authority": false,
+  "gate_authority": false,
+  "milestone": "2-measurement",
+  "recommended_budget_s": 3.0,
+  "result_sha256": "499372cf0bae1fcced63ee8a18b8db5ff79510519918eba33c05d7ee1d4fe071",
+  "schema": "ptcg.dobi-v2-turn-search-measurement.v2",
+  "thresholds": {
+    "evidence_coverage_majority": 0.5,
+    "note": "exploratory viability threshold only; not promotion evidence and not a substitute for a gameplay gate",
+    "override_rate_per_eligible_root": 0.05,
+    "overrides_per_game": 0.5
+  },
+  "viable_budgets": [
+    3.0,
+    4.0
+  ]
+}

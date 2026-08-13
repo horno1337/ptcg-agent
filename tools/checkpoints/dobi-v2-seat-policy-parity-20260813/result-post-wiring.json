@@ -1,0 +1,38 @@
+{
+  "archive_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+  "created_at": "2026-08-13T15:14:20.668846+00:00",
+  "error_count": 0,
+  "errors": [],
+  "expected_archive_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+  "gameplay_authority": false,
+  "games": 128,
+  "milestone": "1-exact-reproduction",
+  "mismatch_count": 0,
+  "mismatches": [],
+  "overlay_faults": {},
+  "overlay_last_error": {},
+  "packaged_policy_mismatch_count": 0,
+  "packaged_policy_mismatches": [],
+  "packaged_policy_prompts_checked": 2000,
+  "passed": true,
+  "prompts": 10876,
+  "reference_routes": {
+    "dobi_card": 337,
+    "md_v1": 4682,
+    "md_v2_card": 293,
+    "qu_v2b": 5564
+  },
+  "replay_routes": {
+    "dobi_card": 337,
+    "md_v1": 4682,
+    "md_v2_card": 293,
+    "qu_v2b": 5564
+  },
+  "result_sha256": "9b6d298a8bba886ebeec7f1b1715eb64c80c4e5608e9fc8e82996ddaddcf3eba",
+  "schema": "ptcg.dobi-v2-seat-policy-parity.v1",
+  "seat_discipline": {
+    "mirror_decks_allowed": true,
+    "shared_policy_instance_rejected": true,
+    "unbound_seat_rejected": true
+  }
+}

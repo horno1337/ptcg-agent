@@ -1,0 +1,58 @@
+{
+  "clock": {
+    "bank_exhausted": false,
+    "min_remaining_overage_s": 381.88747713156044,
+    "reserve_guard_fires": 0,
+    "reserve_s": 150.0,
+    "search_seconds_per_game": 97.33669769185644,
+    "total_search_seconds": 49836.3892182305
+  },
+  "config": {
+    "budget_s": 4.0,
+    "games": 512,
+    "num_shards": 16,
+    "opp": "pool:8",
+    "particles": 8,
+    "seed": 20260813
+  },
+  "created_at": "2026-08-13T16:03:39.341075+00:00",
+  "decisions": {
+    "calls": 43035,
+    "fell_back": 13164,
+    "no_search": 24134,
+    "overrides": 809,
+    "searched": 18901
+  },
+  "faults": {
+    "agent_error": 0,
+    "controller_exceptions": {},
+    "engine_error": 0,
+    "infrastructure_error": 0,
+    "overlay_faults": {},
+    "truncated": 0
+  },
+  "gameplay_authority": false,
+  "games_recorded": 512,
+  "gate_valid": true,
+  "outcome_sanity": {
+    "draws": 0,
+    "losses": 24,
+    "note": "sanity signal only; no promotion authority",
+    "score": 0.953125,
+    "wins": 488
+  },
+  "override_rate_of_searched": 0.04280196814983334,
+  "overrides_per_game": 1.580078125,
+  "passed": true,
+  "promotion_authority": false,
+  "reasons": {
+    "agrees_reflex": 4928,
+    "insufficient_evidence": 8962,
+    "low_margin": 3405,
+    "robust_override": 809,
+    "root_width": 797
+  },
+  "result_sha256": "02bb3782f5b5cf2a8d06b87ad7ad3e85fbff41e5e6e2acb21167ae00b13c6854",
+  "schema": "ptcg.dobi-v2-turn-search-smoke.v1",
+  "wall_seconds": 3475.01739
+}
