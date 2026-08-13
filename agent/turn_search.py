@@ -294,9 +294,55 @@ def semantic_options(obs: dict) -> tuple[tuple, ...]:
     return tuple(out)
 
 
+# Per-analysis memo for semantic option tokens.
+#
+# ``_semantic_candidates`` calls ``semantic_action`` once per candidate action,
+# and each call re-fingerprinted every option, so tokens were rebuilt
+# O(actions x options) times per node instead of once. Profiling showed
+# ``semantic_options`` at 21% of search time with a 5.4x call amplification.
+#
+# The key is object identity, and the entry holds a strong reference to the
+# observation so its id cannot be recycled while cached. Identity is strictly
+# stronger than keying on the public information state: the same object is by
+# construction the same state, seat and registration, so a hit can never cross
+# seats or decks. The cost is missing hits between distinct-but-equal objects,
+# which the dominant within-node amplification does not depend on.
+#
+# Observations are never mutated in place -- ``_step`` returns new states -- so
+# a cached token tuple stays valid for the life of its observation.
+_options_memo: dict[int, tuple[dict, tuple]] = {}
+_cache_stats: Counter = Counter()
+
+# Recompute and compare on every hit. Used by the verification harness to prove
+# exactness over real workloads rather than a sampled subset.
+_VERIFY_CACHE = os.environ.get("PTCG_TURN_SEARCH_VERIFY_CACHE") == "1"
+
+
+def _reset_caches() -> None:
+    _options_memo.clear()
+
+
+def _semantic_options_cached(obs: dict) -> tuple[tuple, ...]:
+    """Memoized :func:`semantic_options`; identical result, computed once."""
+    key = id(obs)
+    entry = _options_memo.get(key)
+    if entry is not None and entry[0] is obs:
+        if _VERIFY_CACHE:
+            fresh = semantic_options(obs)
+            if fresh != entry[1]:
+                raise AssertionError(
+                    "semantic option cache diverged from recomputation")
+        _cache_stats["options_hit"] += 1
+        return entry[1]
+    tokens = semantic_options(obs)
+    _options_memo[key] = (obs, tokens)
+    _cache_stats["options_miss"] += 1
+    return tokens
+
+
 def semantic_action(obs: dict, indices: Iterable[int]) -> tuple:
     """Convert a complete engine selection into a canonical semantic action."""
-    tokens = semantic_options(obs)
+    tokens = _semantic_options_cached(obs)
     picked = []
     used = set()
     for raw in indices:
@@ -310,7 +356,7 @@ def semantic_action(obs: dict, indices: Iterable[int]) -> tuple:
 def map_semantic_action(obs: dict, action: tuple) -> list[int] | None:
     """Map a semantic action onto this observation's *local* option indices."""
     available: dict[tuple, list[int]] = defaultdict(list)
-    for i, token in enumerate(semantic_options(obs)):
+    for i, token in enumerate(_semantic_options_cached(obs)):
         available[token].append(i)
     mapped = []
     for token in action:
@@ -367,7 +413,7 @@ def canonical_info_key(obs: dict, root_player: int) -> tuple:
         tuple(sel.get("remainEnergyCost") or ())
         if isinstance(sel.get("remainEnergyCost"), (list, tuple)) else
         _scalar(sel.get("remainEnergyCost")),
-        tuple(sorted(semantic_options(obs), key=repr)),
+        tuple(sorted(_semantic_options_cached(obs), key=repr)),
     )
     stadium = cur.get("stadium")
     if isinstance(stadium, list):
@@ -1122,7 +1168,7 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
     deadline = started + float(requested)
     root_player = view.my_index
     root_turn = (view.current or {}).get("turn")
-    root_actions = tuple((token,) for token in semantic_options(view.obs))
+    root_actions = tuple((token,) for token in _semantic_options_cached(view.obs))
     try:
         if _seat_context is not None:
             table, bound_root = _seat_context
@@ -1158,7 +1204,7 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
                 invalid_worlds += 1
                 continue
             world_obs = world.get("observation") or {}
-            if len(semantic_options(world_obs)) != n_root or any(
+            if len(_semantic_options_cached(world_obs)) != n_root or any(
                     map_semantic_action(world_obs, action) is None
                     for action in root_actions):
                 invalid_worlds += 1
@@ -1267,6 +1313,7 @@ def analyze(view: ObsView, net, my_deck_list: list[int],
             max_particles: int | None = None) -> SearchResult | None:
     """Fail-soft public wrapper around the guarded planner implementation."""
     started = time.monotonic()
+    _reset_caches()
     try:
         return _analyze_impl(view, net, my_deck_list, budget_s, max_particles)
     except SeatAmbiguity:
@@ -1279,6 +1326,9 @@ def analyze(view: ObsView, net, my_deck_list: list[int],
             traceback.print_exc()
         _record("exception", started, error=type(exc).__name__)
         return None
+    finally:
+        # Release observation references; the memo is per-analysis only.
+        _reset_caches()
 
 
 def decide(view: ObsView, net, my_deck_list: list[int],
