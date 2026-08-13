@@ -449,6 +449,12 @@ def run_series(tag: str, controller: DeployableReflex,
     try:
         for local_index, episode in enumerate(schedule):
             try:
+                # Optional hook: lets a controller bind per-episode state (for
+                # example a deterministic sampling ordinal) before any decision
+                # of that episode is made. Controllers without it are unaffected.
+                begin = getattr(controller, "begin_episode", None)
+                if callable(begin):
+                    begin(episode)
                 obs, info = env.reset(options={
                     "episode_id": episode.episode_id,
                     "opponent_index": episode.opponent_index,

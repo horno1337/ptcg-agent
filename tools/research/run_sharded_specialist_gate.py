@@ -373,9 +373,13 @@ def _subprocess_worker(spec: dict) -> str:
     if out.is_file() and spec["resume"]:
         return str(out)
     env = dict(os.environ)
+    # Thread count is part of the operating point a budget was frozen at, so
+    # it is bound into the identity stamp rather than assumed. Default 1
+    # preserves existing adapters exactly.
+    threads = str(int(spec.get("threads", 1)))
     for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS",
                 "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
-        env[key] = "1"
+        env[key] = threads
     proc = subprocess.run(
         [sys.executable, str(Path(__file__).resolve()), "--worker-spec",
          json.dumps(spec)],
@@ -420,6 +424,8 @@ def main(argv=None) -> int:
     size.add_argument("--games", type=int)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--workers", type=int, default=os.cpu_count() or 1)
+    parser.add_argument("--threads", type=int, default=1,
+                        help="BLAS threads per worker; part of gate identity")
     parser.add_argument("--out")
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
@@ -442,7 +448,8 @@ def main(argv=None) -> int:
     identity = {
         "adapter": args.adapter,
         "schedule": {"games_per_arm": games, "seed": args.seed,
-                     "num_shards": num_shards, "arms": list(adapter.arms)},
+                     "num_shards": num_shards, "arms": list(adapter.arms),
+                     "threads_per_worker": args.threads},
         "artifacts": {name: {"path": str(path.resolve()),
                              "sha256": file_sha256(path)}
                       for name, path in sorted(adapter.artifacts().items())},
@@ -470,6 +477,7 @@ def main(argv=None) -> int:
         "adapter": args.adapter, "arm": arm, "games": games,
         "seed": args.seed, "num_shards": num_shards, "shard_index": index,
         "out": str(shard_dir / f"{arm}-{index:03d}.json"), "resume": args.resume,
+        "threads": args.threads,
     } for arm in adapter.arms for index in range(num_shards)]
 
     started = datetime.now(timezone.utc)
