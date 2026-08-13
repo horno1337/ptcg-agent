@@ -153,6 +153,22 @@ def seat_context(table, root_seat: int):
         _seat_context = previous
 
 
+# Per-analysis memo for seat policy scoring.
+#
+# The beam revisits the same observation objects: measured 8,008 scoring calls
+# over 2,101 distinct observations, a 73.8% repeat rate. Each miss pays the
+# whole path -- encode, feature validation, and the net forward -- and
+# ``model.forward`` re-runs ``validate_public_features`` itself, so validation
+# executes twice per scoring. Caching the scores subsumes all of it.
+#
+# Keyed by (observation identity, seat) with a strong reference to the
+# observation, so an id cannot be recycled while the entry is live and a hit
+# can never serve one seat's scores to another. Scoring is a pure function of
+# (observation, registered deck, net), and the deck is fixed per seat for the
+# analysis, so a hit is exact.
+_logits_memo: dict[tuple[int, int], tuple[dict, np.ndarray]] = {}
+
+
 def _seat_logits(table, obs: dict) -> np.ndarray:
     seat = (obs.get("current") or {}).get("yourIndex")
     if not isinstance(seat, int) or seat not in table.seats():
@@ -160,8 +176,25 @@ def _seat_logits(table, obs: dict) -> np.ndarray:
             f"acting seat {seat!r} is not bound; bound seats are "
             f"{table.seats()}"
         )
-    scores = table.score_actions(obs, seat)
-    return np.asarray(scores, dtype=np.float64).reshape(-1)
+    key = (id(obs), seat)
+    entry = _logits_memo.get(key)
+    if entry is not None and entry[0] is obs:
+        if _VERIFY_CACHE:
+            fresh = np.asarray(table.score_actions(obs, seat),
+                               dtype=np.float64).reshape(-1)
+            if not np.array_equal(fresh, entry[1]):
+                raise AssertionError(
+                    "seat logits cache diverged from recomputation")
+        _cache_stats["logits_hit"] += 1
+        return entry[1]
+    scores = np.asarray(table.score_actions(obs, seat),
+                        dtype=np.float64).reshape(-1)
+    # The array is shared across hits, so freeze it: an accidental in-place
+    # write would silently corrupt every later reader of this node.
+    scores.setflags(write=False)
+    _logits_memo[key] = (obs, scores)
+    _cache_stats["logits_miss"] += 1
+    return scores
 
 
 def _record(reason: str, started: float, **extra) -> None:
@@ -320,6 +353,7 @@ _VERIFY_CACHE = os.environ.get("PTCG_TURN_SEARCH_VERIFY_CACHE") == "1"
 
 def _reset_caches() -> None:
     _options_memo.clear()
+    _logits_memo.clear()
 
 
 def _semantic_options_cached(obs: dict) -> tuple[tuple, ...]:

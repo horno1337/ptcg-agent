@@ -141,6 +141,11 @@ def run_shard(spec: dict) -> str:
     from tools.rl_env import build_paired_schedule
     import agent.model as RepoModel
 
+    import resource
+    import time as _time
+    _wall0 = _time.monotonic()
+    _ru0 = resource.getrusage(resource.RUSAGE_SELF)
+
     runtime = load_frozen_runtime(ARCHIVE)
     deck = tuple(int(line.strip()) for line in
                  DECK.read_text(encoding="utf-8").splitlines() if line.strip())
@@ -156,8 +161,14 @@ def run_shard(spec: dict) -> str:
     series = EVAL.run_series("dobi-v2-turn-search-smoke", controller, deck,
                              opponents, schedule, max_selects=5000,
                              time_bank_s=600.0, verbose=False)
+    _wall = _time.monotonic() - _wall0
+    _ru1 = resource.getrusage(resource.RUSAGE_SELF)
+    _cpu = ((_ru1.ru_utime - _ru0.ru_utime) + (_ru1.ru_stime - _ru0.ru_stime))
     payload = {
         "shard_index": spec["shard_index"],
+        "cpu": {"cpu_seconds": _cpu, "wall_seconds": _wall,
+                "cpu_per_wall": (_cpu / _wall) if _wall > 0 else None,
+                "threads_requested": spec.get("threads", 1)},
         "records": [asdict(record) for record in series.records],
         "gate_valid": bool(series.gate_valid),
         "diagnostics": controller.diagnostics(),
@@ -178,9 +189,12 @@ def _spawn(spec: dict) -> str:
     if out.is_file() and spec["resume"]:
         return str(out)
     env = dict(os.environ)
+    # Kaggle allocates 2 vCPU per agent. Worker count alone does not emulate
+    # that: pinning every worker to one BLAS thread gives one logical CPU each
+    # regardless of how many cores sit idle. Set threads explicitly.
     for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS",
                 "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
-        env[key] = "1"
+        env[key] = str(spec.get("threads", 1))
     proc = subprocess.run(
         [sys.executable, str(Path(__file__).resolve()), "--worker-spec",
          json.dumps(spec)],
@@ -201,6 +215,8 @@ def main(argv=None) -> int:
     parser.add_argument("--opp", default="pool:8")
     parser.add_argument("--seed", type=int, default=20260813)
     parser.add_argument("--workers", type=int, default=os.cpu_count() or 1)
+    parser.add_argument("--threads", type=int, default=1,
+                        help="BLAS threads per worker; 2 emulates a Kaggle vCPU pair")
     parser.add_argument("--out", default=None)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args(argv)
@@ -217,6 +233,7 @@ def main(argv=None) -> int:
     shard_dir.mkdir(parents=True, exist_ok=True)
     specs = [{"games": args.games, "budget": args.budget,
               "particles": args.particles, "opp": args.opp, "seed": args.seed,
+              "threads": args.threads,
               "num_shards": num_shards, "shard_index": i,
               "out": str(shard_dir / f"shard-{i:03d}.json"),
               "resume": args.resume}
@@ -224,7 +241,7 @@ def main(argv=None) -> int:
 
     started = datetime.now(timezone.utc)
     print(f"[smoke] {args.games} games @ {args.budget}s budget over "
-          f"{num_shards} shards", flush=True)
+          f"{num_shards} shards x {args.threads} thread(s)", flush=True)
     done = 0
     with ProcessPoolExecutor(max_workers=num_shards) as pool:
         for _ in pool.map(_spawn, specs):
@@ -232,13 +249,26 @@ def main(argv=None) -> int:
             print(f"[smoke] {done}/{num_shards} shards done", flush=True)
     elapsed = (datetime.now(timezone.utc) - started).total_seconds()
 
-    records, diags, valid = [], [], True
+    records, diags, valid, cpus = [], [], True, []
     for spec in specs:
         shard = json.loads(Path(spec["out"]).read_text(encoding="utf-8"))
         records.extend(shard["records"])
         diags.append(shard["diagnostics"])
         valid = valid and shard["gate_valid"]
+        if shard.get("cpu"):
+            cpus.append(shard["cpu"])
 
+    ratios = [c["cpu_per_wall"] for c in cpus if c.get("cpu_per_wall")]
+    topology = {
+        "workers": num_shards, "threads_requested": args.threads,
+        "cpu_per_wall_mean": statistics.fmean(ratios) if ratios else None,
+        "cpu_per_wall_min": min(ratios) if ratios else None,
+        "cpu_per_wall_max": max(ratios) if ratios else None,
+        "effectively_multicore": bool(ratios and statistics.fmean(ratios) > 1.2),
+        "note": ("cpu_per_wall near 1.0 means each worker used one useful CPU "
+                 "regardless of the BLAS thread setting, so the run is "
+                 "lower-contention emulation rather than a true 2 vCPU pair"),
+    }
     counts, reasons, exceptions, overlay = Counter(), Counter(), Counter(), Counter()
     search_seconds = 0.0
     min_remaining = []
@@ -273,11 +303,26 @@ def main(argv=None) -> int:
         "wall_seconds": elapsed,
         "config": {"games": args.games, "budget_s": args.budget,
                    "particles": args.particles, "opp": args.opp,
-                   "seed": args.seed, "num_shards": num_shards},
+                   "seed": args.seed, "num_shards": num_shards,
+                   "threads_per_worker": args.threads},
         "games_recorded": len(records),
         "outcome_sanity": {"wins": wins, "losses": losses, "draws": draws,
                            "score": (wins + 0.5 * draws) / max(len(records), 1),
                            "note": "sanity signal only; no promotion authority"},
+        "cpu_topology": topology,
+        "evidence": {
+            "searched": counts["searched"],
+            "reached_floor": (reasons.get("agrees_reflex", 0)
+                              + reasons.get("low_margin", 0)
+                              + reasons.get("robust_override", 0)),
+            "coverage": ((reasons.get("agrees_reflex", 0)
+                          + reasons.get("low_margin", 0)
+                          + reasons.get("robust_override", 0))
+                         / counts["searched"]) if counts["searched"] else 0.0,
+            "insufficient_evidence_rate": (
+                reasons.get("insufficient_evidence", 0) / counts["searched"]
+                if counts["searched"] else 0.0),
+        },
         "decisions": dict(counts),
         "override_rate_of_searched": (
             counts["overrides"] / counts["searched"] if counts["searched"] else 0.0),
@@ -310,6 +355,12 @@ def main(argv=None) -> int:
           f"{payload['overrides_per_game']:.2f}/game)")
     print(f"  reasons          {dict(reasons)}")
     print(f"  search/game      {payload['clock']['search_seconds_per_game']:.1f}s")
+    ev = payload["evidence"]
+    print(f"  coverage         {100*ev['coverage']:.1f}%  "
+          f"(insufficient {100*ev['insufficient_evidence_rate']:.1f}%)")
+    print(f"  cpu/wall         mean {topology['cpu_per_wall_mean']:.2f} "
+          f"[{topology['cpu_per_wall_min']:.2f},{topology['cpu_per_wall_max']:.2f}] "
+          f"threads={args.threads} multicore={topology['effectively_multicore']}")
     print(f"  min bank left    {payload['clock']['min_remaining_overage_s']}s "
           f"(reserve 150s, guard fired {payload['clock']['reserve_guard_fires']}x)")
     print(f"  faults           {faults}")

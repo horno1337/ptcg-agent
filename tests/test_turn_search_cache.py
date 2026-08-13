@@ -113,5 +113,80 @@ class TestSemanticOptionsMemo(unittest.TestCase):
         self.assertEqual(TS.map_semantic_action(obs, action), [1])
 
 
+class StubTable:
+    def __init__(self, seats=(0, 1), scores=None):
+        self._seats = tuple(seats)
+        self._scores = scores or {s: [float(s), float(s) + 1.0] for s in seats}
+        self.calls = 0
+
+    def seats(self):
+        return self._seats
+
+    def score_actions(self, obs, seat):
+        self.calls += 1
+        return list(self._scores[seat])
+
+
+class TestSeatLogitsMemo(unittest.TestCase):
+    def setUp(self):
+        TS._reset_caches()
+        TS._cache_stats.clear()
+
+    def tearDown(self):
+        TS._reset_caches()
+
+    def test_repeat_call_is_served_from_cache(self):
+        table, obs = StubTable(), obs_with([{"type": 1}], my_index=0)
+        first = TS._seat_logits(table, obs)
+        second = TS._seat_logits(table, obs)
+        self.assertEqual(table.calls, 1)
+        self.assertIs(first, second)
+
+    def test_cached_scores_are_read_only(self):
+        # The array is shared across hits; an in-place write would corrupt
+        # every later reader of this node.
+        table, obs = StubTable(), obs_with([{"type": 1}], my_index=0)
+        scores = TS._seat_logits(table, obs)
+        with self.assertRaises(ValueError):
+            scores[0] = 99.0
+
+    def test_seats_do_not_share_entries(self):
+        # A hit must never serve one seat's scores to the other seat.
+        table = StubTable()
+        a = obs_with([{"type": 1}], my_index=0)
+        b = obs_with([{"type": 1}], my_index=1)
+        self.assertEqual(list(TS._seat_logits(table, a)), [0.0, 1.0])
+        self.assertEqual(list(TS._seat_logits(table, b)), [1.0, 2.0])
+
+    def test_unbound_seat_fails_closed(self):
+        table = StubTable(seats=(0,))
+        obs = obs_with([{"type": 1}], my_index=1)
+        with self.assertRaises(TS.SeatAmbiguity):
+            TS._seat_logits(table, obs)
+
+    def test_missing_seat_field_fails_closed(self):
+        table = StubTable()
+        obs = obs_with([{"type": 1}])
+        obs["current"] = {}
+        with self.assertRaises(TS.SeatAmbiguity):
+            TS._seat_logits(table, obs)
+
+    def test_reset_clears_logits(self):
+        table, obs = StubTable(), obs_with([{"type": 1}], my_index=0)
+        TS._seat_logits(table, obs)
+        self.assertEqual(len(TS._logits_memo), 1)
+        TS._reset_caches()
+        self.assertEqual(len(TS._logits_memo), 0)
+
+    def test_stale_identity_entry_is_not_served(self):
+        import numpy as np
+        table = StubTable()
+        a = obs_with([{"type": 1}], my_index=0)
+        b = obs_with([{"type": 2}], my_index=0)
+        TS._logits_memo[(id(b), 0)] = (a, np.array([42.0, 43.0]))
+        served = TS._seat_logits(table, b)
+        self.assertEqual(list(served), [0.0, 1.0])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
