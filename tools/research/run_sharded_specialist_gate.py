@@ -159,7 +159,166 @@ class LucarioNeuralV2(Adapter):
         return bool(ok)
 
 
-ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2}
+class TurnSearchCurrentField(Adapter):
+    """Dobi-aware turn search versus the packaged frozen Dobi-v2 router.
+
+    Candidate binds a seat table -- our seat to the frozen Dobi policy, the
+    opposing seat to base Qu-v2B under its own registration -- and runs the
+    planner at the frozen budget on ST_MAIN roots, falling back to the router
+    whenever the evidence gate declines.
+
+    Control is the packaged router itself, unchanged. That isolates the
+    planner rather than the harness: the control arm is the agent that ships,
+    verified byte-equivalent by the parity milestone, not candidate code with
+    search switched off.
+
+    The opponent field is the same current-field construction the Lucario gate
+    uses, so this is measured against the live matchmaking mix rather than the
+    stale pool:8 ladder.
+    """
+
+    name = "turn-search-current-field"
+
+    def __init__(self, budget_s: float = 5.0, particles: int = 8):
+        from agent import turn_search as TS
+        from agent.seat_policy import load_frozen_runtime
+        from tools.research import (
+            eval_grim_bounded_refresh_current_field_v1 as FIELD,
+            eval_grim_bounded_refresh_current_field_v2 as FIELD_V2,
+            eval_md_v2_scaled_gameplay as COMMON,
+        )
+        self.TS, self.FIELD, self.FIELD_V2, self.COMMON = TS, FIELD, FIELD_V2, COMMON
+        self.budget_s, self.particles = float(budget_s), int(particles)
+        self.archive = ROOT / "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+        self.runtime = load_frozen_runtime(self.archive)
+        self._rows = None
+        self._net = None
+        self.stats = {}
+
+    def artifacts(self) -> dict[str, Path]:
+        from agent import seat_policy
+        return {
+            "frozen_archive": self.archive,
+            "seat_policy": Path(seat_policy.__file__).resolve(),
+            "turn_search": Path(self.TS.__file__).resolve(),
+            "learner_deck": ROOT / "decks" / "deck.csv",
+            "hydrapple_representative": self.FIELD_V2.HYDRAPPLE,
+            "driver": Path(__file__).resolve(),
+        }
+
+    def deck(self) -> tuple[int, ...]:
+        path = ROOT / "decks" / "deck.csv"
+        deck = tuple(int(line.strip()) for line
+                     in path.read_text(encoding="utf-8").splitlines() if line.strip())
+        if len(deck) != 60:
+            raise GateError("Dobi registration is not 60 cards")
+        return deck
+
+    def _load(self):
+        if self._net is None:
+            import agent.model as RepoModel
+            self._net = RepoModel.load()
+            self._rows = self.FIELD_V2.source_rows()
+        return self._net
+
+    def build_arm(self, arm: str):
+        from agent.seat_policy import (
+            FrozenDobiV2Policy, QuV2BasePolicy, SeatPolicyError, SeatPolicyTable,
+        )
+        from agent.obsview import ObsView
+        net = self._load()
+        deck = self.deck()
+        qu = self.runtime.model.load()
+        opponents, field_controller = self.FIELD.make_opponents(
+            self._rows, qu, f"{self.name}-{arm}")
+        runtime, TS = self.runtime, self.TS
+        budget, particles = self.budget_s, self.particles
+        searching = arm == "candidate"
+
+        class Controller:
+            name = f"{TurnSearchCurrentField.name}/{arm}"
+
+            def __init__(self):
+                from collections import Counter
+                self.counts = Counter()
+                self.reasons = Counter()
+                self.exceptions = Counter()
+                self.overlay = Counter()
+                self.search_seconds = 0.0
+                self.min_remaining = float("inf")
+
+            def act(self, obs):
+                import time
+                self.counts["calls"] += 1
+                remaining = obs.get("remainingOverageTime")
+                if isinstance(remaining, (int, float)):
+                    self.min_remaining = min(self.min_remaining, float(remaining))
+                view = ObsView(obs)
+                seat = view.my_index
+                ours = FrozenDobiV2Policy(runtime)
+                baseline = ours.decide(obs, deck, seat).action
+                if not searching or view.select_type != 0 or seat not in (0, 1):
+                    self._overlay(ours)
+                    return list(baseline)
+                theirs = QuV2BasePolicy(runtime)
+                table = (SeatPolicyTable().bind(seat, ours, deck)
+                                          .bind(1 - seat, theirs, deck))
+                started = time.monotonic()
+                try:
+                    with TS.seat_context(table, seat):
+                        action = TS.decide(view, net, list(deck),
+                                           budget_s=budget, max_particles=particles)
+                except (TS.SeatAmbiguity, SeatPolicyError) as error:
+                    self.exceptions["seat"] += 1
+                    raise GateError(f"seat/deck fault: {error}") from error
+                except Exception as error:                  # noqa: BLE001
+                    self.exceptions[type(error).__name__] += 1
+                    action = None
+                self.search_seconds += time.monotonic() - started
+                self.reasons[str(TS.last_stats.get("reason"))] += 1
+                self._overlay(ours, theirs)
+                self.counts["searched"] += 1
+                if action is None:
+                    self.counts["fell_back"] += 1
+                    return list(baseline)
+                if list(action) != list(baseline):
+                    self.counts["overrides"] += 1
+                return list(action)
+
+            def _overlay(self, *policies):
+                for policy in policies:
+                    for route, count in policy.overlay_faults.items():
+                        self.overlay[route] += count
+
+            def diagnostics(self):
+                return {"calls": self.counts["calls"],
+                        "exceptions": dict(self.exceptions),
+                        "fallbacks": self.counts["fell_back"],
+                        "counts": dict(self.counts),
+                        "reasons": dict(self.reasons),
+                        "overlay_faults": dict(self.overlay),
+                        "search_seconds": self.search_seconds,
+                        "min_remaining_overage_s": (
+                            None if self.min_remaining == float("inf")
+                            else self.min_remaining)}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not self.FIELD.clean_field(field_diag):
+            return False
+        if arm == "candidate":
+            # A gate where the planner never fired would read as a clean null.
+            return learner_diag.get("counts", {}).get("overrides", 0) > 0
+        return learner_diag.get("counts", {}).get("searched", 0) == 0
+
+
+ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
+            TurnSearchCurrentField.name: TurnSearchCurrentField}
 
 
 # --------------------------------------------------------------------------
