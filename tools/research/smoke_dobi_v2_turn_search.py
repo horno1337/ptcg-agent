@@ -45,7 +45,7 @@ class SmokeError(RuntimeError):
     pass
 
 
-def build_controller(runtime, deck, budget: float, particles: int, net):
+def build_controller(runtime, deck, budget: float, particles: int, net, collect: bool = False):
     from agent import turn_search as TS
     from agent.obsview import ObsView
     from agent.seat_policy import (
@@ -62,6 +62,10 @@ def build_controller(runtime, deck, budget: float, particles: int, net):
             self.search_seconds = 0.0
             self.min_remaining = float("inf")
             self.overlay_faults: Counter[str] = Counter()
+            # Shadow-collection sink. Flushed between decisions so the append
+            # cost lands inside the deadline (where it must be measured) while
+            # retention stays bounded.
+            self._sink: list = []
 
         def act(self, obs: dict) -> list[int]:
             import time
@@ -85,8 +89,15 @@ def build_controller(runtime, deck, budget: float, particles: int, net):
             started = time.monotonic()
             try:
                 with TS.seat_context(table, seat):
-                    action = TS.decide(view, net, list(deck),
-                                       budget_s=budget, max_particles=particles)
+                    if collect:
+                        with TS.collect_leaves(self._sink):
+                            action = TS.decide(view, net, list(deck),
+                                               budget_s=budget,
+                                               max_particles=particles)
+                    else:
+                        action = TS.decide(view, net, list(deck),
+                                           budget_s=budget,
+                                           max_particles=particles)
             except TS.SeatAmbiguity as error:
                 # Fail closed: never silently fall back on a seat error.
                 self.exceptions["seat_ambiguity"] += 1
@@ -98,6 +109,11 @@ def build_controller(runtime, deck, budget: float, particles: int, net):
                 self.exceptions[type(error).__name__] += 1
                 action = None
             self.search_seconds += time.monotonic() - started
+            if collect:
+                # Counted and released AFTER the timed region: a real run
+                # serializes here, outside any deadline.
+                self.counts["leaves"] += len(self._sink)
+                self._sink.clear()
             self.reasons[str(TS.last_stats.get("reason"))] += 1
             self._collect(ours, theirs)
             self.counts["searched"] += 1
@@ -157,7 +173,8 @@ def run_shard(spec: dict) -> str:
     schedule = build_paired_schedule(opponents, spec["games"], spec["seed"],
                                      spec["shard_index"], spec["num_shards"])
     controller = build_controller(runtime, deck, spec["budget"],
-                                  spec["particles"], net)
+                                  spec["particles"], net,
+                                  bool(spec.get("collect")))
     series = EVAL.run_series("dobi-v2-turn-search-smoke", controller, deck,
                              opponents, schedule, max_selects=5000,
                              time_bank_s=600.0, verbose=False)
@@ -219,6 +236,8 @@ def main(argv=None) -> int:
                         help="BLAS threads per worker; 2 emulates a Kaggle vCPU pair")
     parser.add_argument("--out", default=None)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--collect", action="store_true",
+                        help="enable shadow leaf collection (coverage A/B)")
     args = parser.parse_args(argv)
 
     if args.worker_spec:
@@ -236,7 +255,7 @@ def main(argv=None) -> int:
               "threads": args.threads,
               "num_shards": num_shards, "shard_index": i,
               "out": str(shard_dir / f"shard-{i:03d}.json"),
-              "resume": args.resume}
+              "resume": args.resume, "collect": bool(args.collect)}
              for i in range(num_shards)]
 
     started = datetime.now(timezone.utc)

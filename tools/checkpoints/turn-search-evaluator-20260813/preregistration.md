@@ -190,3 +190,62 @@ downstream work.
   pooled 192. No further extension; a still-ambiguous result fails.
 - **Fail:** collection is made cheaper or moved fully out-of-process before
   any leaf is scored.
+
+---
+
+# Appendix B — amendments, before any leaf was scored
+
+These supersede the named sections above. The superseded text is left in place
+rather than rewritten, so the reasoning that changed stays visible.
+
+## B1. Flat evaluators score 0.5 — supersedes A1's drop rule
+
+A1 dropped a root from every arm when any arm's `rms_e(r)` was ~0. That is
+wrong: **it lets an evaluator erase its own failures.** An evaluator that
+cannot discriminate between two actions has failed at exactly the task being
+measured, and removing those pairs from the denominator rewards it for being
+uninformative.
+
+Amended rule. When `rms_e(r) < 1e-9`, set `z_e(r, .) = 0` (the zero vector).
+Every pair from that root then has `z_e(r,a) - z_e(r,b) = 0`, which scores as
+a **tie worth 0.5**, the chance rate. Ties are counted in the denominator, not
+discarded.
+
+The population is therefore identical across arms and no arm can improve its
+score by being flat. Flat-root and tie counts are reported per arm.
+
+## B2. Action score aggregation
+
+An action's score at a root is the **arithmetic mean of its oriented leaf
+values across particles**:
+
+```
+score_e(r,a) = mean over particles p of  v_e(r, a, p)      # oriented to root_player
+```
+
+Normalization in A1/B1 is applied to these per-action means, not to individual
+leaves. This matches the planner, which selects
+`best_i = argmax(matrix.mean(axis=0))` at
+`agent/turn_search.py`.
+
+**Scope limit.** The planner's *override* rule is mean margin
+`>= _MIN_OVERRIDE_MARGIN` **and** unanimity `np.all(delta > 0)` across
+particles. This experiment compares **ranking only**. A better-ranking
+evaluator may still override more or less often, because unanimity interacts
+with each evaluator's variance across particles. Nothing here licenses a claim
+about override frequency or quality; that is a gameplay question for the gate.
+
+## B3. Orientation validation must see both classes
+
+A2 required checking oriented value against known outcomes on terminal leaves.
+Amended to add sufficiency conditions:
+
+- The terminal-leaf sample must contain **both** root-player wins and
+  root-player losses.
+- Counts of each class are reported.
+- If either class is absent, the validation is **invalid** — not passed. The
+  run aborts and more leaves are collected.
+
+A one-sided sample cannot distinguish a correct sign convention from an
+evaluator that is constant, saturated, or inverted, so a "pass" on wins alone
+would be worthless precisely when it matters most.
