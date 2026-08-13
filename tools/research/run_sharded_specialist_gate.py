@@ -262,7 +262,7 @@ class TurnSearchCurrentField(Adapter):
                     return list(baseline)
                 theirs = QuV2BasePolicy(runtime)
                 table = (SeatPolicyTable().bind(seat, ours, deck)
-                                          .bind(1 - seat, theirs, deck))
+                                          .bind(1 - seat, theirs, TS.field_prior_deck()))
                 started = time.monotonic()
                 try:
                     with TS.seat_context(table, seat):

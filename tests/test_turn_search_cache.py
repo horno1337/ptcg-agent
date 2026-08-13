@@ -122,7 +122,7 @@ class StubTable:
     def seats(self):
         return self._seats
 
-    def score_actions(self, obs, seat):
+    def score_actions(self, obs, seat, deck=None):
         self.calls += 1
         return list(self._scores[seat])
 

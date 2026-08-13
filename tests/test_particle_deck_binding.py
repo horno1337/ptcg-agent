@@ -1,0 +1,158 @@
+"""Per-particle believed-deck binding for simulated opponents.
+
+The planner samples an opponent deck per particle and reconstructs the world
+from it, but before this it scored every simulated opponent decision under
+*our* registration. In a non-mirror game that encodes the opponent as piloting
+our list. These tests pin the corrected contract.
+"""
+import sys
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from agent import turn_search as TS          # noqa: E402
+from agent.seat_policy import SeatPolicyError, SeatPolicyTable  # noqa: E402
+
+GRIM = tuple(sorted([101] * 30 + [102] * 30))          # stand-in for our list
+OTHER = tuple(sorted([201] * 30 + [202] * 30))
+
+
+def obs_with(options, my_index=0):
+    return {
+        "current": {"yourIndex": my_index, "turn": 3,
+                    "players": [{}, {}], "stadium": None},
+        "select": {"option": options, "minCount": 1, "maxCount": 1},
+    }
+
+
+class RecordingPolicy:
+    """Scores are a pure function of the deck, so a wrong deck is visible."""
+
+    def __init__(self, tag):
+        self.tag = tag
+        self.seen_decks = []
+
+    def score_actions(self, obs, registered_deck, seat):
+        self.seen_decks.append(tuple(registered_deck))
+        # Injective in the deck, so serving the wrong one is detectable.
+        return [float(registered_deck[0]), float(registered_deck[-1])]
+
+    def decide(self, obs, registered_deck, seat):
+        raise AssertionError("not used")
+
+
+class TestUnknownMassIsPublicOnly(unittest.TestCase):
+    def test_unknown_deck_is_not_seeded_from_our_list(self):
+        deck = TS._unknown_deck([])
+        self.assertEqual(len(deck), 60)
+        self.assertNotEqual(tuple(sorted(deck)), GRIM)
+
+    def test_unknown_deck_keeps_every_public_reveal(self):
+        seen = [201, 201, 202]
+        deck = TS._unknown_deck(seen)
+        self.assertEqual(len(deck), 60)
+        for cid in set(seen):
+            self.assertGreaterEqual(
+                deck.count(cid), seen.count(cid),
+                "a reconstructed deck must contain what was publicly seen")
+
+    def test_unknown_deck_takes_no_our_deck_argument(self):
+        # The old signature accepted my_deck_list and seeded from it. Keeping
+        # that door shut is the point of this fix.
+        import inspect
+        params = list(inspect.signature(TS._unknown_deck).parameters)
+        self.assertEqual(params, ["seen"])
+
+    def test_field_prior_deck_is_the_no_reveal_unknown_deck(self):
+        self.assertEqual(TS.field_prior_deck(), TS._unknown_deck([]))
+
+
+class TestMemoIsolation(unittest.TestCase):
+    def setUp(self):
+        TS._reset_caches()
+        TS._particle_decks = (GRIM, OTHER)
+
+    def tearDown(self):
+        TS._reset_caches()
+        TS._particle_decks = ()
+
+    def _table(self):
+        return (SeatPolicyTable()
+                .bind(0, RecordingPolicy("ours"), GRIM)
+                .bind(1, RecordingPolicy("theirs"), TS.field_prior_deck()))
+
+    def test_different_hypotheses_do_not_share_a_cache_entry(self):
+        table, obs = self._table(), obs_with([{"type": 1}], my_index=1)
+        a = TS._seat_logits(table, obs, 0)
+        b = TS._seat_logits(table, obs, 1)
+        self.assertNotEqual(list(a), list(b),
+                            "hypothesis B was served hypothesis A's scores")
+
+    def test_same_hypothesis_is_served_from_cache(self):
+        table, obs = self._table(), obs_with([{"type": 1}], my_index=1)
+        TS._seat_logits(table, obs, 0)
+        before = TS._cache_stats.get("logits_hit", 0)
+        TS._seat_logits(table, obs, 0)
+        self.assertEqual(TS._cache_stats.get("logits_hit", 0), before + 1)
+
+    def test_bound_deck_and_override_are_distinct_entries(self):
+        table, obs = self._table(), obs_with([{"type": 1}], my_index=1)
+        bound = TS._seat_logits(table, obs, None)
+        overridden = TS._seat_logits(table, obs, 1)
+        self.assertNotEqual(list(bound), list(overridden))
+
+
+class TestSeatDiscipline(unittest.TestCase):
+    def test_override_changes_the_deck_but_never_the_policy(self):
+        theirs = RecordingPolicy("theirs")
+        table = (SeatPolicyTable()
+                 .bind(0, RecordingPolicy("ours"), GRIM)
+                 .bind(1, theirs, TS.field_prior_deck()))
+        table.score_actions(obs_with([{"type": 1}], my_index=1), 1, deck=OTHER)
+        self.assertEqual(theirs.seen_decks, [OTHER],
+                         "the believed deck must reach the opponent's own "
+                         "policy, not swap the policy out")
+
+    def test_mirror_decks_remain_legal(self):
+        table = (SeatPolicyTable()
+                 .bind(0, RecordingPolicy("ours"), GRIM)
+                 .bind(1, RecordingPolicy("theirs"), GRIM))
+        self.assertEqual(sorted(table.seats()), [0, 1])
+
+    def test_shared_policy_instance_still_rejected(self):
+        shared = RecordingPolicy("shared")
+        with self.assertRaises(SeatPolicyError):
+            SeatPolicyTable().bind(0, shared, GRIM).bind(1, shared, OTHER)
+
+    def test_believed_deck_must_be_sixty_cards(self):
+        table = (SeatPolicyTable()
+                 .bind(0, RecordingPolicy("ours"), GRIM)
+                 .bind(1, RecordingPolicy("theirs"), TS.field_prior_deck()))
+        with self.assertRaises(SeatPolicyError):
+            table.score_actions(obs_with([{"type": 1}], my_index=1), 1,
+                                deck=(1, 2, 3))
+
+
+class TestNoPrivilegedDeck(unittest.TestCase):
+    def test_posterior_never_returns_the_true_deck_by_construction(self):
+        """The posterior is a function of public reveals and the meta file.
+
+        It is given our list (to reconcile our own zones) and the observation.
+        The opponent's true registration is never an input, so no code path
+        can leak it even accidentally.
+        """
+        import inspect
+        params = list(inspect.signature(TS._posterior).parameters)
+        self.assertEqual(params, ["view", "my_deck_list"])
+
+    def test_exact_hidden_metadata_is_refused_by_the_encoder(self):
+        from agent import qu_v2_features as QF
+        obs = dict(obs_with([{"type": 1}]))
+        obs[QF._EXACT_HIDDEN_KEY] = {"deck": list(OTHER)}
+        with self.assertRaises(QF.PublicFeatureError):
+            QF.encode_public_observation(obs, GRIM)
+
+
+if __name__ == "__main__":
+    unittest.main()

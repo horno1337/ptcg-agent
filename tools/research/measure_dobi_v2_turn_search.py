@@ -156,7 +156,7 @@ def measure_budget(runtime, deck, prompts, budget: float, particles: int,
 
         ours = FrozenDobiV2Policy(runtime)
         theirs = QuV2BasePolicy(runtime)
-        table = SeatPolicyTable().bind(seat, ours, deck).bind(1 - seat, theirs, deck)
+        table = SeatPolicyTable().bind(seat, ours, deck).bind(1 - seat, theirs, TS.field_prior_deck())
 
         started = time.monotonic()
         try:

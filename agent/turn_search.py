@@ -136,6 +136,11 @@ class SeatAmbiguity(RuntimeError):
 # the default path is byte-identical to the pre-existing behaviour.
 _seat_context: tuple | None = None
 
+# Believed opponent decks for the analysis in flight, indexed per particle.
+# A simulated opponent is scored under the deck of the world it inhabits, so a
+# particle drawn from hypothesis B is never scored as hypothesis A.
+_particle_decks: tuple[tuple[int, ...], ...] = ()
+
 
 @contextlib.contextmanager
 def seat_context(table, root_seat: int):
@@ -166,28 +171,31 @@ def seat_context(table, root_seat: int):
 # can never serve one seat's scores to another. Scoring is a pure function of
 # (observation, registered deck, net), and the deck is fixed per seat for the
 # analysis, so a hit is exact.
-_logits_memo: dict[tuple[int, int], tuple[dict, np.ndarray]] = {}
+_logits_memo: dict[tuple[int, int, int | None], tuple[dict, np.ndarray]] = {}
 
 
-def _seat_logits(table, obs: dict) -> np.ndarray:
+def _seat_logits(table, obs: dict, deck_i: int | None = None) -> np.ndarray:
     seat = (obs.get("current") or {}).get("yourIndex")
     if not isinstance(seat, int) or seat not in table.seats():
         raise SeatAmbiguity(
             f"acting seat {seat!r} is not bound; bound seats are "
             f"{table.seats()}"
         )
-    key = (id(obs), seat)
+    # The believed deck is part of the scoring function, so it is part of the
+    # key: the same observation under two hypotheses has two correct answers.
+    deck = None if deck_i is None else _particle_decks[deck_i]
+    key = (id(obs), seat, deck_i)
     entry = _logits_memo.get(key)
     if entry is not None and entry[0] is obs:
         if _VERIFY_CACHE:
-            fresh = np.asarray(table.score_actions(obs, seat),
+            fresh = np.asarray(table.score_actions(obs, seat, deck=deck),
                                dtype=np.float64).reshape(-1)
             if not np.array_equal(fresh, entry[1]):
                 raise AssertionError(
                     "seat logits cache diverged from recomputation")
         _cache_stats["logits_hit"] += 1
         return entry[1]
-    scores = np.asarray(table.score_actions(obs, seat),
+    scores = np.asarray(table.score_actions(obs, seat, deck=deck),
                         dtype=np.float64).reshape(-1)
     # The array is shared across hits, so freeze it: an accidental in-place
     # write would silently corrupt every later reader of this node.
@@ -758,34 +766,80 @@ def _contains_seen(deck: Iterable[int], seen: Iterable[int]) -> bool:
     return all(pool[cid] >= count for cid, count in required.items())
 
 
-def _unknown_deck(seen: list[int], my_deck_list: list[int]) -> tuple[int, ...]:
-    """Conservative surrogate component, repaired to contain public reveals.
+_field_prior_cache: tuple[tuple[tuple[int, float], ...], dict[int, int]] | None = None
 
-    It may veto an override but, because this is not a learned broad deck
-    prior, an unknown-only posterior is never allowed to justify one.
+
+def _field_card_prior() -> tuple[tuple[tuple[int, float], ...], dict[int, int]]:
+    """Public card-frequency prior over the observed field.
+
+    Derived only from ``meta_decks.json``, which is mined from public archives.
+    Returns descending (card id, weight) pairs plus the maximum copies any
+    field list runs of each card, which reproduces the 4-copy rule and its
+    basic-energy exception without hardcoding either.
     """
-    deck = list(my_deck_list[:60])
-    if not deck:
-        deck = [5] * 60                 # legal card id; engine validity is checked
-    if len(deck) < 60:
-        deck.extend([5] * (60 - len(deck)))
-    required = Counter(seen)
-    have = Counter(deck)
-    replace_at = len(deck) - 1
-    for cid, count in required.items():
-        for _ in range(max(count - have[cid], 0)):
-            while replace_at >= 0 and required[deck[replace_at]] >= have[deck[replace_at]]:
-                replace_at -= 1
-            if replace_at < 0:
+    global _field_prior_cache
+    if _field_prior_cache is None:
+        weights: Counter = Counter()
+        caps: dict[int, int] = {}
+        for entry in _load_meta_entries():
+            deck = entry.get("deck") or ()
+            count = entry.get("count", 1)
+            count = float(count) if isinstance(count, (int, float)) else 1.0
+            per_deck = Counter(int(cid) for cid in deck)
+            for cid, copies in per_deck.items():
+                weights[cid] += max(count, 1.0) * copies
+                if copies > caps.get(cid, 0):
+                    caps[cid] = copies
+        ordered = tuple(sorted(weights.items(), key=lambda kv: (-kv[1], kv[0])))
+        _field_prior_cache = (ordered, caps)
+    return _field_prior_cache
+
+
+def _unknown_deck(seen: list[int]) -> tuple[int, ...]:
+    """Public-only surrogate for opponents no field list explains.
+
+    It must NOT be seeded from our registration. Doing so makes the unknown
+    component simulate -- and, once seats are scored under their own deck,
+    *play* -- as though the opponent held our list, which is both wrong and
+    privileged-adjacent. Reveals are kept exactly and the remainder is filled
+    from the public field prior.
+
+    It may still veto an override, but ``valid_known_worlds`` keeps an
+    unknown-only posterior from ever justifying one.
+    """
+    counts = Counter(int(cid) for cid in seen)
+    deck: list[int] = []
+    for cid, copies in counts.items():
+        deck.extend([cid] * copies)
+    del deck[60:]
+    ordered, caps = _field_card_prior()
+    for cid, _weight in ordered:
+        if len(deck) >= 60:
+            break
+        room = caps.get(cid, 4) - counts.get(cid, 0)
+        for _ in range(max(room, 0)):
+            if len(deck) >= 60:
                 break
-            have[deck[replace_at]] -= 1
-            deck[replace_at] = cid
-            have[cid] += 1
-            replace_at -= 1
+            deck.append(cid)
+            counts[cid] += 1
+    if len(deck) < 60:
+        # Empty/unusable meta: pad with a legal id rather than our list.
+        deck.extend([5] * (60 - len(deck)))
     return tuple(deck[:60])
 
 
+def field_prior_deck() -> tuple[int, ...]:
+    """Public-only default registration for an unseen opponent seat.
+
+    Harnesses bind the opponent seat with this rather than our own list, so a
+    non-mirror opponent is never encoded as piloting our deck even before any
+    particle supplies a believed deck.
+    """
+    return _unknown_deck([])
+
+
 def _posterior(view: ObsView, my_deck_list: list[int]) -> list[_Hypothesis]:
+    """``my_deck_list`` reconciles OUR zones only; it never seeds the opponent."""
     seen = _seen_for_player(view, 1 - view.my_index, with_hand=False)
     compatible = []
     for entry in _load_meta_entries():
@@ -795,7 +849,7 @@ def _posterior(view: ObsView, my_deck_list: list[int]) -> list[_Hypothesis]:
             weight = float(weight) if isinstance(weight, (int, float)) else 1.0
             compatible.append((tuple(deck), max(weight, 1.0)))
 
-    unknown = _unknown_deck(seen, my_deck_list)
+    unknown = _unknown_deck(seen)
     if not compatible:
         return [_Hypothesis(unknown, 1.0, "unknown")]
     total = sum(weight for _, weight in compatible)
@@ -900,7 +954,7 @@ def _predict_particle(view: ObsView, my_deck_list: list[int],
     return my_deck, my_prize, opp_deck, opp_prize, opp_hand
 
 
-def _policy_logits(net, obs: dict) -> np.ndarray:
+def _policy_logits(net, obs: dict, deck_i: int | None = None) -> np.ndarray:
     """Score one simulated decision for whichever seat is acting.
 
     With a seat context bound, each seat is scored by its OWN policy under its
@@ -910,7 +964,7 @@ def _policy_logits(net, obs: dict) -> np.ndarray:
     planner has never produced an action on the shipped net family.
     """
     if _seat_context is not None:
-        return _seat_logits(_seat_context[0], obs)
+        return _seat_logits(_seat_context[0], obs, deck_i)
     view = ObsView(obs)
     st = FE.encode_state(view)
     cids, feats = FE.encode_options_for_net(view, net)
@@ -918,8 +972,9 @@ def _policy_logits(net, obs: dict) -> np.ndarray:
     return np.asarray(logits, dtype=np.float64).reshape(-1)
 
 
-def _semantic_candidates(obs: dict, net, limit: int) -> list[tuple[tuple, float]]:
-    logits = _policy_logits(net, obs)
+def _semantic_candidates(obs: dict, net, limit: int,
+                         deck_i: int | None = None) -> list[tuple[tuple, float]]:
+    logits = _policy_logits(net, obs, deck_i)
     n, lo, hi = _selection_bounds(obs)
     actions = legal_actions(obs, logits, limit=limit)
     return [(semantic_action(obs, a), _action_log_score(a, logits, n, lo, hi))
@@ -938,7 +993,8 @@ def _terminal_or_boundary(obs: dict, root_turn) -> bool:
 
 def _advance_plan(lib, plan: _BeliefPlan, net, root_player: int, root_turn,
                   deadline: float,
-                  candidate_cache: dict[tuple, tuple]
+                  candidate_cache: dict[tuple, tuple],
+                  deck_idx: tuple[int, ...]
                   ) -> tuple[_BeliefPlan, dict[tuple, list[int]]] | None:
     """Collapse forced/environment/previously-assigned choices in one plan."""
     states, hops = list(plan.states), list(plan.hops)
@@ -956,15 +1012,17 @@ def _advance_plan(lib, plan: _BeliefPlan, net, root_player: int, root_turn,
                 return None                 # incomplete particle invalidates plan
             if not (obs.get("select") or {}).get("option"):
                 return None
+            is_ours = (obs.get("current") or {}).get("yourIndex") == root_player
             try:
+                # Our seat keeps its bound registration; the opponent is scored
+                # under the believed deck of THIS particle.
                 candidates = _semantic_candidates(
-                    obs, net, max(BRANCH_WIDTH, 2))
+                    obs, net, max(BRANCH_WIDTH, 2),
+                    None if is_ours else deck_idx[particle_i])
             except Exception:
                 return None
             if not candidates:
                 return None
-
-            is_ours = (obs.get("current") or {}).get("yourIndex") == root_player
             chosen = None
             if is_ours and len(candidates) > 1:
                 key = canonical_info_key(obs, root_player)
@@ -1003,7 +1061,8 @@ def _plan_rank(plan: _BeliefPlan, root_player: int) -> float:
     return (sum(values) / len(values) if values else -1e18) + plan.log_prior
 
 
-def _belief_beam_values(lib, initial_states: list[dict], net,
+def _belief_beam_values(lib, initial_states: list[dict],
+                        deck_idx: tuple[int, ...], net,
                         root_player: int, root_turn, deadline: float
                         ) -> tuple[float, ...] | None:
     """Search one root action jointly over all paired belief particles.
@@ -1028,7 +1087,7 @@ def _belief_beam_values(lib, initial_states: list[dict], net,
         for raw_plan in frontier:
             advanced = _advance_plan(
                 lib, raw_plan, net, root_player, root_turn, deadline,
-                candidate_cache)
+                candidate_cache, deck_idx)
             if advanced is None:
                 continue
             plan, pending = advanced
@@ -1243,7 +1302,7 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
                     for action in root_actions):
                 invalid_worlds += 1
                 continue
-            worlds.append((world, hypothesis.label))
+            worlds.append((world, hypothesis.label, hypothesis.deck))
 
         # Materialize every root branch before planning.  A particle is kept
         # only if every real root action maps and steps successfully, preserving
@@ -1251,7 +1310,10 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
         root_children: list[list[dict]] = [[] for _ in root_actions]
         valid_worlds = 0
         valid_known_worlds = 0
-        for world, hypothesis_label in worlds:
+        # Believed deck per surviving particle, in the order the beams see them.
+        deck_table: dict[tuple[int, ...], int] = {}
+        deck_idx: list[int] = []
+        for world, hypothesis_label, hypothesis_deck in worlds:
             world_obs = world.get("observation") or {}
             children = []
             for action in root_actions:
@@ -1270,6 +1332,8 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
             if len(children) == n_root:
                 for action_i, child in enumerate(children):
                     root_children[action_i].append(child)
+                deck_idx.append(deck_table.setdefault(
+                    hypothesis_deck, len(deck_table)))
                 valid_worlds += 1
                 if hypothesis_label == "meta":
                     valid_known_worlds += 1
@@ -1281,10 +1345,15 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
         # paired even though each root counterfactual has its own best plan.
         if valid_worlds >= EVIDENCE_FLOOR and \
                 valid_known_worlds >= EVIDENCE_FLOOR:
+            global _particle_decks
+            _particle_decks = tuple(
+                deck for deck, _i in sorted(deck_table.items(),
+                                            key=lambda kv: kv[1]))
             columns = []
             for children in root_children:
                 values = _belief_beam_values(
-                    lib, children, net, root_player, root_turn, deadline)
+                    lib, children, tuple(deck_idx), net,
+                    root_player, root_turn, deadline)
                 if values is None or len(values) != valid_worlds or not all(
                         math.isfinite(v) for v in values):
                     columns = []
@@ -1299,6 +1368,7 @@ def _analyze_impl(view: ObsView, net, my_deck_list: list[int],
         _record("exception", started, error=type(exc).__name__)
         return None
     finally:
+        _particle_decks = ()
         try:
             lib.SearchEnd(SP._agent_ptr)
         except Exception:
