@@ -255,3 +255,68 @@ Amended to add sufficiency conditions:
 A one-sided sample cannot distinguish a correct sign convention from an
 evaluator that is constant, saturated, or inverted, so a "pass" on wins alone
 would be worthless precisely when it matters most.
+
+---
+
+# Appendix C — collection cost, method 1 failed
+
+## C1. Result of the locked coverage check (method 1: all roots, retained refs)
+
+Run 20260817, 128 games/arm, 5.0s budget, 8 workers x 2 threads, identical
+seed and schedule; collection the only difference. Gameplay outcomes not read.
+
+```
+              off        on         delta      locked threshold
+coverage    83.6%      80.2%      -3.40 pp     within +/-1.0 pp    FAIL
+            CI95 [-4.93,-1.87] pp, 4.3 SE
+search/game  69.1s      75.7s      +9.6%       within 2%           FAIL
+leaves          -     244,679     51.2/root
+faults       zero       zero
+RSS (on)        -   2,467 MB summed / 305 MB peak single
+```
+
+**FAIL, not ambiguous:** the ambiguous branch requires the point estimate
+inside tolerance with an uncontained interval. Both metrics are outside
+tolerance with a tight interval. No 64+64 extension is taken.
+
+Diagnosis: the cost is not the appends. Holding ~51 leaf observations alive
+across the remaining action columns of one analysis inflates the live set and
+the GC work performed inside the deadline.
+
+Note the RSS figure is an absolute for the `on` arm only: sampling began after
+the `off` arm had finished, so it is not a controlled delta.
+
+## C2. Method 2 — per-analysis lifetime (attempted first)
+
+Scope the sink to one `analyze()` call; serialize the completed root
+immediately after it returns, therefore outside its deadline; release every
+observation reference before the next root begins; keep collection
+transactional and retain **all** eligible roots. Rerun the locked 128/arm
+check unchanged.
+
+This preserves an unbiased all-root leaf population, which is strictly more
+useful than any sampled one.
+
+## C3. Method 3 — deterministic sampling (fallback ONLY if C2 fails)
+
+Not adopted unless C2 fails its coverage rerun. Sampling first would hide the
+lifetime bug rather than fix it.
+
+- Rate 5%, selected **before search** from
+  `SHA256(seed || scheduled_episode_identity || eligible_root_ordinal)`, so
+  selection cannot correlate with how the search went.
+- **>= 256 games total**, to leave margin above the 150-root/stage minimum
+  after the episode split and later attrition. At 5% a 128-game run yields
+  only ~120 roots/stage, below the floor.
+- **The acceptance criterion changes.** Overall coverage is NOT sufficient: a
+  5% rate dilutes a completion penalty on sampled roots by ~20x, so the
+  aggregate could pass while the collected population carries the full bias.
+  Completion coverage must be reported **for sampled roots specifically**,
+  against a shadow arm running the identical sampling draw with collection
+  off, and the **sampled-root** delta must satisfy +/-1.0 pp.
+
+## C4. Storage
+
+244,679 full public observations per 128 games is not a storable artifact at
+all-root scale. Whatever method passes, the collection run writes compressed
+records and stores only fields `encode_public_observation` consumes.
