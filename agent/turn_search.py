@@ -847,6 +847,19 @@ def _load_meta_entries() -> list[dict]:
                 raw = json.load(f)
             _meta_cache = [e for e in raw if isinstance(e, dict)
                            and len(e.get("deck") or ()) == 60]
+            # meta_decks.json is generated and must not be hand-edited, so the
+            # frozen current-field representatives live in a locked supplement.
+            # Without them the posterior is unknown-only against 93.4% of
+            # current field weight and the planner correctly refuses to act.
+            try:
+                extra = json.load(open(
+                    os.path.join(os.path.dirname(__file__),
+                                 "planner_prior.json")))
+                _meta_cache.extend(
+                    e for e in extra.get("entries", [])
+                    if isinstance(e, dict) and len(e.get("deck") or ()) == 60)
+            except Exception:
+                pass
         except Exception:
             _meta_cache = []
     return _meta_cache
