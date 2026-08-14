@@ -19,6 +19,7 @@ from tools.research.run_parallel_gate import (  # noqa: E402
     SIZES, GateError, arm_summary, build_identity, faults, identity_sha256,
     load_shards, merge_arm, paired_delta_ci, score, slice_by_opponent,
 )
+from tools.research import run_sharded_specialist_gate as SPECIAL  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 META = REPO / "agent" / "meta_decks.json"
@@ -136,6 +137,51 @@ class TestSizes(unittest.TestCase):
     def test_standard_sizes_are_fixed(self):
         self.assertEqual(SIZES["2pp"], 8_192)
         self.assertEqual(SIZES["1pp"], 32_768)
+
+
+class TestSpecialistWorkerProvenance(unittest.TestCase):
+    def _spec(self):
+        return {
+            "experiment_identity_sha256": "a" * 64,
+            "adapter": "turn-search-current-field", "arm": "candidate",
+            "games": 8, "seed": 7, "num_shards": 4, "shard_index": 1,
+            "threads": 2,
+        }
+
+    def _result(self, spec):
+        env = SPECIAL.expected_worker_env(spec)
+        return {
+            "worker_identity_sha256": SPECIAL.worker_identity_sha256(spec),
+            "worker_provenance": {
+                "requested_threads": 2, "environment": env,
+                "wall_seconds": 3.0, "cpu_seconds": 3.4,
+                "cpu_per_wall": 3.4 / 3.0,
+            },
+        }
+
+    def test_turn_search_env_is_bound_before_import(self):
+        env = SPECIAL.expected_worker_env(self._spec())
+        self.assertEqual(env["PTCG_TURN_SEARCH"], "1")
+        for key in SPECIAL._THREAD_ENV_KEYS:
+            self.assertEqual(env[key], "2")
+
+    def test_valid_worker_provenance_is_accepted(self):
+        spec = self._spec()
+        SPECIAL.validate_worker_result(self._result(spec), spec)
+
+    def test_resume_rejects_thread_environment_drift(self):
+        spec = self._spec()
+        result = self._result(spec)
+        result["worker_provenance"]["environment"]["OMP_NUM_THREADS"] = "1"
+        with self.assertRaises(GateError):
+            SPECIAL.validate_worker_result(result, spec)
+
+    def test_resume_rejects_experiment_identity_drift(self):
+        spec = self._spec()
+        result = self._result(spec)
+        spec["experiment_identity_sha256"] = "b" * 64
+        with self.assertRaises(GateError):
+            SPECIAL.validate_worker_result(result, spec)
 
 
 @unittest.skipUnless(META.is_file() and CAND.is_file() and BASE.is_file(),

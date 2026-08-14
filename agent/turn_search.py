@@ -842,26 +842,28 @@ def evaluate_turn(obs: dict, root_player: int) -> float:
 def _load_meta_entries() -> list[dict]:
     global _meta_cache
     if _meta_cache is None:
-        try:
-            with open(SP._META_PATH) as f:
-                raw = json.load(f)
-            _meta_cache = [e for e in raw if isinstance(e, dict)
-                           and len(e.get("deck") or ()) == 60]
-            # meta_decks.json is generated and must not be hand-edited, so the
-            # frozen current-field representatives live in a locked supplement.
-            # Without them the posterior is unknown-only against 93.4% of
-            # current field weight and the planner correctly refuses to act.
-            try:
-                extra = json.load(open(
-                    os.path.join(os.path.dirname(__file__),
-                                 "planner_prior.json")))
-                _meta_cache.extend(
-                    e for e in extra.get("entries", [])
-                    if isinstance(e, dict) and len(e.get("deck") or ()) == 60)
-            except Exception:
-                pass
-        except Exception:
-            _meta_cache = []
+        with open(SP._META_PATH, encoding="utf-8") as handle:
+            raw = json.load(handle)
+        base = [e for e in raw if isinstance(e, dict)
+                and len(e.get("deck") or ()) == 60]
+
+        # meta_decks.json is generated and must not be hand-edited, so the
+        # frozen current-field representatives live in a locked supplement.
+        # A missing or malformed supplement is a planner integration fault,
+        # not permission to silently fall back to an obsolete belief library.
+        prior_path = os.path.join(os.path.dirname(__file__),
+                                  "planner_prior.json")
+        with open(prior_path, encoding="utf-8") as handle:
+            extra = json.load(handle)
+        entries = extra.get("entries") if isinstance(extra, dict) else None
+        if extra.get("schema") != "ptcg.planner-public-prior.v1" or not \
+                isinstance(entries, list):
+            raise RuntimeError("planner prior has an invalid schema")
+        supplement = [e for e in entries if isinstance(e, dict)
+                      and len(e.get("deck") or ()) == 60]
+        if len(supplement) != len(entries):
+            raise RuntimeError("planner prior contains an invalid registration")
+        _meta_cache = [*base, *supplement]
     return _meta_cache
 
 
