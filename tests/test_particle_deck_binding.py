@@ -68,6 +68,30 @@ class TestUnknownMassIsPublicOnly(unittest.TestCase):
         self.assertEqual(TS.field_prior_deck(), TS._unknown_deck([]))
 
 
+class TestCurrentFieldPrior(unittest.TestCase):
+    def test_every_frozen_field_registration_is_present(self):
+        """Catch V1/V2 representative drift before a multi-hour gate.
+
+        The original supplement labelled the obsolete Ogerpon proxy as
+        Hydrapple while the V2 gate dealt a different exact Hydrapple list.
+        Labels did not reveal the mismatch; registration identity does.
+        """
+        from tools.research import (
+            eval_grim_bounded_refresh_current_field_v2 as FIELD,
+        )
+
+        TS._meta_cache = None
+        entries = TS._load_meta_entries()
+        for row in FIELD.source_rows():
+            exact = tuple(int(card) for card in row["deck"])
+            matches = [entry for entry in entries
+                       if tuple(int(card) for card in entry["deck"]) == exact]
+            self.assertGreaterEqual(
+                len(matches), 1,
+                f"{row['archetype']} exact registration missing",
+            )
+
+
 class TestMemoIsolation(unittest.TestCase):
     def setUp(self):
         TS._reset_caches()

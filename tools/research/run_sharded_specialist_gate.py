@@ -28,6 +28,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -271,6 +272,8 @@ class TurnSearchCurrentField(Adapter):
             "frozen_archive": self.archive,
             "seat_policy": Path(seat_policy.__file__).resolve(),
             "turn_search": Path(self.TS.__file__).resolve(),
+            "meta_decks": ROOT / "agent" / "meta_decks.json",
+            "planner_prior": ROOT / "agent" / "planner_prior.json",
             "learner_deck": ROOT / "decks" / "deck.csv",
             "hydrapple_representative": self.FIELD_V2.HYDRAPPLE,
             "driver": Path(__file__).resolve(),
@@ -304,6 +307,10 @@ class TurnSearchCurrentField(Adapter):
         runtime, TS = self.runtime, self.TS
         budget, particles = self.budget_s, self.particles
         searching = arm == "candidate"
+        opponent_keys = tuple(opponent.key for opponent in opponents)
+        opponent_decks = {
+            opponent.key: tuple(opponent.deck) for opponent in opponents
+        }
 
         class Controller:
             name = f"{TurnSearchCurrentField.name}/{arm}"
@@ -316,6 +323,15 @@ class TurnSearchCurrentField(Adapter):
                 self.overlay = Counter()
                 self.search_seconds = 0.0
                 self.min_remaining = float("inf")
+                self.current_opponent_key = None
+                self.by_opponent = {}
+                self.unknown_examples = {}
+
+            def begin_episode(self, episode):
+                index = int(episode.opponent_index)
+                if not 0 <= index < len(opponent_keys):
+                    raise GateError(f"invalid opponent index {index}")
+                self.current_opponent_key = opponent_keys[index]
 
             def act(self, obs):
                 import time
@@ -345,7 +361,41 @@ class TurnSearchCurrentField(Adapter):
                     self.exceptions[type(error).__name__] += 1
                     action = None
                 self.search_seconds += time.monotonic() - started
-                self.reasons[str(TS.last_stats.get("reason"))] += 1
+                reason = str(TS.last_stats.get("reason"))
+                self.reasons[reason] += 1
+                opponent_key = self.current_opponent_key or "<unbound>"
+                by_opponent = self.by_opponent.setdefault(
+                    opponent_key, Counter())
+                by_opponent["main_roots"] += 1
+                by_opponent[reason] += 1
+                if reason == "unknown_opponent" and \
+                        opponent_key not in self.unknown_examples:
+                    # Public-only attribution captured inside the same worker
+                    # and process that produced the decline. This distinguishes
+                    # a thin standalone reproduction from a real posterior
+                    # incompatibility and exposes zone/stadium over-counting.
+                    seen = TS._seen_for_player(view, 1 - seat, with_hand=False)
+                    expected = opponent_decks[opponent_key]
+                    seen_counts, expected_counts = Counter(seen), Counter(expected)
+                    excess = {
+                        str(card): {"seen": count,
+                                    "registered": expected_counts.get(card, 0)}
+                        for card, count in sorted(seen_counts.items())
+                        if count > expected_counts.get(card, 0)
+                    }
+                    compatible = [
+                        str(entry.get("label") or "<unlabelled>")
+                        for entry in TS._load_meta_entries()
+                        if TS._contains_seen(entry.get("deck") or (), seen)
+                    ]
+                    self.unknown_examples[opponent_key] = {
+                        "seen_multiset": {str(card): count for card, count
+                                          in sorted(seen_counts.items())},
+                        "scheduled_registration_sha256":
+                            index_corpus.deck_sha256(expected),
+                        "scheduled_registration_excess": excess,
+                        "compatible_prior_labels": compatible,
+                    }
                 self._overlay(ours, theirs)
                 self.counts["searched"] += 1
                 if action is None:
@@ -366,6 +416,11 @@ class TurnSearchCurrentField(Adapter):
                         "fallbacks": self.counts["fell_back"],
                         "counts": dict(self.counts),
                         "reasons": dict(self.reasons),
+                        "by_opponent": {
+                            key: dict(counts)
+                            for key, counts in sorted(self.by_opponent.items())
+                        },
+                        "unknown_examples": dict(self.unknown_examples),
                         "overlay_faults": dict(self.overlay),
                         "search_seconds": self.search_seconds,
                         "min_remaining_overage_s": (
@@ -417,6 +472,57 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
 # Worker
 # --------------------------------------------------------------------------
 
+_THREAD_ENV_KEYS = (
+    "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+)
+
+
+def expected_worker_env(spec: dict) -> dict[str, str]:
+    threads = str(int(spec.get("threads", 1)))
+    expected = {key: threads for key in _THREAD_ENV_KEYS}
+    expected.update(getattr(ADAPTERS[spec["adapter"]], "ENV", {}))
+    return expected
+
+
+def worker_identity(spec: dict) -> dict:
+    return {
+        "experiment_identity_sha256": spec["experiment_identity_sha256"],
+        "adapter": spec["adapter"],
+        "arm": spec["arm"],
+        "games": int(spec["games"]),
+        "seed": int(spec["seed"]),
+        "num_shards": int(spec["num_shards"]),
+        "shard_index": int(spec["shard_index"]),
+        "threads": int(spec.get("threads", 1)),
+        "expected_env": expected_worker_env(spec),
+    }
+
+
+def worker_identity_sha256(spec: dict) -> str:
+    body = json.dumps(worker_identity(spec), sort_keys=True,
+                      separators=(",", ":"))
+    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+
+def validate_worker_result(result: dict, spec: dict) -> None:
+    expected_hash = worker_identity_sha256(spec)
+    if result.get("worker_identity_sha256") != expected_hash:
+        raise GateError(
+            f"{spec['arm']} shard {spec['shard_index']} worker identity drifted")
+    provenance = result.get("worker_provenance") or {}
+    if provenance.get("requested_threads") != int(spec.get("threads", 1)):
+        raise GateError(
+            f"{spec['arm']} shard {spec['shard_index']} thread count drifted")
+    if provenance.get("environment") != expected_worker_env(spec):
+        raise GateError(
+            f"{spec['arm']} shard {spec['shard_index']} worker env drifted")
+    for key in ("wall_seconds", "cpu_seconds", "cpu_per_wall"):
+        value = provenance.get(key)
+        if not isinstance(value, (int, float)) or value < 0:
+            raise GateError(
+                f"{spec['arm']} shard {spec['shard_index']} lacks {key}")
+
 def run_worker(spec: dict) -> dict:
     """Run one arm-shard in this process and return serialisable records."""
     from tools import eval_ab as EVAL
@@ -451,8 +557,24 @@ def _worker_entry(payload: str) -> str:
     spec = json.loads(payload)
     out = Path(spec["out"])
     if out.is_file() and spec["resume"]:
+        existing = json.loads(out.read_text(encoding="utf-8"))
+        validate_worker_result(existing, spec)
         return str(out)
+    wall_started = time.monotonic()
+    cpu_started = time.process_time()
     result = run_worker(spec)
+    wall_seconds = time.monotonic() - wall_started
+    cpu_seconds = time.process_time() - cpu_started
+    result["worker_identity_sha256"] = worker_identity_sha256(spec)
+    result["worker_provenance"] = {
+        "requested_threads": int(spec.get("threads", 1)),
+        "environment": {key: os.environ.get(key)
+                        for key in expected_worker_env(spec)},
+        "wall_seconds": wall_seconds,
+        "cpu_seconds": cpu_seconds,
+        "cpu_per_wall": cpu_seconds / wall_seconds if wall_seconds else 0.0,
+    }
+    validate_worker_result(result, spec)
     tmp = out.with_suffix(".partial")
     tmp.write_text(json.dumps(result, sort_keys=True), encoding="utf-8")
     os.replace(tmp, out)
@@ -462,20 +584,14 @@ def _worker_entry(payload: str) -> str:
 def _subprocess_worker(spec: dict) -> str:
     """Run one shard in a fresh interpreter so module-global binds stay isolated."""
     out = Path(spec["out"])
-    if out.is_file() and spec["resume"]:
-        return str(out)
     env = dict(os.environ)
     # Thread count is part of the operating point a budget was frozen at, so
     # it is bound into the identity stamp rather than assumed. Default 1
     # preserves existing adapters exactly.
-    threads = str(int(spec.get("threads", 1)))
-    for key in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS",
-                "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
-        env[key] = threads
-    # Adapter-declared variables are applied to the child's environment, so
-    # they are in place before the interpreter imports numpy, the agent
-    # package or the evaluator.
-    env.update(getattr(ADAPTERS[spec["adapter"]], "ENV", {}))
+    # These are applied before the child imports numpy, the agent package or
+    # the evaluator. Requested threads are not trusted as evidence: the child
+    # records measured process CPU/wall alongside the actual environment.
+    env.update(expected_worker_env(spec))
     proc = subprocess.run(
         [sys.executable, str(Path(__file__).resolve()), "--worker-spec",
          json.dumps(spec)],
@@ -546,7 +662,8 @@ def main(argv=None) -> int:
         "schedule": {"games_per_arm": games, "seed": args.seed,
                      "num_shards": num_shards, "arms": list(adapter.arms),
                      "threads_per_worker": args.threads},
-        "worker_env": dict(getattr(adapter, "ENV", {})),
+        "worker_env": expected_worker_env({
+            "adapter": args.adapter, "threads": args.threads}),
         "artifacts": {name: {"path": str(path.resolve()),
                              "sha256": file_sha256(path)}
                       for name, path in sorted(adapter.artifacts().items())},
@@ -575,6 +692,7 @@ def main(argv=None) -> int:
         "seed": args.seed, "num_shards": num_shards, "shard_index": index,
         "out": str(shard_dir / f"{arm}-{index:03d}.json"), "resume": args.resume,
         "threads": args.threads,
+        "experiment_identity_sha256": ident_hash,
     } for arm in adapter.arms for index in range(num_shards)]
 
     started = datetime.now(timezone.utc)
@@ -591,7 +709,9 @@ def main(argv=None) -> int:
     by_arm: dict[str, list[dict]] = {arm: [] for arm in adapter.arms}
     for spec in specs:
         with open(spec["out"], encoding="utf-8") as handle:
-            by_arm[spec["arm"]].append(json.load(handle))
+            shard = json.load(handle)
+        validate_worker_result(shard, spec)
+        by_arm[spec["arm"]].append(shard)
 
     arms = {arm: merge(shards, games) for arm, shards in by_arm.items()}
     arm_ok = {arm: all(s["gate_valid"] and s["arm_valid"] for s in shards)
@@ -628,6 +748,15 @@ def main(argv=None) -> int:
                   "learner_calls": sum(
                       s["learner_diagnostics"].get("calls", 0) for s in shards)}
             for arm, shards in by_arm.items()
+        },
+        "worker_operating_point": {
+            "requested_threads": args.threads,
+            "environment": expected_worker_env({
+                "adapter": args.adapter, "threads": args.threads}),
+            "by_arm": {
+                arm: [shard["worker_provenance"] for shard in shards]
+                for arm, shards in by_arm.items()
+            },
         },
         "promotion_authority": False,
         "package_authority": False,
