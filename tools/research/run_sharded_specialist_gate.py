@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+from collections import Counter
 import hashlib
 import json
 import os
@@ -161,6 +162,68 @@ class LucarioNeuralV2(Adapter):
         return bool(ok)
 
 
+class PackagedFieldController:
+    """Field opponents piloted entirely by the packaged runtime.
+
+    The locked ``make_opponents`` wraps the PACKAGED network in the
+    repository's ``DeployableReflex``, which encodes with the repository's
+    ``qu_v2_features``. The packaged network then receives a ``PublicFeatures``
+    of a different class object and rejects every observation -- 163/163
+    PublicFeatureError in the 8-game preflight, silently degrading the entire
+    field to rules fallback. Same cross-package identity trap as ``ObsView``.
+
+    Encoder, features and network are one runtime here. Exceptions are
+    counted, never suppressed; preflight requires zero.
+    """
+
+    def __init__(self, runtime, name: str):
+        from agent.seat_policy import QuV2BasePolicy
+        self.runtime = runtime
+        self.policy = QuV2BasePolicy(runtime)
+        self.name = name
+        self.calls = 0
+        self.fallbacks = 0
+        self.exceptions: Counter = Counter()
+
+    def act(self, obs: dict, deck) -> list[int]:
+        self.calls += 1
+        try:
+            seat = self.runtime.obsview.ObsView(obs).my_index
+            return list(self.policy.decide(obs, tuple(deck), seat).action)
+        except Exception as error:                       # noqa: BLE001
+            self.exceptions[type(error).__name__] += 1
+            self.fallbacks += 1
+            import agent.safety as safety
+            return list(safety._fallback(obs))
+
+    def diagnostics(self) -> dict:
+        return {"name": self.name, "calls": self.calls,
+                "fallbacks": self.fallbacks,
+                "exceptions": dict(self.exceptions),
+                "packaged_runtime": True}
+
+
+def make_packaged_opponents(rows, runtime, tag: str):
+    """Adapter-local field factory; the locked evaluator is not modified."""
+    from tools.rl_env import OpponentSpec
+    controller = PackagedFieldController(runtime, tag)
+    opponents = []
+    for row in rows:
+        registration = tuple(int(card) for card in row["deck"])
+
+        def move(obs, rng, deck=registration):
+            del rng
+            return controller.act(obs, deck)
+
+        opponents.append(OpponentSpec(
+            key=str(row["opponent_key"]), deck=registration, move=move,
+            weight=float(row["field_weight"]),
+            policy_id=f"packaged-qu-v2b:{tag}",
+            schedule_group="top20-exact-20260810/packaged-qu-v2b",
+        ))
+    return opponents, controller
+
+
 class TurnSearchCurrentField(Adapter):
     # turn_search.ENABLED is read at IMPORT time, so this must be in the
     # worker's environment before the process starts -- setting it inside the
@@ -236,8 +299,8 @@ class TurnSearchCurrentField(Adapter):
         net = self._load()
         deck = self.deck()
         qu = self.runtime.model.load()
-        opponents, field_controller = self.FIELD.make_opponents(
-            self._rows, qu, f"{self.name}-{arm}")
+        opponents, field_controller = make_packaged_opponents(
+            self._rows, self.runtime, f"{self.name}-{arm}")
         runtime, TS = self.runtime, self.TS
         budget, particles = self.budget_s, self.particles
         searching = arm == "candidate"
@@ -313,14 +376,36 @@ class TurnSearchCurrentField(Adapter):
             "max_selects": 5000, "time_bank_s": 600.0,
         }
 
+    # Preflight ceiling for roots the planner declines because no field list
+    # explains the opponent's reveals. Locked before the gate.
+    MAX_UNKNOWN_OPPONENT_RATE = 0.35
+
     def arm_valid(self, arm, learner_diag, field_diag) -> bool:
         if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
             return False
-        if not self.FIELD.clean_field(field_diag):
+        # The locked clean_field() checks DeployableReflex's routing counters,
+        # which a packaged-runtime controller does not have. The requirement is
+        # the same and is asserted directly: the field must complete every call
+        # under the packaged network with no exception and no fallback.
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        reasons = learner_diag.get("reasons", {})
+        total = sum(reasons.values())
+        if total and reasons.get("unknown_opponent", 0) / total > \
+                self.MAX_UNKNOWN_OPPONENT_RATE:
             return False
         if arm == "candidate":
             # A gate where the planner never fired would read as a clean null.
-            return learner_diag.get("counts", {}).get("overrides", 0) > 0
+            counts = learner_diag.get("counts", {})
+            reached = (reasons.get("agrees_reflex", 0)
+                       + reasons.get("low_margin", 0)
+                       + reasons.get("robust_override", 0))
+            return (counts.get("searched", 0) > 0 and reached > 0
+                    and counts.get("overrides", 0) > 0
+                    and reasons.get("disabled", 0) == 0)
         return learner_diag.get("counts", {}).get("searched", 0) == 0
 
 
