@@ -1,0 +1,62 @@
+{
+  "identity": {
+    "adapter": "turn-search-current-field",
+    "artifacts": {
+      "driver": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/research/run_sharded_specialist_gate.py",
+        "sha256": "6229424986095937cb6f37cc866126d5e9aec550bc89e60284dae4ba0559513c"
+      },
+      "frozen_archive": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz",
+        "sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4"
+      },
+      "frozen_budget": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/turn-search-gate-20260814/freeze.json",
+        "sha256": "aa105a2145155e5c6818884b4cf91db85b345c273112193c7369f6754ebcea8a"
+      },
+      "hydrapple_representative": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/grim-bounded-refresh-20260812/hydrapple-representative-aug11.json",
+        "sha256": "d631f0686c95da2fc935f7c9557e4b030dd219713a2843d22a9854c35c30d8fd"
+      },
+      "learner_deck": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/decks/deck.csv",
+        "sha256": "92b92bac9f9163ecff933b3dc39294d2cc154c8684f3c8497877661419ebc59d"
+      },
+      "meta_decks": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/meta_decks.json",
+        "sha256": "ab138eca201384817d693b86931dea5b19a162ceff1d4eadf2213e4bc3a70619"
+      },
+      "planner_prior": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/planner_prior.json",
+        "sha256": "5fd8390fe92a8d7d48d28c1a1057986792171e7415b69b711fe7204ad5c43396"
+      },
+      "seat_policy": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/seat_policy.py",
+        "sha256": "998194184b968c00d1705082d936be434cd1b6a9288af532dc21e209005c6479"
+      },
+      "turn_search": {
+        "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/agent/turn_search.py",
+        "sha256": "47595f5da45b10b5a6baaa9fb81a8751ac7e968cc004ea011dc1db0586363894"
+      }
+    },
+    "learner_deck_sha256": "c20a8a46f5c635773754f03103652f5c534b13dc622448ed2255a97234c103af",
+    "schedule": {
+      "arms": [
+        "candidate",
+        "control"
+      ],
+      "games_per_arm": 4096,
+      "num_shards": 8,
+      "seed": 20260821,
+      "threads_per_worker": 2
+    },
+    "worker_env": {
+      "MKL_NUM_THREADS": "2",
+      "NUMEXPR_NUM_THREADS": "2",
+      "OMP_NUM_THREADS": "2",
+      "OPENBLAS_NUM_THREADS": "2",
+      "PTCG_TURN_SEARCH": "1"
+    }
+  },
+  "identity_sha256": "c31639c6430498e9eba452371f2049b66aaaf4b6c0bd6eb214165ee7fa1e3f57"
+}
