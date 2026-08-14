@@ -1,0 +1,224 @@
+{
+  "best_coverage": 0.8978829389788294,
+  "candidates": [
+    {
+      "budget_s": 4.0,
+      "coverage": 0.7852990033222591,
+      "cpu_per_wall": 1.1420037057919317,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.1740033222591362,
+      "min_bank_s": 493.1948606111109,
+      "override_rate": 0.09385382059800665,
+      "overrides_per_game": 3.53125,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 870,
+        "insufficient_evidence": 419,
+        "low_margin": 795,
+        "robust_override": 226,
+        "root_width": 98
+      },
+      "reserve_fires": 0,
+      "result_sha256": "e650d35c114607d4eeff12c61fcdf282b7956f869ae61191dc1024cdcf62e1c7",
+      "search_s_per_game": 64.40631663730164,
+      "searched": 2408,
+      "source": "/tmp/claude-1000/-home-horn-Desktop-GIT-repo-ptcg-agent/d3a615f5-7c9e-4720-af9b-b4c580715baf/scratchpad/sweep-postfix/b4.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 5.0,
+      "coverage": 0.8321108394458028,
+      "cpu_per_wall": 1.1570434170592863,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.1263243683781581,
+      "min_bank_s": 359.94762839982286,
+      "override_rate": 0.09331703341483293,
+      "overrides_per_game": 3.578125,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 923,
+        "insufficient_evidence": 310,
+        "low_margin": 890,
+        "robust_override": 229,
+        "root_width": 102
+      },
+      "reserve_fires": 0,
+      "result_sha256": "109f4abff741f2426299375900f7c13eba270930b1a2a47ffd6da6fbde79b950",
+      "search_s_per_game": 69.62331474456005,
+      "searched": 2454,
+      "source": "/tmp/claude-1000/-home-horn-Desktop-GIT-repo-ptcg-agent/d3a615f5-7c9e-4720-af9b-b4c580715baf/scratchpad/sweep-postfix/b5.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 6.0,
+      "coverage": 0.8741554054054054,
+      "cpu_per_wall": 1.1373704107869533,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.08150337837837837,
+      "min_bank_s": 443.7562906634994,
+      "override_rate": 0.09839527027027027,
+      "overrides_per_game": 3.640625,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 905,
+        "insufficient_evidence": 193,
+        "low_margin": 932,
+        "robust_override": 233,
+        "root_width": 105
+      },
+      "reserve_fires": 0,
+      "result_sha256": "9dc325e710298c1b3b6d6fc0c544fa7bb3fafcb41a4124aa1fd37221f72b0c55",
+      "search_s_per_game": 66.94601000809052,
+      "searched": 2368,
+      "source": "/tmp/claude-1000/-home-horn-Desktop-GIT-repo-ptcg-agent/d3a615f5-7c9e-4720-af9b-b4c580715baf/scratchpad/sweep-postfix/b6.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 7.0,
+      "coverage": 0.8907905460472698,
+      "cpu_per_wall": 1.1588503980356286,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.07212713936430318,
+      "min_bank_s": 407.19646621868014,
+      "override_rate": 0.11532192339038305,
+      "overrides_per_game": 4.421875,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 924,
+        "insufficient_evidence": 177,
+        "low_margin": 979,
+        "robust_override": 283,
+        "root_width": 91
+      },
+      "reserve_fires": 0,
+      "result_sha256": "f122646ad6bc1c3abc927b222deb2dfb928baba0fd0b107a08b00fbc09424346",
+      "search_s_per_game": 78.14252602135457,
+      "searched": 2454,
+      "source": "/tmp/claude-1000/-home-horn-Desktop-GIT-repo-ptcg-agent/d3a615f5-7c9e-4720-af9b-b4c580715baf/scratchpad/sweep-postfix/b7.0/result.json",
+      "threads": 2,
+      "workers": 8
+    },
+    {
+      "budget_s": 8.0,
+      "coverage": 0.8978829389788294,
+      "cpu_per_wall": 1.131287585950324,
+      "effectively_multicore": false,
+      "faults": {
+        "agent_error": 0,
+        "controller_exceptions": {},
+        "engine_error": 0,
+        "infrastructure_error": 0,
+        "overlay_faults": {},
+        "truncated": 0
+      },
+      "faults_total": 0,
+      "games": 64,
+      "insufficient_rate": 0.061436280614362807,
+      "min_bank_s": 417.01602222118527,
+      "override_rate": 0.11457036114570361,
+      "overrides_per_game": 4.3125,
+      "particles": 8,
+      "reasons": {
+        "agrees_reflex": 901,
+        "insufficient_evidence": 148,
+        "low_margin": 986,
+        "robust_override": 276,
+        "root_width": 98
+      },
+      "reserve_fires": 0,
+      "result_sha256": "a0d13f583bf5791443b16c478f7854f42951de6e931a79fed6e1aaf67ba23271",
+      "search_s_per_game": 80.362269673431,
+      "searched": 2409,
+      "source": "/tmp/claude-1000/-home-horn-Desktop-GIT-repo-ptcg-agent/d3a615f5-7c9e-4720-af9b-b4c580715baf/scratchpad/sweep-postfix/b8.0/result.json",
+      "threads": 2,
+      "workers": 8
+    }
+  ],
+  "created_at": "2026-08-14T09:52:31.537902+00:00",
+  "freeze_sha256": "1d5bc5cfcb86f1cf888881d260d8ff77ff5d1b7ea10a082415e0d0731db62def",
+  "frozen": {
+    "benchmark_threads": 2,
+    "benchmark_workers": 8,
+    "budget_s": 7.0,
+    "evidence_floor": 5,
+    "max_particles": 8,
+    "measured_cpu_per_wall": 1.1588503980356286,
+    "topology_caveat": "cpu_per_wall near 1.2 means the benchmark is lower-contention emulation, not a 2 vCPU deployment equivalent; Kaggle should meet or exceed these coverage and override rates"
+  },
+  "gameplay_authority": false,
+  "justification": {
+    "coverage": 0.8907905460472698,
+    "faults_total": 0,
+    "insufficient_rate": 0.07212713936430318,
+    "min_bank_s": 407.19646621868014,
+    "override_rate": 0.11532192339038305,
+    "overrides_per_game": 4.421875,
+    "reserve_fires": 0,
+    "search_s_per_game": 78.14252602135457
+  },
+  "outcome_fields_stripped": [
+    "outcome_sanity"
+  ],
+  "plateau_budgets": [
+    7.0,
+    8.0
+  ],
+  "promotion_authority": false,
+  "schema": "ptcg.turn-search-budget-freeze.v1",
+  "selection_rule": {
+    "plateau_tolerance_pp": 2.0,
+    "required_bank_headroom_s": 100.0,
+    "reserve_s": 150.0,
+    "rule": "smallest budget within tolerance of best coverage, zero faults, bank comfortably above reserve; ties smaller"
+  },
+  "unchanged_during_optimization": [
+    "beam width",
+    "evidence floor",
+    "leaf evaluator",
+    "override margin"
+  ],
+  "written_before_any_gameplay_outcome_was_read": true
+}

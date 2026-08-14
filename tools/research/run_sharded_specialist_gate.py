@@ -163,6 +163,15 @@ class LucarioNeuralV2(Adapter):
         return bool(ok)
 
 
+# Budget frozen outcome-blind over a 4/5/6/7/8s sweep at 8 workers x 2
+# threads; plateau [7.0, 8.0], smallest within 2pp of best coverage.
+FROZEN_BUDGET_S = 7.0
+FROZEN_BUDGET_SHA256 = (
+    "1d5bc5cfcb86f1cf888881d260d8ff77ff5d1b7ea10a082415e0d0731db62def")
+FROZEN_BUDGET_FILE = (ROOT / "tools" / "checkpoints"
+                      / "turn-search-gate-20260814" / "freeze.json")
+
+
 class PackagedFieldController:
     """Field opponents piloted entirely by the packaged runtime.
 
@@ -250,7 +259,7 @@ class TurnSearchCurrentField(Adapter):
 
     name = "turn-search-current-field"
 
-    def __init__(self, budget_s: float = 5.0, particles: int = 8):
+    def __init__(self, budget_s: float = FROZEN_BUDGET_S, particles: int = 8):
         from agent import turn_search as TS
         from agent.seat_policy import load_frozen_runtime
         from tools.research import (
@@ -276,6 +285,9 @@ class TurnSearchCurrentField(Adapter):
             "planner_prior": ROOT / "agent" / "planner_prior.json",
             "learner_deck": ROOT / "decks" / "deck.csv",
             "hydrapple_representative": self.FIELD_V2.HYDRAPPLE,
+            # The freeze artifact is an input: its hash enters gate identity, so
+            # shards cannot be resumed under a different frozen budget.
+            "frozen_budget": FROZEN_BUDGET_FILE,
             "driver": Path(__file__).resolve(),
         }
 
@@ -436,6 +448,10 @@ class TurnSearchCurrentField(Adapter):
     MAX_UNKNOWN_OPPONENT_RATE = 0.35
 
     def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        # A constructor default or a resumed shard must never silently run a
+        # stale budget: the frozen value is asserted, not assumed.
+        if float(self.budget_s) != FROZEN_BUDGET_S:
+            return False
         if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
             return False
         # The locked clean_field() checks DeployableReflex's routing counters,
