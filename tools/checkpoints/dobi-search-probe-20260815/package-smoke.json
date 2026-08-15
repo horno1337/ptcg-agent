@@ -1,0 +1,26 @@
+{
+  "archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dobi-search-probe-1-unsigned.tar.gz",
+  "diagnostics": {
+    "decisions": 296,
+    "probe_calls": 139,
+    "reason:agrees_reflex": 64,
+    "reason:insufficient_evidence": 9,
+    "reason:low_margin": 49,
+    "reason:robust_override": 14,
+    "reason:root_width": 3,
+    "robust_overrides": 14,
+    "search_calls": 139
+  },
+  "faults": {
+    "agent_errors": 0,
+    "engine_errors": 0,
+    "gate_valid": true,
+    "infrastructure_errors": 0,
+    "truncated": 0
+  },
+  "games": 4,
+  "schema": "ptcg.dobi-search-probe.package-smoke.v1",
+  "seed": 2026081501,
+  "strength_authority": false,
+  "valid": true
+}

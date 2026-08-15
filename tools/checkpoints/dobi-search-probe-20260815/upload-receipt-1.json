@@ -1,0 +1,11 @@
+{
+  "archive": "submission-dobi-search-probe-1-unsigned.tar.gz",
+  "archive_sha256": "3dfa7b6137f7dc834da41cfad5f932d5b4450d0a86af5a6ffec7df7c1e466f41",
+  "competition": "pokemon-tcg-ai-battle",
+  "description": "dobi-search-probe-1",
+  "receipt_read_once": true,
+  "schema": "ptcg.kaggle-upload-receipt.v1",
+  "status_at_receipt": "PENDING",
+  "submission_id": 55528488,
+  "submitted_at_utc": "2026-08-15T13:22:50.693000Z"
+}

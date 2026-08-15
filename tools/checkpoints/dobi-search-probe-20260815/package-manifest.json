@@ -1,0 +1,41 @@
+{
+  "added_members": [
+    "agent/planner_prior.json",
+    "agent/search_probe.py",
+    "agent/seat_policy.py"
+  ],
+  "archive": {
+    "path": "submission-dobi-search-probe-1-unsigned.tar.gz",
+    "sha256": "3dfa7b6137f7dc834da41cfad5f932d5b4450d0a86af5a6ffec7df7c1e466f41"
+  },
+  "budget_s": 7.0,
+  "changed_members": [
+    "agent/policy.py",
+    "agent/turn_search.py",
+    "main.py"
+  ],
+  "disposition": "user-authorized ladder transfer probe after local futility stop",
+  "evidence": {
+    "adjudication": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/turn-search-gate-20260814/adjudication.md",
+      "sha256": "1ac84d1811edbaa9057a1110e1109a75f13611e39acf350a1ff7244763cbd6e1"
+    },
+    "freeze": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/turn-search-gate-20260814/freeze.json",
+      "sha256": "aa105a2145155e5c6818884b4cf91db85b345c273112193c7369f6754ebcea8a"
+    },
+    "preregistration": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/turn-search-gate-20260814/preregistration.md",
+      "sha256": "73050538f2785a01120ac12ae3d444873eaaa5e72e45d8961b10d7255ff591ad"
+    },
+    "result": {
+      "path": "/home/horn/Desktop/GIT-repo/ptcg-agent/tools/checkpoints/turn-search-gate-20260814/interim-4096/result.json",
+      "sha256": "ced21412ed6a6d7dc3ae5a358d094dd9b7dbbb5a886a92c1d68308c906e89d49"
+    }
+  },
+  "manifest_sha256": "a9bc10e151de8937d8bad1432dbd95e825eddd7415114197c0b21a31b80ea481",
+  "parent_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+  "particles": 8,
+  "promotion_authority": false,
+  "schema": "ptcg.dobi-turn-search-probe.package.v1"
+}
