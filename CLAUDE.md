@@ -5,593 +5,79 @@ the architecture, tag lineage, post-mortems (research log), and workflows —
 read it before proposing strategy changes; every rule below was paid for on
 the ladder.
 
-## Current handoff — 2026-08-12
+## Current handoff — 2026-08-16
 
-This section supersedes older active-direction statements below.  The full
-2026-08-07 handoff remains as historical provenance.
+This section supersedes every older active-direction statement below.
 
-### Active Lucario/Dragapult direction and ladder probes
+### Live right now
 
-#### 2026-08-12 Dragapult tempo/outcome update
+- Both active FIFO slots hold the **byte-identical exact-Alakazam specialist**
+  `submission-alakazam-august-1-unsigned.tar.gz`, SHA-256 `93b462fa...c3877a`,
+  git tag `dobi-v3-alakazam` at commit `d382a6a`: Kaggle submissions
+  **55545158** (`dobi-v3-alakazam`) and **55545162** (`dobi-v3-alakazam-2`).
+  Both were `PENDING` at the single post-upload read. Do not poll.
+- **Frozen Dobi-v2 is therefore NOT running.** Re-submitting it evicts the
+  older Alakazam instance. Competition deadline is **2026-08-16 23:59 UTC**.
+- Receipt: `tools/checkpoints/alakazam-august-20260815/package/upload-receipt.json`.
 
-- Transcript-driven tempo work is now outcome-gated.  The public feature
-  module is `agent/dragapult_tempo.py`; it is research-only and not wired into
-  the shipped policy.  A 310-seat top-pilot audit found 12,111 high-impact
-  MAIN roots: current-v2 family agreement was 63.43%, with nearly equal total
-  attack counts but severe Boss/Ultra Ball underuse and ability overuse.  This
-  rejects a global attack bonus and motivates state-conditioned commitments.
-- Three plausible corrections were isolated and rejected, all valid and
-  zero-fault.  A held-out late-Budew discovery win failed on the untouched
-  confirmation root (Ultra Ball and Itchy Pollen both lost 16/16).  A broad
-  family residual improved held-out expert agreement 63.56% -> 65.20%, but
-  its 512-game/arm field screen was only +0.49 pp, CI95 [-4.91,+5.88], and
-  regressed Dragapult -1.54 pp.  Conservative learned Boss/Ultra gates had
-  60%/75% held-out intervention precision, yet their 1,024-game/arm screen
-  scored 64.16% versus 64.94% control: -0.78 pp, CI95 [-4.80,+3.24], with
-  Lucario -5.39 pp.  Do not integrate, package, upload, or threshold-tune any
-  of these opened candidates.  Expert-action precision is not gameplay value.
-- The outcome-based replacement cohort is complete under
-  `tools/checkpoints/dragapult-tempo-roots-v2-20260812/`: 256 fresh local games
-  (156-100), 9,896 high-impact learner roots observed, and 578 deterministic
-  roots retained from 97 losses.  Public and privileged reconstruction data
-  are separate.  The first 48-root panel accidentally ran four repetitions
-  because of a Python default-argument binding bug; it is invalid and excluded
-  wholesale.  The corrected replacement used 48 disjoint stratified roots,
-  exactly eight repetitions/action, zero rejects, result
-  `c706c2a5...f24ceab`.  It found no action with >=6/8 paired advantages; only
-  four alternatives reached 5/8 across three roots, with no repeated action-
-  family condition.  There is therefore no validated runtime fix yet.  The
-  next step is more paired outcome coverage and a game-disjoint public model;
-  never turn isolated exact-hidden roots into handwritten rules.
+### Exact-Alakazam August BC — CONFIRMED promotion
 
-- The official `pokemon-tcg-ai-battle-episodes-2026-08-11` archive was
-  downloaded once from Kaggle.  Its 703 MiB ZIP has SHA-256
-  `54280567...58de`, passed `unzip -t`, and contains 4,622 JSON games.
-  `tools/research/extract_exact_dragapult_daily_archive.py` streams the ZIP
-  without expanding it wholesale and extracted only exact-list `07bed` games.
-  Inventory: 611 exact games / 637 exact seats, of which 98 episode IDs were
-  already present and 513 are new.  The corrected self-hashed extraction
-  manifest is `e45ad92a...653b`; the 2.6 GiB raw extraction remains ignored
-  and can be recreated from the official archive.
-- The combined content index contains 2,136 unique games (2,135 BC-valid),
-  deduplicates 100 alias paths with zero content conflicts, and has content
-  hash `ea8cb70b...914b`.  All 513 Aug-11 additions are content-exclusive to
-  the new source and BC-valid: 422/48/43 train/validation/test, 528 exact
-  seats including 15 mirrors, and 307 wins / 221 losses.  The adequately
-  sampled >60% archive pilots are Kh0a (164 seats, 65.2%), Raihan Ramadistra
-  (66, 66.7%), JB Bryant (43, 60.5%), and LiamK (37, 70.3%).
-- Replaying all new seats through exact `dragapult-v2` routed 55,684 of
-  58,702 prompts.  Exact agreement is 64.07% overall, 54.3% MAIN and 73.5%
-  CARD.  This independently confirms the same offensive-plan gap: compared
-  with logged pilots, the runtime used Ultra Ball 786 fewer times, Fire/
-  Psychic attachments 965 fewer times, and Boss 382 fewer times, while
-  overusing Drakloak, Munkidori, and Hammer utility.  Diagnostic artifact:
-  `tools/checkpoints/dragapult-aug11-archive-20260812/divergence-v2.json`,
-  file SHA-256 `f5983636...593a`.
-- A separate parent-anchored refinement is locked under
-  `tools/checkpoints/dragapult-aug11-elite-bc-20260812/`, using 292 non-mirror
-  games from those four pilots (245/27/20).  MAIN and CARD train separately
-  from the elite heads with frozen backbone, learning rate 1.5e-5, KL 0.7,
-  and five CPU epochs; lock `80c99886...95b60`.  Both passed the disclosed
-  development behavior comparison: MAIN agreement 52.05% -> 53.91%, NLL
-  -0.03189; CARD 72.24% -> 73.48%, NLL -0.02640.  The corrected locked 2x2
-  gameplay screen is now complete and selected no stack.  Against parent/
-  parent at 63.67%, candidate/candidate was +2.34 pp (CI95 [-3.26,+7.95]),
-  candidate-MAIN/parent-CARD +1.17 pp (CI95 [-4.48,+6.83]), and parent-MAIN/
-  candidate-CARD +2.73 pp (CI95 [-3.05,+8.52]) but missed the Alakazam slice
-  at -5.26 pp.  Result `e0393974...17388ee`.  No Aug-11 head combination has
-  confirmation, promotion, packaging, or upload authority.
+- 13,046 exact-list `3f451509...` Alakazam games from the 14 August archives.
+  Splits 10,307 / 1,382 / 1,357; the test split was opened exactly once, after
+  checkpoint selection, and the builder still refuses it without an explicit
+  `--open-sealed-test`.
+- Novelty first, training second: Qu-v2B disagreed on **35.4% of MAIN** and
+  **23.6% of CARD** prompts over 827,129 decisions. That is what justified
+  retraining a list Qu-v2B had already seen heavily.
+- MAIN and CARD trained separately from frozen Qu-v2B (`ec69a2db...a8447`),
+  trunk/value frozen, only `option1`/`context1`/`policy` trainable, lr 2e-5,
+  KL 0.7, 4 epochs, seed 2026081601. Mean parent KL 0.059 MAIN, 0.023 CARD.
+- Sealed readout passed for both heads: MAIN NLL -0.151 / agreement +5.26 pp,
+  CARD NLL -0.059 / +2.45 pp. On the decisions where candidate and parent
+  actually differ, the candidate matches the logged expert far more often —
+  MAIN 16.84% -> 57.60%, CARD 14.33% -> 43.86%.
+- **Powered Field-v3 gate, preregistered primary (new MAIN + new CARD):
+  +4.89 pp, CI95 [+3.57,+6.21], SE 0.673, 8,192 games/arm, zero faults, all
+  eight slices positive (six with CI excluding zero).** All three preregistered
+  criteria met. Adjudication:
+  `tools/checkpoints/alakazam-august-20260815/gate/adjudication.json`.
+- Head-isolation diagnostics ran AFTER the primary and did not select it:
+  MAIN-only +3.72 pp CI95 [+2.41,+5.04]; CARD-only +0.57 pp CI95 [-0.77,+1.91].
+  So MAIN carries most of the effect and CARD adds ~1.2 pp only in combination.
+- Package validated: deterministic byte-identical rebuild, all members 0644,
+  200-game engine smoke with zero invalid/zero errors, and the overlay proven
+  to fire through the PACKAGED dispatcher both as owner (4,129 MAIN / 2,400
+  CARD) and as a non-owner UID (141 / 90).
 
-#### 2026-08-11 elite-refinement update (authoritative)
+### Grimmsnarl current-meta refresh — not promoted
 
-- The original benchmark probes are now a confirmed transfer failure, not an
-  early-rating ambiguity.  Kaggle ultimately reported `lucario-benchmark-1`
-  (`55437466`) at **584.1** and `dragapult-benchmark-1` (`55438590`) at
-  **502.9**.  The available non-mirror replay samples were Lucario 10-9 over
-  19 games and Dragapult 1-2 over three games; the samples are too small to
-  reconcile with the ratings, but runtime fingerprints are conclusive.  On
-  specialist-versus-fallback disagreements, logged actions matched Lucario BC
-  177/186 times and Dragapult BC 33/33 times.  The failure is policy transfer,
-  not missing weights or silent Qu/Dobi fallback.
-- Do not use the older Qu-v2B-piloted field as a ladder-score predictor.  It is
-  retained only as a paired regression/fault screen.  The Day-2 Lucario MAIN
-  replacement was rejected after a fresh 2,048-game confirmation: +0.27 pp,
-  CI95 [-2.37,+2.91], with no strict superiority.  The pictured Metafy
-  Dragapult/Froslass/Munkidori registration (hash `4ffe6aee...0f2b`) also did
-  not justify a deck pivot: there were zero exact public games, and every
-  transferred head was materially worse than the original exact Dragapult
-  registration in the locked local screen.
-- A new conservative elite-teacher refinement is complete under
-  `tools/checkpoints/elite-recent-specialist-bc-20260811/`.  It uses only
-  recent, non-mirror exact-deck games: 253 Lucario games from Majkel1337,
-  ntumlnoob, and M Sato (217/18/18 train/validation/test), and 271 Dragapult
-  games from six established high-volume/high-performing teachers
-  (207/38/26).  Each Day-1 head was both initialization and KL anchor; the
-  public backbone stayed frozen.  CUDA was unavailable before epoch one, so a
-  self-hashed resource adjudication changed only the device to CPU.  Training
-  lock `09b5ba10...b759`; adjudication `3782a55f...0d6a`.
-- One-shot held-out behavior result `1e02e1fb...7721` passed all three arms
-  against their actual Day-1 parents.  Lucario MAIN exact-action agreement
-  improved 58.19% -> 58.71% with weighted NLL delta -0.02512.  Dragapult MAIN
-  improved 51.14% -> 53.87% with NLL delta -0.05060; Dragapult CARD improved
-  69.60% -> 70.82% with NLL delta -0.02240.  Every arm also won the subset on
-  which candidate and parent actions disagreed.
-- The locked 4,096-game current-field regression gate was valid and zero-fault
-  (`9f85eb6f...51d61`).  Lucario elite was +1.56 pp overall, CI95
-  [-2.16,+5.29], and +3.10 pp against Dragapult.  Dragapult elite was +4.74 pp,
-  CI95 [+0.54,+8.94], and +8.33 pp against Lucario.  Both passed the
-  preregistered ladder-probe screen; this is still not a ladder-strength claim.
-- Two deterministic exact-archive probes were built, rebuilt byte-identically,
-  passed 200/200 random games with zero repairs/errors, passed owner/non-owner
-  parity, and passed the 6/6 deployment suite:
-  - `submission-lucario-elite-1-unsigned.tar.gz`, SHA-256
-    `358c46b44dbc3070b099787a33829c2a669d287b55edd5351e5561196e37f95b`;
-    uploaded as `lucario-elite-1`, Kaggle submission `55439638`.
-  - `submission-dragapult-elite-1-unsigned.tar.gz`, SHA-256
-    `599b6d6e872c420f699f536088ccbf9fbbdb59d0b978a13cc73c1ab72531762e`;
-    uploaded as `dragapult-elite-1`, Kaggle submission `55439643`.
-  Both were `PENDING` at the single post-upload receipt read.  Do not poll.
-  On the next user-requested update, read status once and fetch/deduplicate
-  available episodes once.  If either remains below 800 after a meaningful
-  cohort, treat that as another failed BC transfer and prioritize causal deck
-  rules/planning from replay roots rather than another broad BC/PPO run.
-- The requested Dragapult route rules were implemented with focused tests:
-  early manual Darkness-to-Munkidori attachment protection, and a conservative
-  Boss line restricted to visible multi-Prize, game-winning, or key-engine
-  bench KOs when the Active is not KO-able.  Learned Drakloak decisions and
-  the existing Phantom Dive allocator remain unchanged.  They are retained
-  behind `ENABLE_EXPERIMENTAL_ROUTE_GUARDS = False`, because the correctly
-  isolated 2,048-game paired gate rejected enabling them: 58.11% versus
-  59.47% for the same elite heads plus Phantom-only control, paired -1.37 pp,
-  CI95 [-5.53,+2.79].  Dragapult was -1.16 pp and Lucario +3.92 pp; all games
-  were valid with zero fallbacks or repairs.  Result SHA-256
-  `a58c5947...bcf0555`; durable evaluator:
-  `tools/research/eval_dragapult_route_guards.py`.  Do not package or upload
-  these guards enabled without a new causal refinement and independent gate.
-- A fresh exact-list Dragapult behavior audit supersedes the broad-rule
-  hypothesis.  It uses 162 replays through 2026-08-11 20:38 UTC from live
-  rank-2 `やる気元気ミワハルキ` and rank-11 `flg`; both register the identical
-  `07bed` 60-card list.  Across 171 exact-list seats they went 108-63.  Their
-  17,616 MAIN/CARD decisions agree with our elite heads only 57.4% (MAIN
-  50.5%, CARD 64.0%); 64.9% of MAIN disagreements are same-turn sequencing,
-  while 35.1% are genuinely different plans.  The coherent plan gap is
-  offense versus utility: experts use Ultra Ball, Boss, Fire/Psychic
-  attachment, and Phantom Dive more often, while our head overuses Munkidori,
-  Recon, Crushing Hammer, and additional Dreepy setup.
-- The sharpest high-confidence root is Phantom readiness.  On 79 expert turns
-  where the Active Dragapult was exactly one legal Fire/Psychic attachment
-  from Phantom Dive, the expert completed it 70 times (88.6%).  In 28
-  comparable non-mirror `dragapult-elite-1` turns, our submitted policy did so
-  only 13 times (46.4%).  Current ladder examples attach the complementary
-  Energy to Dreepy/Drakloak or attach Darkness elsewhere, then use Jet
-  Headbutt.  The next candidate may redirect only a conflicting attachment,
-  Jet Headbutt, or END to the completing Active attachment; it must preserve
-  free utility/search ordering and be tested alone.
-- Do not describe the top-pilot replay as exact uploaded-runtime parity.  The
-  uploaded archive SHA `599b6d6e...1762e` contains elite MAIN/CARD heads but
-  predates the Phantom dead-target allocator.  Replaying with current source
-  plus that allocator is suitable for behavior comparison, but not package
-  provenance.  The allocator would override 214/3,204 (6.7%) top-pilot
-  Phantom choices, 179 of them in wins, and should be disabled in the next
-  package unless independently justified.
-- Boss is a turn-level reranking problem, not the retired immediate-KO rule.
-  Experts played Boss 163 times and attacked later that turn 144 times; our
-  elite head ranked their Boss option first only 3 times but top-five 100
-  times.  The retired guard matched only 35/163 expert gusts and fired mostly
-  where the expert did not gust.  Build a replay/game-disjoint turn-level
-  classifier whose label is whether Boss is used later that turn, and allow a
-  high-confidence override only when Boss is already near the head's top.
-  Test it separately after the complementary-Energy candidate.  Ultra Ball is
-  a third independent intervention, not part of either candidate.
-- The complementary-Energy intervention passed its immutable 1,024-game/arm
-  current-field gate with zero faults.  The candidate scored **65.43%
-  (670-354)** versus **59.57%
-  (610-414)** for the exact elite-head control, paired +5.86 pp, CI95
-  [+1.85,+9.87].  It fired 394 times.  Dragapult mirror was +1.16 pp (CI95
-  [-6.41,+8.73]) and Mega Lucario +17.16 pp (CI95 [+7.97,+26.34]); both met
-  the preregistered slice guard.  Lock `af1a1eae...31c31`; result
-  `8546f98f...e3546`.  This is the locally promoted Dragapult candidate.
-- The prospectively locked Boss turn classifier was rejected and must not be
-  integrated or retuned on its opened test.  Its game-disjoint test precision
-  was 63.64%, recall 38.89%, and false-positive rate 17.39%, missing the locked
-  >=65%, >=15%, <=15% requirements.  Simple Ultra Ball conditions were also
-  insufficiently selective: even the strongest common public-state trigger
-  matched expert use only about 63.6%.  Do not force either action with a broad
-  rule; the next attempt needs a new causal condition and new confirmation.
-- `tools/build_dragapult_completion_submission.py` deterministically builds
-  `submission-dragapult-completion-1-unsigned.tar.gz` from the exact uploaded
-  elite parent while changing only `agent/dragapult_bc.py`.  Archive SHA-256
-  is `ffe0bb466465e899a332853b63a200415476386519090f0d5f32bfe9862355d3`;
-  packaged module SHA-256 is `f9504f0a...3782`.  Two independent builds were
-  byte-identical.  The exact archive passed owner/UID-1 action parity and a
-  200-game random smoke with zero invalid games, repairs, or errors; validation
-  result `a9a75ed3...efd`.  The broader Qu-v2 deployment suite also passed.
-  The package manifest deliberately records `upload_authorized=false`: do not
-  upload until the user approves an exact Kaggle submission name.
-- The user approved the exact name `dragapult-v2`; tag `dragapult-v2` points to
-  commit `112f4d5` and is pushed.  The first Kaggle submission attempt uploaded
-  the blob but submission creation returned HTTP 400, and a receipt read
-  confirmed that no new submission exists.  Five submissions already occupied
-  the current Kaggle UTC day, so treat `dragapult-v2` as **not uploaded** until
-  a later explicit receipt contains a new submission ID; do not invent one.
-- The locked direct Grim diagnostic for the exact `dragapult-v2` stack is
-  complete and zero-fault (`tools/checkpoints/dragapult-v2-vs-grim-champions-20260812/`).
-  Over 512 seat-balanced games per opponent it scored **31.05% (159-353)**
-  against frozen MD-v1, CI95 [27.20%,35.19%], and **26.76% (137-375)** against
-  frozen Dobi-v1, CI95 [23.11%,30.76%].  Both are clear losses.  Equal-weight
-  aggregate was 28.91% (296-728), CI95 [26.21%,31.76%]; completion fired 179
-  and 170 times respectively.  Lock `5e54a934...35877`; result
-  `7fe94d45...358fa`.  This is directionally better than the old Day-1
-  Dragapult's 24.22% MD / 22.46% Dobi / 23.34% aggregate, but that historical
-  comparison combines elite-head and completion changes and uses a different
-  schedule.  It does not isolate the completion rule or make the matchup
-  competitive.
-- The next broad learned corrections were also isolated and rejected.  A
-  high-precision Phantom-commit classifier had no validation-eligible model
-  (best diagnostic precision only 38.46%).  A frozen MAIN action-category
-  calibrator improved exact expert behavior on its one-shot test (overall
-  exact agreement 50.48% -> 51.20%; Phantom 52.34% -> 63.55%), but failed
-  gameplay decisively: 61.82% versus 67.29% for exact `dragapult-v2`, paired
-  -5.47 pp, CI95 [-9.47,-1.47].  Do not revive unconditional action-class
-  biases; they improve imitation while damaging turn plans.
-- The purchased Dragapult/Hammers guide has been converted to a derived,
-  list-aware evidence inventory at
-  `tools/research/DRAGAPULT_GUIDE_EVIDENCE_20260812.md`.  The guide's Turin
-  list is not exact `07bed`; exact-list replay evidence wins on conflicts.
-  Hammer is a sequencing issue, not a global suppression target: experts used
-  it immediately on 39.4% of offered prompts versus our 52.9%, but eventually
-  used it on 379/420 eligible turns (90.2%) versus our 332/420 (79.0%).  Only
-  21.1% of expert Hammer turns included Stamp/Judge and 78.6% ended in an
-  attack.  Never implement "Hammer only with disruption."
-- Boss is a genuine plan gap.  Of 163 exact-list expert gusts, 95 were visible
-  same-turn KO proxies, 49 deliberately banked damage without a KO proxy, and
-  19 did not attack.  Fezandipiti ex was the dominant non-KO target (19/49),
-  but a presence-only `Boss legal + Phantom live + Fez benched` trigger had
-  only 19.7% precision and is rejected.  Our head chose Boss anywhere on the
-  same expert trajectories only 4/163 times.  Keep KO and tempo/damage-bank
-  intents separate; a single immediate-KO rule cannot learn the deck.
-- The Phantom dead-target allocator passed a direct exact-Grim diagnostic
-  (+1.86 pp aggregate over 1,024 paired units; MD +3.71 pp, Dobi neutral;
-  1,435 fires, zero faults) but failed its separately locked public-signature
-  current-field confirmation.  The valid 2,048-game/arm field result was
-  -0.78 pp overall, CI95 [-3.59,+2.03], and exactly neutral on 102 Grim games;
-  result `30c6f420...a753ee`.  It is opponent-policy-specific evidence, not a
-  transferable runtime improvement.  Keep `ENABLE_PHANTOM_TARGET_GUARD=False`.
-- A one-time refresh of exact-list submissions `55425689` and `55411079`
-  downloaded 15 new replay files (19 exact seats including mirrors), disjoint
-  from the 162-file audit.  The unchanged rejected Boss classifier scored
-  9 TP / 4 FP / 30 TN / 17 FN on 60 fresh commitment turns: precision 69.23%,
-  recall 34.62%, FPR 11.76%.  This clears its original thresholds on a later
-  cohort without retraining and authorizes only the locked paired gameplay
-  experiment in `tools/research/eval_dragapult_boss_intent_field.py`; it does
-  not authorize integration, packaging, or upload by itself.
-- That paired Boss gameplay experiment is complete and rejected.  It was
-  valid, zero-fault, and made 364 actual overrides, but scored 63.62%
-  (651-372-1) versus 64.11% (656-367-1) for exact `dragapult-v2`: paired
-  -0.49 pp, CI95 [-4.45,+3.47].  Alakazam improved +3.29 pp and Lucario was
-  neutral, but the Dragapult slice regressed -4.26 pp.  Result SHA-256
-  `a0b2c230...d9de9e9`.  Do not integrate, retune its opened threshold,
-  package, or upload it.  Fresh expert-action precision again failed to
-  predict gameplay.  The next Dragapult experiment must select Boss/Phantom
-  interventions with paired outcomes at learner-reached states and confirm on
-  disjoint roots before another field gate.
-- The earlier conditional two-probe authorization was superseded by the
-  user's later explicit instruction to submit the current package-qualified
-  `dragapult-v2` twice as data-collection controls.  The byte-identical archive
-  SHA-256 `ffe0bb46...5d3` was accepted on 2026-08-12 as
-  `dragapult-v2-probe-a` (`55453859`) and `dragapult-v2-probe-b` (`55453866`).
-  Both receipts were `PENDING` at the single read; do not poll.  These are not
-  claims that the weak current model improved, and they must not be confused
-  with the Aug-11 retraining branch.  Combine only provenance-verified replay
-  episodes from the two probes.
-- The observed low-rating matchmaking band, not the global archive, now drives
-  the immediate Dragapult order.  In the 64 resolved probe games summarized
-  by the user, exact Mega Lucario was 21/64 (32.8%) and Grimmsnarl only 3/64
-  (4.7%).  Treat those two frequencies as observed; the other 40 opponent
-  identities were not supplied and must not be invented.  Optimize Lucario
-  escape-band mechanics first, then revisit Grim after the agent reaches the
-  rating band where Grim is common.
-- User-supplied episode `92107363` is a top-ranked `Sixth Sense` win over
-  Majkel1337's exact Mega Lucario `77a53ffc...`.  The winning Dragapult list is
-  a related `674ec310...` variant (Venture Bomb/Watchtower), not exact shipped
-  `07bed`; only shared mechanics transfer.  Its Prize route was concrete:
-  Phantom counters finished a 60-HP Makuhita, later finished a damaged
-  three-Prize Mega Lucario, then a 50-HP Lunatone, and the final Boss/Phantom
-  line took the last Prize.  At the decisive damaged-Mega root, the elite CARD
-  head targeted a lower-value Lunatone instead.
-- A one-attachment Boss setup-mate hypothesis reproduced the final expert
-  line and passed a targeted stochastic Lucario screen (+4.74 pp, CI95
-  [+0.45,+9.02], 21 fires) but failed its required band confirmation: -2.93
-  pp overall, CI95 [-7.08,+1.22], including -8.41 pp in Dragapult mirrors.
-  Keep `ENABLE_BOSS_SETUP_MATE_GUARD=False`.  The arms use unpaired native
-  randomness: 506 targeted and 471 band outcomes differed despite only 21 and
-  10 candidate interventions.  Therefore these are stochastic A/B estimates,
-  not deterministic per-game causal traces; the failed confirmation is
-  binding and the targeted pass is not promotion evidence.
-- The narrower Lucario Phantom secure-Prize rule is enabled.  It activates
-  only when Mega Lucario is publicly visible and remaining Phantom counters
-  can visibly finish at least one opposing target.  It preserves the learned
-  target if that target is already KO-able at the maximum available Prize
-  value; otherwise it chooses the lowest-HP target at that Prize value.  On 64
-  exact `07bed`-versus-`77a53ffc` archive games it changed 12/1,128 Phantom
-  prompts and matched the expert on all 12, improving agreement 979 -> 991.
-  On supplied episode `92107363` it changed 3/30 and matched all three,
-  improving 21 -> 24.  Behavior audit:
-  `tools/checkpoints/dragapult-lucario-secure-prize-v1-20260812/behavior-audit.json`.
-  Focused tests pass 26/26 and the repository 200-game random smoke passed
-  200/200 with zero errors.  This is a mechanical integration, not yet a
-  packaged or uploaded ladder claim.
-- A read-only audit of submission `55457370` (`Sixth Sense`) now covers 23
-  non-mirror games: 19-4 (82.6%).  This is a selected, small replay sample,
-  not a rating forecast.  Its `674ec310...` registration differs from exact
-  `07bed` by only three Trainer slots: +1 Venture Bomb/+2 Watchtower, -1
-  Dawn/-2 Jamming Tower.  It went 4-1 against exact `07bed`, 3-2 across Mega
-  Lucario variants, 1-1 against exact Grim, and 5-0 across the observed
-  Alakazam family.  The 07bed elite heads agree with its logged actions only
-  59.23% overall (MAIN 52.70%, CARD 65.17%); this is a behavior comparison on
-  a related deck, not exact runtime replay.  The main gap remains route and
-  sequencing rather than CARD semantics.
-- In those games Budew supplied the first attack in 19/23.  First Phantom
-  timing did not distinguish the four losses (turns 6, 6, 8, 9) from wins;
-  faster setup alone is not the correction.  Boss converted to a same-turn
-  attack on 12/14 winning uses but only 2/4 losing uses.  The Lucario losses
-  include a turn-2 no-attack Boss and repeated Phantom turns spent converting
-  one Lunatone while Mega Lucario won the multi-Prize race.  The Grim loss
-  missed the turn-6 evolution/attack window and first used Phantom on turn 8.
-- Episode `92107363` is the clearest positive route: build multiple Drakloak
-  under repeated Budew pressure, Boss and hit Mega Lucario, use counters to
-  cash a damaged three-Prize Mega, later cash Lunatone, and Boss the final
-  single-Prize target.  It attached Darkness to active Munkidori on turn 1 to
-  enable the turn-3 retreat into Budew, so a blanket early Darkness-to-Munk
-  prohibition would delete an expert winning line.  Its win used neither
-  Venture Bomb nor Watchtower; do not attribute it to the three-card deck
-  difference.  Durable diagnostic:
-  `tools/research/analyze_submission_55457370.py`; current report:
-  `tools/checkpoints/submission-55457370-20260812/analysis.json`.
-- Older rank-one-participant submission `55439076` supplied 85 replay files:
-  one exact self-mirror plus 84 non-mirror `674ec310...` seats, 58-26 (69.0%).
-  This is the same Venture Bomb/Watchtower registration as `55457370`.  It
-  went 16-4 against exact `07bed`, 5-5 against exact `77a53ffc` Lucario and
-  4-0 against exact `c20a8` Grim in this selected sample.  Winning Boss uses
-  converted to a same-turn attack 65/69 times versus only 19/30 losing uses.
-  When legally offered, losing games selected END 4.27% versus 2.41% in wins,
-  Phantom Dive 20.0% versus 23.7%, and Munkidori ability 71.8% versus 50.3%.
-  Losing lines contain useful labels, but also systematically more utility and
-  less Prize conversion; outcome weighting is not harmless credit assignment.
-- A preregistered MAIN-only loss-weight screen compared historical 0.15 with
-  proposed 0.60, both initialized from exact deployed elite MAIN SHA-256
-  `793b230d...f966e0` and trained only on `55439076`.  Weight 0.60 improved
-  internal validation objective (1.35591 versus 1.40995) and newer-cohort
-  winner NLL/agreement slightly (1.27567/51.98% versus 1.27857/51.74%; parent
-  1.32205/51.26%).  It nevertheless matched only 36/65 actual winning Phantom
-  prompts, versus 38/65 for 0.15 and 37/65 for the parent, failing the frozen
-  attack guardrail.  Do not integrate or gameplay-test the 0.60 MAIN arm.
-- The behavior-eligible 0.15 candidate then failed its exact-`07bed` paired
-  256-game field screen: -4.49 pp overall, CI95 [-12.15,+3.17], including
-  Mega Lucario -16.35 pp, Grim -8.33 pp, Alakazam -2.50 pp, and Dragapult
-  +1.61 pp.  The gate was valid and candidate eligibility is false.  Neither
-  trained head is integrated.  This repeats the project-wide warning that
-  better imitation of a related-deck teacher does not imply better gameplay.
-  Future use of losing games should be exact-list and state-conditioned (or a
-  separate CARD-only screen), not a global 0.60 MAIN weight.  Artifacts live
-  under `tools/checkpoints/dragapult-sixth-sense-weighted-bc-20260812/`.
-- The follow-on exact-list/state-conditioned and CARD-only sequence is also
-  complete, with no integration.  Seven previously unopened exact-`07bed`
-  Lucario loss roots where Boss and an attack were both legal were evaluated
-  across every legal action with 16 terminal continuations each; five
-  episode-disjoint roots were reserved and evaluated identically.  Discovery
-  contained one strong guide-aligned Prize route (+1.125 mean return): with an
-  80-HP Hariyama Active, Boss the fresh Mega Lucario and Phantom it instead of
-  cashing the easy one Prize.  Confirmation did not reproduce a public-state
-  Boss rule—Boss was generally worse there—so no Boss condition was encoded.
-  The stopping rule is binding.
-- A separately locked CARD-only loss-weight screen retained MAIN unchanged.
-  On the newer external cohort, loss weight 0.60 narrowly beat 0.15 and parent
-  on winner CARD NLL/agreement: 0.77086/68.70% versus 0.77285/68.49% and
-  0.82574/65.59%.  It passed the first exact-`07bed` 256-game screen at +7.42
-  pp, CI95 [-0.83,+15.67], with every named slice positive.  The required
-  fresh 512-game confirmation failed: -1.37 pp overall, CI95 [-6.77,+4.04],
-  and Mega Lucario regressed -13.73 pp with CI95 [-26.83,-0.62].  Dragapult
-  was +4.62 pp and Grim neutral, but the Lucario failure rejects the arm.
-  Do not integrate, retune, package, or upload either CARD arm.  Artifacts are
-  under `tools/checkpoints/dragapult-lucario-boss-roots-v1-20260812/` and
-  `tools/checkpoints/dragapult-sixth-sense-card-weighted-bc-20260812/`.
-- The 2026-08-12 ordered Dragapult sequencing/context experiment is complete;
-  none of its candidates is authorized for integration or upload.  The exact
-  parameter parent throughout was elite MAIN SHA-256 `793b230d...f966e0`;
-  the completion behavior remained a separate deterministic code guard.
-  First, a bounded Hammer sequencing rule delayed Hammer only behind safe
-  deterministic setup and preserved eventual Hammer/attack access.  It
-  matched eventual expert Hammer use on 451/501 replay interventions (90.0%)
-  but regressed the locked 1,024-game/arm field gate: 63.53% versus 64.94%,
-  paired -1.42 pp, CI95 [-5.42,+2.59], zero faults.  Keep
-  `ENABLE_HAMMER_SEQUENCE_GUARD=False`; result `599553bd...8a9f`.
-- A public-only per-option turn-context adapter was then trained without
-  replay history or hidden state.  Winner-only training reduced validation
-  NLL 1.4262 -> 1.4186 but worsened exact agreement 50.22% -> 48.48%, so it
-  stopped before gameplay.  The preregistered outcome-weighted variant used
-  win/draw/loss weights 1.0/0.3/0.25 and passed its once-opened 20-game test:
-  exact agreement 51.96% -> 53.62%, NLL 1.3724 -> 1.3387 over 1,022 MAIN
-  rows.  It nevertheless failed the isolated field gate: 64.99% versus
-  63.18%, paired +1.81 pp, CI95 [-2.22,+5.84], because Mega Lucario regressed
-  -7.60 pp beyond the locked -4 pp slice floor.  Dragapult improved +1.55 pp
-  and Grim was neutral.  Result `4a406ba6...7b10`; do not confirm, integrate,
-  package, or upload this broad adapter.
-- `analyze_dragapult_weighted_context_ladder.py` enumerates hypotheses on 21
-  provenance-matching elite-parent ladder losses: 59 candidate interventions
-  across 891 MAIN prompts, while preserving nine completion roots.  These are
-  off-policy counterfactual roots, not labels; the candidate did not generate
-  the trajectories and the output is explicitly ineligible for actor
-  training.  The heterogeneous changes (including Ultra Ball, Hammer,
-  Drakloak, abilities, and attachments) provide no single safe broad rule.
-  Future causal work must choose a narrow public signature, branch it from
-  learner-reached loss states, and confirm on disjoint roots before gameplay.
+- 28,464 exact-Grim August games, all content hashes verified, corpus lock
+  passed every binding check (tail 7.81% on measured target, max episode share
+  2.11%, realised mass matching Field-v3 to 1e-14).
+- MAIN sealed behaviour was strong (agreement +2.20 pp; disagreement subset
+  23.84% -> 52.01%) but the powered gate returned only **+0.53 pp, CI95
+  [-0.72,+1.78]** — clean and noninferior, not a promotion. Ladder agrees: the
+  byte-identical probes scored 842.9 and 681.3 against frozen Dobi-v2's
+  847.3 / 804.1.
+- Its retrained CARD head was deliberately EXCLUDED. `md_v2_card.supports_view`
+  requires a public Grimmsnarl signature, so that overlay is mirror-only and
+  fires on ~4% of decisions, while it had been trained on every ST_CARD prompt
+  in every matchup. A sealed pass on a distribution the head never sees is not
+  evidence. **Check an overlay's deployment scope before choosing its training
+  distribution** — this is the cheapest lesson in this file.
 
-- The project is now explicitly focused on Lucario and Dragapult.  Kaggle
-  ladder submissions are part of the development loop, not deferred until a
-  final champion: local gates decide what is safe and informative to submit,
-  while leaderboard replays test transfer against real policies.  Do not
-  infer strength from the first displayed rating; require a useful clean-game
-  cohort and matchup/action analysis.
-- The authoritative Lucario Day-1 MAIN+CARD specialist was packaged as
-  `submission-lucario-benchmark-1-unsigned.tar.gz`, SHA-256
-  `8960f6c250bb30594b83fed4e2bee62f0127d44ce2e7814479ccaa045ad7f5ae`.
-  The exact archive passed 200/200 random games with zero repairs/errors,
-  exercised MAIN, CARD, and residual routes, hash-loaded both heads, and
-  produced identical actions as owner and UID/GID 1.  Deployment/safety tests
-  passed 6/6.  It was uploaded as `lucario-benchmark-1`, Kaggle submission
-  `55437466`, on 2026-08-11.  Its final observed score is 584.1; it failed as a
-  competitive probe and is superseded by `lucario-elite-1` above.
-- The Lucario package is a benchmark-only user-authorized probe, not a champion
-  promotion.  Its frozen local evidence remains strong against the Aug-10
-  Qu-v2B-piloted field: 64.94% versus 56.35%, paired +8.59 pp, CI95
-  [+5.87,+11.32], 2,048 games per arm.  The transfer gap is now the primary
-  question.  The highest-value next local experiment is the preregistered
-  Day-1/Day-2 2x2 MAIN/CARD head-isolation gate on a refreshed field, with
-  explicit Dragapult, mirror, Ogerpon, Alakazam, and Grim slices.
-- Do not continuously poll any submission.  On the next requested
-  update, fetch its available episodes once, deduplicate them, verify runtime
-  provenance, and diagnose repeated decision divergences.  Keep Dragapult in
-  parallel as the second specialist, but do not upload its rejected PPO pilot.
+### Standing rules confirmed this cycle
 
-### Multi-deck Day-1 standing
-
-- The validated Day-1 exact-deck BC specialists are Lucario, Froslass, and
-  Dragapult.  Their diagnostic equal-weight scores against the two frozen
-  Grimmsnarl champions were 26.03%, 54.69%, and 23.34%, respectively.  Only
-  Froslass cleared its independent direct and field release gates.
-- The unsigned Froslass package is
-  `submission-froslass-test-1-unsigned.tar.gz`, SHA-256
-  `2ea844f944603e80e19feb7bbf059f629f5d7981e16660e430e93b88117c6aed`.
-  It passed a 200-game zero-fault smoke and owner/non-owner runtime audit.  A
-  It was later uploaded as Kaggle submission `55419438`; the current project
-  direction no longer prioritizes Froslass refinement.
-- The current Lucario specialist remains the Day-1 MAIN+CARD pair under
-  `tools/checkpoints/day1-lucario-froslass-20260810/`.  Its direct Dobi score
-  was 23.54% over 512 games; a fresh 2,048-game control measured 26.90%
-  (550-1,496-2).  The larger control is the better local reference.
-
-### Expanded August 7--10 BC run
-
-- A deterministic 1,200-game sample from each August 7, 8, and 9 daily
-  archive added 1,068 unique BC-valid games after exact-deck filtering and
-  cross-source deduplication.  The registration-prefix audit covered all
-  3,600 sampled IDs with zero errors and recovered 268 exact Dragapult games;
-  232 of those required a full replay download.  The ignored combined corpus
-  is `tools/checkpoints/day1-bc-combined-v3-20260811/corpus.json`: 2,833 valid
-  games, zero invalid, manifest SHA-256 `2c484176...be977`, and content SHA-256
-  `ad1f7f20...e0eb9`.
-- Exact-deck inventories are Froslass 1,580 (1,272/158/150), Lucario 888
-  (747/71/70), Dragapult 481 (374/60/47), and Festival Lead 99 (77/10/12),
-  with splits shown as train/validation/test.  The test partitions remain
-  sealed.
-- `tools/research/run_day2_expanded_bc.py` prospectively locked and completed
-  eight independent Qu-v2B-initialized, frozen-backbone, KL-anchored BC arms:
-  ST_MAIN and ST_CARD for all four decks.  The lock SHA-256 is
-  `9b7f8f38...437ed4c`; every arm completed exactly four epochs and selected
-  epoch 4.  Final validation objectives were Froslass 1.24463/1.38529,
-  Dragapult 1.37333/0.88436, Lucario 1.25829/1.16235, and Festival
-  1.23442/2.09525 (MAIN/CARD).  All output manifests and weight/checkpoint
-  hashes verify.
-- This is a training-completion result, not a release verdict.  No sealed-test
-  behavior readout, paired gameplay gate, package, integration, or upload has
-  been authorized or performed.  The next step is a prospectively locked
-  one-shot behavior comparison against frozen Qu-v2B, followed only for
-  behavior-passing arms by independent paired gameplay evaluation.
-
-### Expanded specialist behavior, league, and PPO standing
-
-- The one-shot sealed behavior readout is complete.  All eight MAIN/CARD arms
-  achieved lower weighted test NLL than frozen Qu-v2B on the same prompts;
-  every available exact-mirror diagnostic also improved.  Festival had no
-  exact mirror in its 12-game sealed test, so its mirror diagnostic is null.
-  Result SHA-256: `76112b92...41e312`.  This establishes improved imitation
-  only; Qu-v2B was not treated as a competitive gameplay benchmark.
-- The locked local specialist league completed 2,048 valid games: 256
-  paired-seat games for each cross-deck pair plus 128 self-mirror games per
-  deck.  Cross-only standings were Lucario 64.19%, Froslass 60.29%, Dragapult
-  47.98%, and Festival Lead 27.54%.  All four self-mirror CI95 intervals
-  included 50%.  Result SHA-256: `d1575676...31a0d`.  The standings measure
-  policy-plus-deck performance and are matchup-confounded; self-mirrors are
-  runtime/symmetry diagnostics and do not rank agents.
-- A conservative frozen-peer PPO league then completed for all four agents.
-  Each agent independently received four 256-game ST_MAIN updates against the
-  other three frozen BC stacks; CARD, representation, and residual routes
-  stayed frozen.  All 4,096 rollout games were clean.  Maximum reported mean
-  parent KL was 0.000175 Froslass, 0.000141 Dragapult, 0.000185 Lucario, and
-  0.000123 Festival, far below the locked 0.02 ceiling.  Result SHA-256:
-  `2f5c7378...68df2`.
-- PPO rollout scores are not a promotion metric because actions were sampled
-  during collection.  No PPO candidate is integrated or preferred yet.  The
-  required next gate is a separately locked deterministic paired evaluation
-  of each terminal PPO candidate against its unchanged BC parent on identical
-  frozen-peer schedules.
-- That deterministic gate is now complete: 512 games per candidate/control
-  arm, identical paired-seat frozen-peer schedules, 4,096 valid games total.
-  No PPO candidate earned BC replacement.  Froslass was -3.71 pp with CI95
-  [-9.42,+2.00], Dragapult +0.78 pp [-5.10,+6.67], Lucario -1.86 pp
-  [-7.98,+4.26], and Festival -0.39 pp [-5.94,+5.16].  All four missed the
-  locked strict-superiority rule; all also missed the -2 pp noninferiority
-  bound because their lower confidence limits were below -2 pp.  Result
-  SHA-256: `2d2d040e45f6a499d3bfe849d535c9072011b6a92078743f50ca286bb1f4282b`.
-  Keep all four BC parents authoritative; do
-  not integrate, package, scale, or upload these PPO candidates.
-- Durable entry points are `tools/research/evaluate_day2_expanded_bc.py`,
-  `tools/research/eval_day2_specialist_league.py`, and
-  `tools/research/run_day2_specialist_ppo_league.py`; the deterministic PPO
-  gate is `tools/research/eval_day2_specialist_ppo_league.py`.  Locks, results,
-  weights, and replay-derived evidence remain ignored under
-  `tools/checkpoints/day2-expanded-bc-20260811/`.
-
-### Rejected Lucario exact-matchup BC
-
-- `lucario-grim-exact-v2` used 239 exact Lucario-versus-Dobi games, split
-  194/25/20 with the test sealed.  It was materially different from the older
-  failed Qu-v2B matchup-weighting arms: initialization and KL anchor were the
-  current Day-1 Lucario MAIN, only ST_MAIN was trainable, the backbone was
-  frozen, wins had weight 1.0 and losses 0.05, and CARD remained unchanged.
-- Offline behavior passed strongly: winner-test NLL improved by 0.10493 and
-  all-game weighted NLL by 0.10288 versus the current Lucario parent.  This did
-  not translate to play.  The independently locked direct gate scored 23.73%
-  for the scoped correction (483-1,559-6) versus 26.90% for the current
-  specialist (550-1,496-2), paired delta -3.1738 pp with CI95
-  [-5.8694,-0.4783] pp over 2,048 games per arm.  Both arms were zero-fault.
-- The candidate is rejected: do not integrate, package, upload, retune after
-  its test, or repeat winner-weighted exact-matchup BC.  The result is direct
-  evidence that logged-action NLL is not a sufficient Lucario/Grim objective.
-  Future Lucario work needs an outcome-optimized pilot or specific causal rule
-  analysis, always compared against the unchanged Day-1 specialist.
-- Durable experiment entry points are
-  `tools/research/run_lucario_grim_exact_v2.py`,
-  `tools/research/evaluate_lucario_grim_exact_v2.py`, and
-  `tools/research/eval_lucario_grim_exact_v2_gameplay.py`; ignored locks,
-  checkpoints, raw replays, and results live under
-  `tools/checkpoints/lucario-grim-exact-v2/`.
-
-### Dragapult next step
-
-- Refreshing submissions `55404558` and `55411079` produced a deduplicated
-  1,141-game combined corpus with 139 exact-list Dragapult games.  Only 24 are
-  against exact Dobi (16 train / 4 validation / 4 test); the refresh added five
-  unique Dragapult games and zero new Dobi matchups.  A live top-20 scout found
-  only one exact-list Dragapult submission in the current top 20.
-- Do not rerun nominal or matchup BC on 24 games.  A bounded KL-anchored
-  ST_MAIN PPO pilot has now also been completed: four updates, 256 games per
-  update, 75% frozen Dobi / 25% frozen top-20 field, actor LR 3e-6, with CARD
-  and representation frozen.  The terminal checkpoint stayed close to its
-  parent (mean KL 0.001395) but failed the fixed direct development screen:
-  21.68% (222-802) versus the current Dragapult's 22.56% (230-792-2), paired
-  delta -0.8789 pp with CI95 [-4.4017,+2.6439] pp over 1,024 games per arm.
-  The run was zero-fault but missed its required positive point estimate, so
-  the field guard was not opened.  Do not scale, integrate, package, or upload
-  this pilot.  Durable entry points are
-  `tools/research/run_dragapult_grim_ppo_pilot_v1.py` and
-  `tools/research/eval_dragapult_grim_ppo_pilot_v1.py`; ignored evidence is
-  under `tools/checkpoints/dragapult-grim-ppo-pilot-v1/`.
-- Further Dragapult work needs substantially more exact-matchup expert data or
-  a concrete causal/rule hypothesis from replay analysis.  Repeating small
-  terminal-reward PPO or lowering the consumed pilot threshold is not an
-  authorized direction.
+- `multiprocessing.Pool` silently replaces a segfaulted worker and orphans its
+  chunk, so `imap_unordered` blocks forever. Any long parse must be resumable
+  and must persist per-episode errors so completeness is decidable on resume.
+- Import order decides which `agent` package you are testing. Putting the
+  project root ahead of the extracted archive silently tests the worktree — and
+  the worktree defaults overlays OFF, so the smoke reports a clean run of the
+  wrong agent. Assert the imported module's path.
+- A repository weights file may not be the packaged one:
+  `agent/md_v1_weights.npz` (`5784b7ea`) is NOT the head Dobi-v2 ships
+  (`bf93b3b7`). Always train from the extracted archive.
 
 ## Prior handoff — 2026-08-07
 
