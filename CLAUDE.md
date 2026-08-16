@@ -122,6 +122,45 @@ This section supersedes every older active-direction statement below.
   before the pair has produced its single deliberate replay read. The package is
   validated and one command from upload if that is revisited.
 
+### Two deterministic board-safety guards — packaged, UNGATED
+
+- `agent/alakazam_lethal_guards.py` added to the fine-tuned Cage candidate with
+  **NO retraining and NO weight change**: MAIN `065b64c3...` and CARD
+  `ff1dcd7c...` are byte-identical to the archive the +1.42 pp gate measured.
+- **Guard A, Dudunsparce suicide.** Run Away Draw shuffles Dudunsparce and its
+  attachments into the deck, so with one Pokemon in play it empties the board
+  and loses on the spot. Episodes 93586883 and 93588738 ended exactly there:
+  lone Dudunsparce active, empty bench, ability taken as the final action.
+  Rule: forbid the ability when in-play count is 1.
+- **Guard B, Powerful Hand lethal preservation.** `cards_needed =
+  ceil(opp_active_hp / 20)`. Forbid optional actions that take the hand below it
+  while Powerful Hand is legal, and take a SAFE benched Run Away Draw when +3
+  cards restores lethal. In 93591463 the agent held seven cards against a
+  140 HP Alakazam -- exactly lethal -- attached down to six, declined the safe
+  draw, and attacked for 120.
+- Guard B **bites only at the boundary** (`hand >= need > hand - 1`). This is
+  deliberately NOT the always-take-the-KO rule recorded in
+  `lethal.attack_override`, which REGRESSED -5.8 pp by taking knockouts before
+  developing the board or picking a Boss target.
+- The suicide veto hands back to the HEAD rather than a hardcoded ordering:
+  `alakazam_bc.decide` gained an inference-time `veto` argument that floors the
+  masked logits below the finite minimum (`decode_qu_v2` rejects -inf). Weights
+  are untouched. It matters -- in 93588738 the packaged agent now plays Hilda
+  instead of passing the turn.
+- Verification: `tools/research/verify_guard_routes.py` replays all three states
+  through the PACKAGED dispatcher as owner and under `unshare -r` as UID 1, with
+  identical actions and every check green. 200-game smoke clean (zero invalid,
+  zero errors) with guard counters now surfaced: 20 `preserved_lethal`, 5
+  `draw_into_lethal`, 1 `blocked_suicide_reranked`, and **zero guard errors**.
+  Tests: `tests/test_alakazam_lethal_guards.py`, 19 cases over the three real
+  states frozen into `tests/fixtures/alakazam_guard_states.json` (the replays
+  themselves are under gitignored `tools/checkpoints/`).
+- **The guards are UNGATED.** The +1.42 pp gate measured the fine-tuned head
+  BEFORE they existed; it is evidence for the MAIN head only. These guards are
+  justified by three logged losses and by construction, not by a win-rate
+  measurement. Archive `b02ffe45...`, deterministic rebuild verified, not
+  uploaded. Record: `tools/checkpoints/cage-guards-20260816/package-record.json`.
+
 ### Pilot-behaviour MAIN fine-tune — PASSED but PAUSED
 
 - Challenger is the validated `4b090895` Cage stack with ONE change: a MAIN

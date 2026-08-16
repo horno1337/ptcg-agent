@@ -32,27 +32,54 @@ ROOT = Path(__file__).resolve().parents[1]
 PARENT_ARCHIVE = ROOT / "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
 PARENT_SHA256 = "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4"
 CAGE_ANCHOR = "            # Gated selective Dobi ST_CARD correction."
-BLOCK = '''            # Battle Cage guard, then the exact-Alakazam BC specialist.
-            # The guard runs first: it encodes a card the training corpus never
-            # contained, so the head has no opinion worth deferring to.
+BLOCK = '''            # Board-safety guards, Battle Cage guard, then the exact-Alakazam
+            # BC specialist. The guards run around the head because they encode
+            # arithmetic and a card the training corpus never contained, so the
+            # head has no opinion worth deferring to on either.
+            _alakazam_guards = None
+            if os.environ.get("PTCG_ALAKAZAM_GUARDS", "1") == "1":
+                try:
+                    from . import alakazam_lethal_guards as _alakazam_guards
+                except Exception:
+                    _alakazam_guards = None
+            if _alakazam_guards is not None:
+                try:
+                    draw_action = _alakazam_guards.decide(view, registration)
+                    if draw_action is not None:
+                        return draw_action
+                except Exception:
+                    pass
+            overlay_action = None
             if view.select_type == ST_MAIN and os.environ.get(
                     "PTCG_ALAKAZAM_BATTLE_CAGE", "1") == "1":
                 try:
                     from . import alakazam_battle_cage as _alakazam_cage
-                    cage_action = _alakazam_cage.decide(view, registration)
-                    if cage_action is not None:
-                        return cage_action
+                    overlay_action = _alakazam_cage.decide(view, registration)
                 except Exception:
-                    pass
-            if view.select_type in (ST_MAIN, ST_CARD) and os.environ.get(
-                    "PTCG_ALAKAZAM_BC", "1") == "1":
+                    overlay_action = None
+            if overlay_action is None and view.select_type in (
+                    ST_MAIN, ST_CARD) and os.environ.get(
+                        "PTCG_ALAKAZAM_BC", "1") == "1":
                 try:
                     from . import alakazam_bc as _alakazam_bc
-                    alakazam_action = _alakazam_bc.decide(view, registration)
-                    if alakazam_action is not None:
-                        return alakazam_action
+                    overlay_action = _alakazam_bc.decide(view, registration)
                 except Exception:
-                    pass
+                    overlay_action = None
+            if overlay_action is not None:
+                if _alakazam_guards is not None:
+                    try:
+                        from . import alakazam_bc as _alakazam_rerank
+
+                        def _rerank(blocked, _v=view, _r=registration):
+                            return _alakazam_rerank.decide(_v, _r, veto=blocked)
+
+                        fixed = _alakazam_guards.correct(
+                            view, registration, overlay_action, rerank=_rerank)
+                        if fixed is not None:
+                            return fixed
+                    except Exception:
+                        pass
+                return overlay_action
 '''
 
 
@@ -130,6 +157,8 @@ def main() -> int:
     members["agent/alakazam_bc.py"] = src.encode("utf-8")
     members["agent/alakazam_battle_cage.py"] = (
         ROOT / "agent" / "alakazam_battle_cage.py").read_bytes()
+    members["agent/alakazam_lethal_guards.py"] = (
+        ROOT / "agent" / "alakazam_lethal_guards.py").read_bytes()
     members["agent/alakazam_main_weights.npz"] = main_b
     members["agent/alakazam_card_weights.npz"] = card_b
     policy = members["agent/policy.py"].decode("utf-8")
@@ -164,7 +193,8 @@ def main() -> int:
         "weights": {"main": sha_bytes(main_b), "card": sha_bytes(card_b)},
         "retraining": {"main": sha_bytes(main_b) != BASE.MAIN_WEIGHTS_SHA256,
                        "card": False},
-        "added_modules": ["agent/alakazam_battle_cage.py"],
+        "added_modules": ["agent/alakazam_battle_cage.py",
+                          "agent/alakazam_lethal_guards.py"],
         "members": len(members), "upload_authorized": False,
     }
     args.out.with_suffix(".manifest.json").write_text(
