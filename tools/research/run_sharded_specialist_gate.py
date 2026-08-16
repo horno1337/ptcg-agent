@@ -1003,9 +1003,10 @@ class AlakazamCageChallenger(Adapter):
 
         opponents, field_controller = make_packaged_opponents(
             self._rows, self.frozen, f"{self.name}-{arm}")
+        adapter_name = self.name
 
         class Controller:
-            name = f"{AlakazamCageChallenger.name}/{arm}"
+            name = f"{adapter_name}/{arm}"
 
             def __init__(self):
                 from collections import Counter
@@ -1065,6 +1066,47 @@ class AlakazamCageChallenger(Adapter):
         return cage > 0 if arm == "candidate" else cage == 0
 
 
+class AlakazamPilotFineTune(AlakazamCageChallenger):
+    """Pilot-behaviour MAIN fine-tune versus the validated Battle Cage agent.
+
+    Both arms register the IDENTICAL 4b090895 list and carry the identical
+    Battle Cage guard and CARD head. The only difference is the MAIN head, so
+    this isolates the fine-tune -- unlike the cage gate, which deliberately
+    varied the deck.
+
+    The candidate MAIN was fine-tuned on a provenance-tiered corpus: 76 verified
+    pilot games (kenkoooo, Luca) at 2.0 win / 1.2 loss, and 132 contemporary
+    4b090895 archive games by other players at 1.0 / 0.6. Verified membership
+    came from the downloaded episode-id sets of two named submissions, never
+    from a team-name sweep, and Luca's decisions were filtered wherever the
+    chosen action names a card his registration has and the deployed one does
+    not.
+
+    The control is the archive already on the ladder, so a pass here means
+    strictly better than what is live, not better than something retired.
+    """
+
+    name = "alakazam-pilot-finetune"
+    CANDIDATE = "submission-alakazam-pilot-1-unsigned.tar.gz"
+    CONTROL = "submission-alakazam-cage-1-unsigned.tar.gz"
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        # Both arms are Cage agents here, so the guard must fire in BOTH. A
+        # silent zero would mean the arm fell back and the gate measured
+        # nothing; that is the failure this check exists to catch.
+        return (counts.get("route:main", 0) > 0
+                and counts.get("route:card", 0) > 0
+                and counts.get("route:battle_cage", 0) > 0)
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1072,7 +1114,8 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamAugustMain.name: AlakazamAugustMain,
             AlakazamAugustCard.name: AlakazamAugustCard,
             AlakazamGuideTune.name: AlakazamGuideTune,
-            AlakazamCageChallenger.name: AlakazamCageChallenger}
+            AlakazamCageChallenger.name: AlakazamCageChallenger,
+            AlakazamPilotFineTune.name: AlakazamPilotFineTune}
 
 
 # --------------------------------------------------------------------------
