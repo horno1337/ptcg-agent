@@ -1,9 +1,9 @@
 # PTCG ABC agent
 
-Kaggle Simulation agent for the Pokémon TCG AI Battle Challenge. README.md has
-the architecture, tag lineage, post-mortems (research log), and workflows —
-read it before proposing strategy changes; every rule below was paid for on
-the ladder.
+Kaggle Simulation agent for the Pokémon TCG AI Battle Challenge. README.md is
+the brief project overview; `docs/research-log.md` (the former README, archived
+at 2026-07-27) has the tag lineage, post-mortems and workflows — read it before
+proposing strategy changes; every rule below was paid for on the ladder.
 
 ## Current handoff — 2026-08-16
 
