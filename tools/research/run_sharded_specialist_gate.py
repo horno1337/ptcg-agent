@@ -1496,6 +1496,172 @@ class AlakazamVersusMDv4(_AlakazamVersusMD):
     PACKAGE = "_md_v4_opp"
 
 
+class PackagedMirrorTournament(Adapter):
+    """Two packaged agents on the SAME list, both facing a third packaged agent.
+
+    Built to answer a lineage question directly rather than by inference: is any
+    MD version actually stronger than frozen Dobi-v2? All four share the
+    c20a8a46 Grimmsnarl registration and the same base package, differing only
+    in the MAIN head and the overlays bolted on top --
+
+      md-v3     md_v1 head 76420fc2 + grim_damage_guard
+      md-v4     md_v1 head 76420fc2 + a learned md_v4 layer
+      md-v5     a different md_v1 head 1f21df7a
+      Dobi-v2   a RETRAINED head bf93b3b7 + the Dobi ST_CARD overlay
+
+    so this is a true mirror: same 60 cards on both sides, only the policy
+    differs. A win rate above 50% means that arm beats the opponent outright.
+    """
+
+    CANDIDATE_ARCHIVE = ""
+    CONTROL_ARCHIVE = ""
+    OPPONENT_ARCHIVE = ""
+    PACKAGES = ("_mirror_cand", "_mirror_ctrl", "_mirror_opp")
+
+    def __init__(self):
+        from tools.research.external_opponents import load_packaged_agent
+        self.current_arm = "control"
+        self._agents = {}
+        for arm, archive, package in (
+            ("candidate", self.CANDIDATE_ARCHIVE, self.PACKAGES[0]),
+            ("control", self.CONTROL_ARCHIVE, self.PACKAGES[1]),
+        ):
+            decide, deck = load_packaged_agent(ROOT / archive, package)
+            self._agents[arm] = (decide, deck)
+        self._opponent = load_packaged_agent(
+            ROOT / self.OPPONENT_ARCHIVE, self.PACKAGES[2])
+
+    def artifacts(self) -> dict[str, Path]:
+        return {"candidate_archive": ROOT / self.CANDIDATE_ARCHIVE,
+                "control_archive": ROOT / self.CONTROL_ARCHIVE,
+                "opponent_archive": ROOT / self.OPPONENT_ARCHIVE,
+                "driver": Path(__file__).resolve()}
+
+    def deck(self) -> tuple[int, ...]:
+        return self._agents[self.current_arm][1]
+
+    def build_arm(self, arm: str):
+        decide, deck = self._agents[arm]
+        opponent_decide, opponent_deck = self._opponent
+        opponents, field_controller = make_external_opponents(
+            opponent_decide, opponent_deck, "mirror-opponent",
+            f"{self.name}-{arm}")
+        adapter_name = self.name
+
+        class Controller:
+            name = f"{adapter_name}/{arm}"
+
+            def __init__(self):
+                self.calls = 0
+                self.exceptions: Counter = Counter()
+                self.fallbacks = 0
+
+            def begin_episode(self, episode):
+                del episode
+
+            def act(self, obs):
+                self.calls += 1
+                try:
+                    return list(decide(obs))
+                except Exception as error:               # noqa: BLE001
+                    self.exceptions[type(error).__name__] += 1
+                    self.fallbacks += 1
+                    import agent.safety as safety
+                    return list(safety._fallback(obs))
+
+            def diagnostics(self):
+                return {"calls": self.calls, "counts": {"calls": self.calls},
+                        "exceptions": dict(self.exceptions),
+                        "fallbacks": self.fallbacks, "overlay_faults": {}}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        return bool(
+            learner_diag.get("calls", 0) > 0
+            and not learner_diag.get("exceptions")
+            and learner_diag.get("fallbacks", 0) == 0
+            and field_diag.get("calls", 0) > 0
+            and field_diag.get("fallbacks", 0) == 0
+            and not field_diag.get("exceptions"))
+
+
+class MDVersusDobiV2(PackagedMirrorTournament):
+    name = "md-vs-dobi-v2"
+    CANDIDATE_ARCHIVE = "submission-md-v4-experimental-unsigned.tar.gz"
+    CONTROL_ARCHIVE = "submission-md-v3-damage-guard-canary-unsigned.tar.gz"
+    OPPONENT_ARCHIVE = "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+    PACKAGES = ("_mdv4_arm", "_mdv3_arm", "_dobi_mirror_opp")
+
+
+class MDv5VersusDobiV2(PackagedMirrorTournament):
+    name = "md-v5-vs-dobi-v2"
+    CANDIDATE_ARCHIVE = "submission-md-v5-experimental-unsigned.tar.gz"
+    CONTROL_ARCHIVE = "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+    OPPONENT_ARCHIVE = "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+    PACKAGES = ("_mdv5_arm", "_dobi_self_arm", "_dobi_mirror_opp2")
+
+
+class BCRecentVersusDobiV2(PackagedMirrorTournament):
+    """Our highest-scoring ladder archive against our fallback, same 60 cards.
+
+    `dobi-v1-bc-recent-v1` has the best mean public score of anything we have
+    ever submitted -- 871.3 over two trajectories, including the single highest
+    score we have recorded, 922.4 -- but both readings are from 2026-08-05 and
+    the field has moved since. Dobi-v2 has ten readings including recent ones.
+    The control arm is Dobi-v2 against itself, which must land near 50% for the
+    mirror to be trusted.
+    """
+
+    name = "bc-recent-vs-dobi-v2"
+    CANDIDATE_ARCHIVE = "submission-dobi-v1-bc-recent-v1-unsigned.tar.gz"
+    CONTROL_ARCHIVE = "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+    OPPONENT_ARCHIVE = "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+    PACKAGES = ("_bcrecent_arm", "_dobi_self_arm2", "_dobi_mirror_opp3")
+
+
+class _NeutralOpponentPair(PackagedMirrorTournament):
+    """bc-recent vs Dobi-v2, judged by an opponent NEITHER was selected against.
+
+    The mirror says Dobi-v2 wins by 3 pp; the ladder says bc-recent scores 45
+    points higher at matched uptime. A mirror is a single-opponent measurement,
+    which is exactly the flaw that invalidated our Alakazam gates, so it cannot
+    settle this on its own. These runs score both agents against a third party.
+    """
+    CANDIDATE_ARCHIVE = "submission-dobi-v1-bc-recent-v1-unsigned.tar.gz"
+    CONTROL_ARCHIVE = "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+
+
+class BCRecentVsDobiOnRuleLucario(_NeutralOpponentPair):
+    name = "bcrecent-dobi-on-rule-lucario"
+    OPPONENT_ARCHIVE = ""
+    PACKAGES = ("_bcr_rl", "_dobi_rl", "_unused_rl")
+
+    def __init__(self):
+        from tools.research.external_opponents import (
+            load_packaged_agent, load_rule_lucario)
+        self.current_arm = "control"
+        self._agents = {
+            "candidate": load_packaged_agent(
+                ROOT / self.CANDIDATE_ARCHIVE, self.PACKAGES[0]),
+            "control": load_packaged_agent(
+                ROOT / self.CONTROL_ARCHIVE, self.PACKAGES[1])}
+        self._opponent = load_rule_lucario()
+
+    def artifacts(self):
+        return {"candidate_archive": ROOT / self.CANDIDATE_ARCHIVE,
+                "control_archive": ROOT / self.CONTROL_ARCHIVE,
+                "driver": Path(__file__).resolve()}
+
+
+class BCRecentVsDobiOnMDv4(_NeutralOpponentPair):
+    name = "bcrecent-dobi-on-md-v4"
+    OPPONENT_ARCHIVE = "submission-md-v4-experimental-unsigned.tar.gz"
+    PACKAGES = ("_bcr_m4", "_dobi_m4", "_mdv4_neutral")
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1512,7 +1678,12 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamVersusRuleLucario.name: AlakazamVersusRuleLucario,
             AlakazamVersusDragapultV2.name: AlakazamVersusDragapultV2,
             AlakazamVersusMDv3.name: AlakazamVersusMDv3,
-            AlakazamVersusMDv4.name: AlakazamVersusMDv4}
+            AlakazamVersusMDv4.name: AlakazamVersusMDv4,
+            MDVersusDobiV2.name: MDVersusDobiV2,
+            MDv5VersusDobiV2.name: MDv5VersusDobiV2,
+            BCRecentVersusDobiV2.name: BCRecentVersusDobiV2,
+            BCRecentVsDobiOnRuleLucario.name: BCRecentVsDobiOnRuleLucario,
+            BCRecentVsDobiOnMDv4.name: BCRecentVsDobiOnMDv4}
 
 
 # --------------------------------------------------------------------------
