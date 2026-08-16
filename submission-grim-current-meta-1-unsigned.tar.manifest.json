@@ -1,0 +1,17 @@
+{
+ "archive": "submission-grim-current-meta-1-unsigned.tar.gz",
+ "archive_sha256": "401f778c40ca22692944d83321be7bdeff7d1a8b00bf9d25fd08740fce65ac66",
+ "changed": [
+  {
+   "module": "agent/md_v1.py",
+   "new_sha256": "eced29631d3447ab3f445f60293aa3b8ebb21ce43db6c946ea53ff8c735da555",
+   "old_sha256": "bf93b3b7c114c0f406dea549ea8b7ac0aa783e0e80b3814fa4ea42ac412f679c",
+   "weights": "agent/md_v1_weights.npz"
+  }
+ ],
+ "members": 25,
+ "parent_archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz",
+ "parent_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+ "schema": "ptcg.grim-current-meta-submission.v1",
+ "upload_authorized": false
+}
