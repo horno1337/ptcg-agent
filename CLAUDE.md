@@ -155,11 +155,26 @@ This section supersedes every older active-direction statement below.
   Tests: `tests/test_alakazam_lethal_guards.py`, 19 cases over the three real
   states frozen into `tests/fixtures/alakazam_guard_states.json` (the replays
   themselves are under gitignored `tools/checkpoints/`).
-- **The guards are UNGATED.** The +1.42 pp gate measured the fine-tuned head
-  BEFORE they existed; it is evidence for the MAIN head only. These guards are
-  justified by three logged losses and by construction, not by a win-rate
-  measurement. Archive `b02ffe45...`, deterministic rebuild verified, not
-  uploaded. Record: `tools/checkpoints/cage-guards-20260816/package-record.json`.
+- **Non-regression gate PASSED every preregistered criterion, and the effect is
+  far larger than the gate was sized to detect: +3.94 pp, CI95 [+2.78,+5.10],
+  SE 0.593, 8,192 games/arm, zero faults, zero guard errors.** Control is the
+  ungarded fine-tune, so the guards are the only difference; the control fired
+  no guards at all. All eight slices positive, four with CI excluding zero, the
+  Alakazam mirror largest at +10.05 pp -- which is where Powerful Hand duels
+  decide games. Adjudication:
+  `tools/checkpoints/cage-guards-20260816/adjudication.json`.
+- The "rare catastrophic states" framing was right for the suicide guard (261
+  fires) but WRONG for Powerful Hand: it intervened on 4,702 of 542,391
+  decisions (0.87%), which is why an aggregate field gate resolved it easily.
+  The contingency to retire the Powerful Hand guard was NOT triggered.
+- Note the +1.42 pp pilot gate measured the head BEFORE these guards existed;
+  the two effects are measured against different controls and must not be added
+  casually. Chained against the LIVE cage agent the guarded candidate is
+  +1.42 pp then +3.94 pp on top of that control.
+- `PTCG_ALAKAZAM_LETHAL_GUARD=0` (build flag `--no-lethal-guard`) retires Guard
+  B alone, keeping the suicide guard, if that is ever wanted. Covered by tests.
+- Archive `b02ffe45...`, deterministic rebuild verified, **not uploaded**.
+  Record: `tools/checkpoints/cage-guards-20260816/package-record.json`.
 
 ### Pilot-behaviour MAIN fine-tune — PASSED but PAUSED
 

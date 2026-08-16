@@ -99,6 +99,9 @@ def main() -> int:
     p.add_argument("--report", type=Path, required=True,
                    help="behaviour report carrying the added/removed deck diff")
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--no-lethal-guard", action="store_true",
+                   help="package the Dudunsparce suicide guard ONLY, retiring "
+                        "the Powerful Hand lethal-preservation guard")
     p.add_argument("--main-weights-sha256", default=None,
                    help="accept a RETRAINED MAIN head with this hash instead of "
                         "the confirmed one. Opt-in and recorded; omitting it "
@@ -157,8 +160,15 @@ def main() -> int:
     members["agent/alakazam_bc.py"] = src.encode("utf-8")
     members["agent/alakazam_battle_cage.py"] = (
         ROOT / "agent" / "alakazam_battle_cage.py").read_bytes()
-    members["agent/alakazam_lethal_guards.py"] = (
-        ROOT / "agent" / "alakazam_lethal_guards.py").read_bytes()
+    guards_src = (ROOT / "agent" / "alakazam_lethal_guards.py").read_text(
+        encoding="utf-8")
+    if args.no_lethal_guard:
+        before = guards_src
+        guards_src = guards_src.replace('LETHAL_GUARD_DEFAULT = "1"',
+                                        'LETHAL_GUARD_DEFAULT = "0"', 1)
+        if guards_src == before:
+            raise SystemExit("could not disable the lethal guard in the package")
+    members["agent/alakazam_lethal_guards.py"] = guards_src.encode("utf-8")
     members["agent/alakazam_main_weights.npz"] = main_b
     members["agent/alakazam_card_weights.npz"] = card_b
     policy = members["agent/policy.py"].decode("utf-8")
@@ -193,6 +203,7 @@ def main() -> int:
         "weights": {"main": sha_bytes(main_b), "card": sha_bytes(card_b)},
         "retraining": {"main": sha_bytes(main_b) != BASE.MAIN_WEIGHTS_SHA256,
                        "card": False},
+        "lethal_guard_enabled": not args.no_lethal_guard,
         "added_modules": ["agent/alakazam_battle_cage.py",
                           "agent/alakazam_lethal_guards.py"],
         "members": len(members), "upload_authorized": False,

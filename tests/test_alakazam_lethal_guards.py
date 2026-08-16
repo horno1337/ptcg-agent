@@ -230,3 +230,32 @@ def test_guards_never_raise_on_junk_input():
         assert G.decide(bad, DECK) is None
         assert G.correct(bad, DECK, [0]) is None
         assert G.veto_indices(bad, DECK) == set()
+
+
+# --------------------------------------------------------------------------
+# Independent switch: suicide guard survives retiring the lethal guard
+# --------------------------------------------------------------------------
+
+def test_lethal_guard_can_be_retired_without_the_suicide_guard(monkeypatch):
+    """The contingency package must keep Guard A after dropping Guard B."""
+    monkeypatch.setenv("PTCG_ALAKAZAM_LETHAL_GUARD", "0")
+    assert G.lethal_guard_enabled() is False
+
+    lethal_view = view_for("lethal_93591463")
+    assert G.veto_indices(lethal_view, DECK) == set()
+    assert G.decide(lethal_view, DECK) is None
+    assert G.correct(lethal_view, DECK,
+                     logged_action("lethal_93591463")) is None
+
+    for name in ("suicide_93586883", "suicide_93588738"):
+        view = view_for(name)
+        assert G.suicidal_indices(view), "suicide guard must still fire"
+        assert set(logged_action(name)) & G.veto_indices(view, DECK)
+        fixed = G.correct(view, DECK, logged_action(name))
+        assert fixed is not None
+        assert not set(fixed) & G.suicidal_indices(view)
+
+
+def test_lethal_guard_is_on_by_default():
+    assert G.LETHAL_GUARD_DEFAULT == "1"
+    assert G.lethal_guard_enabled() is True

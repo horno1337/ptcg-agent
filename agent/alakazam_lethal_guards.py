@@ -38,6 +38,7 @@ from __future__ import annotations
 
 from collections import Counter
 import hashlib
+import os
 from typing import Sequence
 
 from . import cards, lethal
@@ -53,7 +54,18 @@ TARGET_DECK_SHA256 = (
     "4b090895e20d39512f1469048d57d4df181202c002ff5e38b98b49e9b5a838ee"
 )
 
+# Guard B can be switched off independently of Guard A. The suicide guard
+# prevents an immediate forced loss and is not negotiable on win-rate evidence;
+# the lethal-preservation guard changes many more decisions and is therefore the
+# one a regression would retire. The packaged default is flipped at build time.
+LETHAL_GUARD_DEFAULT = "1"
+
 _DIAG: Counter = Counter()
+
+
+def lethal_guard_enabled() -> bool:
+    return os.environ.get(
+        "PTCG_ALAKAZAM_LETHAL_GUARD", LETHAL_GUARD_DEFAULT) == "1"
 
 
 def diagnostics() -> dict:
@@ -160,6 +172,8 @@ def veto_indices(view: ObsView, registered_deck: Sequence[int]) -> set[int]:
     if _deck_sha256(registered_deck) != TARGET_DECK_SHA256:
         return set()
     forbidden = suicidal_indices(view)
+    if not lethal_guard_enabled():
+        return forbidden
     state = _lethal_state(view)
     if state is not None:
         analysis, _ = state
@@ -179,6 +193,8 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
         if not view.options:
             return None
         if _deck_sha256(registered_deck) != TARGET_DECK_SHA256:
+            return None
+        if not lethal_guard_enabled():
             return None
         state = _lethal_state(view)
         if state is None:
