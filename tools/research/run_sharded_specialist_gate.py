@@ -1107,6 +1107,151 @@ class AlakazamPilotFineTune(AlakazamCageChallenger):
                 and counts.get("route:battle_cage", 0) > 0)
 
 
+class AlakazamGuardedChallenger(AlakazamCageChallenger):
+    """The two board-safety guards, measured against the SAME fine-tuned agent.
+
+    Both arms carry the identical 4b090895 registration, the identical Battle
+    Cage guard, and the identical MAIN `065b64c3...` / CARD `ff1dcd7c...`
+    weights. The only difference is `agent/alakazam_lethal_guards.py`, which the
+    control archive does not contain, so this isolates the guards exactly the
+    way the pilot gate isolated the head.
+
+    This is a NON-REGRESSION gate by design. The guards address rare
+    catastrophic states -- an emptied board is an immediate forced loss, and a
+    thrown-away Powerful Hand knockout costs a turn -- and an aggregate field
+    measurement cannot resolve a benefit that concentrated. The question asked
+    here is only whether the guards cost anything.
+    """
+
+    name = "alakazam-guarded-challenger"
+    CANDIDATE = "submission-alakazam-guarded-1-unsigned.tar.gz"
+    CONTROL = "submission-alakazam-pilot-1-unsigned.tar.gz"
+
+    SUICIDE_KEYS = ("guard:blocked_suicide", "guard:blocked_suicide_reranked")
+    LETHAL_KEYS = ("guard:preserved_lethal", "guard:draw_into_lethal")
+
+    def __init__(self):
+        super().__init__()
+        import importlib
+        for arm, runtime in self._arms.items():
+            try:
+                runtime.lethal_guards = importlib.import_module(
+                    f"_cage_arm_{arm}.alakazam_lethal_guards")
+            except Exception:                            # noqa: BLE001
+                runtime.lethal_guards = None             # control has no module
+
+    def artifacts(self) -> dict[str, Path]:
+        base = super().artifacts()
+        base["lethal_guards"] = ROOT / "agent" / "alakazam_lethal_guards.py"
+        return base
+
+    def build_arm(self, arm: str):
+        runtime = self._arms[arm]
+        deck = runtime.deck
+        net = runtime.model.load()
+        ObsView = runtime.obsview.ObsView
+        bc, cage, features = runtime.bc, runtime.guard, runtime.features
+        mdl, guards = runtime.model, runtime.lethal_guards
+        if guards is not None:
+            guards.reset_diagnostics()
+
+        opponents, field_controller = make_packaged_opponents(
+            self._rows, self.frozen, f"{self.name}-{arm}")
+        adapter_name = self.name
+
+        class Controller:
+            name = f"{adapter_name}/{arm}"
+
+            def __init__(self):
+                from collections import Counter as _C
+                self.counts = _C()
+                self.exceptions = _C()
+
+            def begin_episode(self, episode):
+                del episode
+
+            def act(self, obs):
+                self.counts["calls"] += 1
+                view = ObsView(obs)
+                # Exactly the packaged dispatcher order: proactive guard, Cage
+                # guard, head, then the guard correction over whatever answered.
+                if guards is not None:
+                    drawn = guards.decide(view, deck)
+                    if drawn is not None:
+                        self.counts["route:guard_draw"] += 1
+                        return list(drawn)
+                action = None
+                if cage is not None and view.select_type == 0:
+                    action = cage.decide(view, deck)
+                    if action is not None:
+                        self.counts["route:battle_cage"] += 1
+                if action is None:
+                    action = bc.decide(view, deck)
+                    if action is not None:
+                        self.counts["route:main" if view.select_type == 0
+                                    else "route:card"] += 1
+                if action is not None:
+                    if guards is not None:
+                        fixed = guards.correct(
+                            view, deck, action,
+                            rerank=lambda blocked: bc.decide(
+                                view, deck, veto=blocked))
+                        if fixed is not None:
+                            self.counts["route:guard_correction"] += 1
+                            return list(fixed)
+                    return list(action)
+                sample = features.encode_public_observation(obs, deck)
+                logits, _ = net.forward(sample)
+                self.counts["route:qu_v2b"] += 1
+                return list(mdl.decode_qu_v2(
+                    logits, len(view.options), view.min_count, view.max_count))
+
+            def diagnostics(self):
+                raw = dict(bc.diagnostics())
+                counts = dict(self.counts)
+                if guards is not None:
+                    counts.update(guards.diagnostics())
+                return {"calls": self.counts["calls"], "counts": counts,
+                        "exceptions": dict(self.exceptions), "fallbacks": 0,
+                        "overlay_faults": {k: v for k, v in raw.items()
+                                           if not k.startswith("route:")}}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        if not (counts.get("route:main", 0) > 0
+                and counts.get("route:card", 0) > 0
+                and counts.get("route:battle_cage", 0) > 0):
+            return False
+        # A guard that raised would otherwise be indistinguishable from one that
+        # simply declined, so any error counter fails the arm outright.
+        if any(key.startswith("error:") for key in counts):
+            return False
+        suicide = sum(counts.get(k, 0) for k in self.SUICIDE_KEYS)
+        lethal_family = sum(counts.get(k, 0) for k in self.LETHAL_KEYS)
+        if arm == "control":
+            # The control archive has no guard module at all, so any fire here
+            # means the arms are not actually isolating the guards.
+            return suicide == 0 and lethal_family == 0
+        # Deliberately NOT requiring both families per shard. The suicide guard
+        # answers a rare catastrophic state -- about two fires per 256 games --
+        # so a per-shard requirement would fail almost every shard for the very
+        # reason the guard is worth having. "Both families fired" is a GATE
+        # level precondition, checked once against the summed counts in the
+        # adjudication, not a property of any individual shard.
+        return True
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1115,7 +1260,8 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamAugustCard.name: AlakazamAugustCard,
             AlakazamGuideTune.name: AlakazamGuideTune,
             AlakazamCageChallenger.name: AlakazamCageChallenger,
-            AlakazamPilotFineTune.name: AlakazamPilotFineTune}
+            AlakazamPilotFineTune.name: AlakazamPilotFineTune,
+            AlakazamGuardedChallenger.name: AlakazamGuardedChallenger}
 
 
 # --------------------------------------------------------------------------
@@ -1399,7 +1545,12 @@ def main(argv=None) -> int:
                       s["learner_diagnostics"].get("context_reranks", 0)
                       for s in shards),
                   "learner_calls": sum(
-                      s["learner_diagnostics"].get("calls", 0) for s in shards)}
+                      s["learner_diagnostics"].get("calls", 0) for s in shards),
+                  # Route and guard counters, summed across shards. Without this
+                  # a rule that never fired would be invisible in the result.
+                  "counts": dict(sum(
+                      (Counter(s["learner_diagnostics"].get("counts", {}))
+                       for s in shards), Counter()))}
             for arm, shards in by_arm.items()
         },
         "worker_operating_point": {
