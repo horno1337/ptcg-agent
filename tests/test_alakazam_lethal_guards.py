@@ -162,6 +162,105 @@ def test_comfortable_hand_is_left_alone():
 
 
 # --------------------------------------------------------------------------
+# Guard C -- optional-draw deck-out
+# --------------------------------------------------------------------------
+
+def test_main_prompt_draw_that_empties_the_deck_is_vetoed():
+    """93595130: Fezandipiti draw-3 with two cards left and three prizes to go."""
+    view = view_for("deckout_main_93595130")
+    assert view.me["deckCount"] == 2
+    blocked = G.deckout_veto(view)
+    assert set(logged_action("deckout_main_93595130")) & set(blocked)
+    assert set(blocked.values()) == {"deckout"}
+    fixed = G.correct(view, DECK, logged_action("deckout_main_93595130"))
+    assert fixed is not None
+    assert not set(fixed) & set(blocked)
+
+
+def test_evolve_draw_yes_no_is_declined():
+    """93603298: Psychic Draw yes/no with three cards left and five prizes."""
+    view = view_for("deckout_yesno_93603298")
+    assert view.select_type == 9 and view.me["deckCount"] == 3
+    action = G.decide(view, DECK)
+    assert action is not None
+    assert view.options[action[0]]["type"] == 2          # OT_NO
+    assert action != logged_action("deckout_yesno_93603298")
+
+
+def test_the_same_draw_is_allowed_when_the_deck_survives():
+    """Narrowness: one turn earlier the identical draw left one card."""
+    view = view_for("deckout_safe_93595130")
+    assert view.me["deckCount"] == 4                     # 4 - 3 = 1 left
+    assert G.decide(view, DECK) is None
+    assert G.correct(view, DECK, logged_action("deckout_safe_93595130")) is None
+
+
+def test_run_away_draw_is_scored_with_its_returned_line():
+    """Dudunsparce is handled separately: it shuffles its line back in.
+
+    A naive `deck - 3` rule would forbid it at a low deck count. In 93595130 it
+    actually took the deck from 1 UP to 2, which is why the returned-card count
+    has to be part of the arithmetic.
+    """
+    entry = {"id": G.DUDUNSPARCE,
+             "preEvolution": [{"id": 305}], "energies": [], "tools": []}
+    assert G._cards_returned_by_run_away(entry) == 2
+    # deck 1, draw 3 (only 1 available), return 2 -> 2 cards, never a deck-out.
+    assert G._deck_after(1, 3, 2) == 2
+    assert G._deck_after(3, 3, 1) == 1
+
+
+def test_draw_to_zero_is_allowed_only_when_it_wins_the_game():
+    """The escape hatch: draw to zero when the attack ends the game."""
+    row = BY_NAME["deckout_main_93595130"]
+    view = ObsView(row["obs"])
+    assert G.deckout_veto(view), "baseline must be blocked"
+
+    obs = json.loads(json.dumps(row["obs"]))
+    me = obs["current"]["players"][obs["current"]["yourIndex"]]
+    opp = obs["current"]["players"][1 - obs["current"]["yourIndex"]]
+    me["prize"] = [None]                                  # one prize left
+    me["active"] = [{"id": G.ALAKAZAM, "hp": 140, "maxHp": 140,
+                     "playerIndex": obs["current"]["yourIndex"],
+                     "energies": [0], "energyCards": [{"id": 19}],
+                     "tools": [], "preEvolution": []}]
+    opp["active"] = [{"id": 305, "hp": 20, "maxHp": 70, "playerIndex":
+                      1 - obs["current"]["yourIndex"], "energies": [],
+                      "energyCards": [], "tools": [], "preEvolution": []}]
+    winning = ObsView(obs)
+    assert G._ends_game_this_turn(winning, extra_cards=2) is True
+    assert G.deckout_veto(winning) == {}, (
+        "a draw that wins the game outright must not be blocked")
+
+
+def test_escape_hatch_refuses_when_the_knockout_leaves_prizes():
+    """Same board, but the knockout does not take the last prize."""
+    row = BY_NAME["deckout_main_93595130"]
+    obs = json.loads(json.dumps(row["obs"]))
+    me = obs["current"]["players"][obs["current"]["yourIndex"]]
+    opp = obs["current"]["players"][1 - obs["current"]["yourIndex"]]
+    me["prize"] = [None, None, None]
+    me["active"] = [{"id": G.ALAKAZAM, "hp": 140, "maxHp": 140,
+                     "playerIndex": obs["current"]["yourIndex"],
+                     "energies": [0], "energyCards": [{"id": 19}],
+                     "tools": [], "preEvolution": []}]
+    opp["active"] = [{"id": 305, "hp": 20, "maxHp": 70, "playerIndex":
+                      1 - obs["current"]["yourIndex"], "energies": [],
+                      "energyCards": [], "tools": [], "preEvolution": []}]
+    view = ObsView(obs)
+    assert G._ends_game_this_turn(view, extra_cards=2) is False
+    assert G.deckout_veto(view), "must still be blocked"
+
+
+def test_unknown_deck_count_declines_rather_than_guesses():
+    row = BY_NAME["deckout_main_93595130"]
+    obs = json.loads(json.dumps(row["obs"]))
+    me = obs["current"]["players"][obs["current"]["yourIndex"]]
+    del me["deckCount"]
+    assert G.deckout_veto(ObsView(obs)) == {}
+
+
+# --------------------------------------------------------------------------
 # Rerank hand-off to the learned head
 # --------------------------------------------------------------------------
 

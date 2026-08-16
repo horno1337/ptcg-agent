@@ -43,12 +43,27 @@ from typing import Sequence
 
 from . import cards, lethal
 from .obsview import (
-    AREA_BENCH, AREA_HAND, OT_ABILITY, OT_ATTACH, OT_ATTACK, OT_DISCARD,
-    OT_END, OT_EVOLVE, OT_PLAY, ST_MAIN, ObsView,
+    AREA_BENCH, AREA_HAND, CTX_ACTIVATE, OT_ABILITY, OT_ATTACH, OT_ATTACK,
+    OT_DISCARD, OT_END, OT_EVOLVE, OT_NO, OT_PLAY, OT_YES, ST_MAIN, ST_YES_NO,
+    ObsView,
 )
 
 DUDUNSPARCE = 66
+ALAKAZAM = 743
 RUN_AWAY_DRAW_CARDS = 3
+
+# Fixed-count draw effects in this registration. Only effects that draw an
+# EXACT number are listed: the deck's search cards (Poffin, Poke Pad, Hilda,
+# Dawn) also thin the deck but take "up to" N, and guessing N would make the
+# guard fire on states it cannot actually prove.
+DRAW_ABILITIES = {140: 3, DUDUNSPARCE: RUN_AWAY_DRAW_CARDS}
+EVOLVE_DRAW = {742: 2, ALAKAZAM: 3}      # Kadabra / Alakazam Psychic Draw
+ENRICHING_ENERGY = 13
+ENRICHING_DRAW = 4
+
+POWERFUL_HAND_DAMAGE = 20
+EX_PRIZES = 2
+MEGA_EX_PRIZES = 3
 
 TARGET_DECK_SHA256 = (
     "4b090895e20d39512f1469048d57d4df181202c002ff5e38b98b49e9b5a838ee"
@@ -165,13 +180,118 @@ def _lethal_state(view: ObsView) -> tuple[dict, int] | None:
     return analysis, index
 
 
+def _deck_count(view: ObsView) -> int | None:
+    value = (view.me or {}).get("deckCount")
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None
+    return value
+
+
+def _cards_returned_by_run_away(entry) -> int:
+    """How many cards Run Away Draw puts BACK into the deck.
+
+    The ability shuffles Dudunsparce, everything attached, and the evolution
+    line underneath it. That is why it needs separate handling: a naive
+    `deck - 3` rule would forbid it, when in practice it cannot deck you out at
+    all -- it always returns at least itself. In 93595130 it took the deck from
+    1 UP to 2.
+    """
+    if not isinstance(entry, dict):
+        return 1
+    total = 1 + len(entry.get("preEvolution") or ())
+    for key in ("energies", "energyCards", "tools"):
+        total += len(entry.get(key) or ())
+    return total
+
+
+def _draw_effect(view: ObsView, option: dict) -> tuple[int, int] | None:
+    """(cards drawn, cards returned to deck) for an optional draw, else None."""
+    kind = option.get("type")
+    if kind == OT_ABILITY:
+        card_id = view.option_card_id(option)
+        drawn = DRAW_ABILITIES.get(card_id)
+        if drawn is None:
+            return None
+        if card_id == DUDUNSPARCE:
+            return drawn, _cards_returned_by_run_away(
+                view.option_board_entry(option))
+        return drawn, 0
+    if kind == OT_ATTACH and option.get("area") == AREA_HAND:
+        if view.option_card_id(option) == ENRICHING_ENERGY:
+            return ENRICHING_DRAW, 0
+    return None
+
+
+def _deck_after(deck_count: int, drawn: int, returned: int) -> int:
+    """Deck size after drawing, then shuffling any returned cards back."""
+    return deck_count - min(drawn, deck_count) + returned
+
+
+def _prizes_for_knockout(entry) -> int:
+    card = cards.card(entry.get("id")) if isinstance(entry, dict) else None
+    if not card:
+        return 1
+    if card.get("megaEx"):
+        return MEGA_EX_PRIZES
+    return EX_PRIZES if card.get("ex") else 1
+
+
+def _ends_game_this_turn(view: ObsView, extra_cards: int = 0) -> bool:
+    """True only when a VISIBLE attack provably wins the game this turn.
+
+    Conservative on every axis, because the alternative to being wrong here is
+    decking out, which is a certain loss. Requires an Alakazam active carrying
+    energy (Powerful Hand costs one), an unprotected opponent active whose HP we
+    can see, enough hand AFTER the draw to knock it out, and that the knockout
+    takes our last prize.
+    """
+    analysis = lethal.count_to_lethal(view)
+    if not analysis or analysis.get("protected"):
+        return False
+    me = view.me or {}
+    active = me.get("active")
+    if isinstance(active, list):
+        active = active[0] if active else None
+    if not isinstance(active, dict) or active.get("id") != ALAKAZAM:
+        return False
+    if not (active.get("energies") or active.get("energyCards")):
+        return False
+    hand_after = int(analysis["hand"]) + int(extra_cards)
+    if hand_after * POWERFUL_HAND_DAMAGE < int(analysis["opp_hp"]):
+        return False
+    prizes = me.get("prize")
+    if not isinstance(prizes, list) or not prizes:
+        return False
+    opponent_active = lethal._opp_active(view)
+    return _prizes_for_knockout(opponent_active) >= len(prizes)
+
+
+def deckout_veto(view: ObsView) -> dict[int, str]:
+    """MAIN-prompt options whose draw would empty the deck for no win."""
+    deck_count = _deck_count(view)
+    if deck_count is None:
+        return {}
+    blocked: dict[int, str] = {}
+    for index, option in enumerate(view.options):
+        effect = _draw_effect(view, option)
+        if effect is None:
+            continue
+        drawn, returned = effect
+        if _deck_after(deck_count, drawn, returned) > 0:
+            continue
+        if _ends_game_this_turn(view, extra_cards=min(drawn, deck_count)):
+            continue
+        blocked[index] = "deckout"
+    return blocked
+
+
 def veto_indices(view: ObsView, registered_deck: Sequence[int]) -> set[int]:
     """Option indices this guard forbids at a MAIN prompt."""
     if view.select_type != ST_MAIN or not view.options:
         return set()
     if _deck_sha256(registered_deck) != TARGET_DECK_SHA256:
         return set()
-    forbidden = suicidal_indices(view)
+    forbidden = suicidal_indices(view) | set(deckout_veto(view))
     if not lethal_guard_enabled():
         return forbidden
     state = _lethal_state(view)
@@ -185,14 +305,47 @@ def veto_indices(view: ObsView, registered_deck: Sequence[int]) -> set[int]:
     return forbidden
 
 
+def _decline_deckout_draw(view: ObsView) -> list[int] | None:
+    """Answer NO to an optional evolve-draw that would empty the deck.
+
+    Psychic Draw is offered as a separate yes/no AFTER the evolution resolves
+    (`context == CTX_ACTIVATE`, `contextCard` naming the evolving Pokemon), so
+    this is the only prompt at which it can be declined -- the evolve itself is
+    a good play and must not be blocked. In 93603298 the deck held three cards
+    and the agent said yes to Alakazam's draw-3, ending the turn on an empty
+    deck with five prizes still to take.
+    """
+    select = view.select or {}
+    if select.get("context") != CTX_ACTIVATE:
+        return None
+    context_card = select.get("contextCard")
+    if not isinstance(context_card, dict):
+        return None
+    drawn = EVOLVE_DRAW.get(context_card.get("id"))
+    if drawn is None:
+        return None
+    deck_count = _deck_count(view)
+    if deck_count is None or _deck_after(deck_count, drawn, 0) > 0:
+        return None
+    if _ends_game_this_turn(view, extra_cards=min(drawn, deck_count)):
+        return None
+    for index, option in enumerate(view.options):
+        if option.get("type") == OT_NO:
+            _DIAG["guard:declined_deckout_draw"] += 1
+            return [index]
+    return None
+
+
 def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
-    """Proactive half of Guard B: draw into a knockout we cannot yet reach."""
+    """Proactive guards: decline a fatal draw, or draw into a knockout."""
     try:
-        if not isinstance(view, ObsView) or view.select_type != ST_MAIN:
-            return None
-        if not view.options:
+        if not isinstance(view, ObsView) or not view.options:
             return None
         if _deck_sha256(registered_deck) != TARGET_DECK_SHA256:
+            return None
+        if view.select_type == ST_YES_NO:
+            return _decline_deckout_draw(view)
+        if view.select_type != ST_MAIN:
             return None
         if not lethal_guard_enabled():
             return None
@@ -265,10 +418,16 @@ def correct(view: ObsView, registered_deck: Sequence[int],
         if action is None or not isinstance(view, ObsView):
             return None
         veto = veto_indices(view, registered_deck)
-        if not veto or not (set(int(i) for i in action) & veto):
+        picked = set(int(i) for i in action)
+        if not veto or not (picked & veto):
             return None
         if not _arity_allows_single(view):
             return None
+        # Attribute the block to the right guard, so a diagnostics read says
+        # which rule fired rather than blaming the suicide guard for all of it.
+        reason = ("deckout" if picked & set(deckout_veto(view))
+                  else "suicide" if picked & suicidal_indices(view)
+                  else "lethal")
         state = _lethal_state(view)
         if state is not None:
             analysis, attack_index = state
@@ -284,21 +443,21 @@ def correct(view: ObsView, registered_deck: Sequence[int],
             except Exception:                            # noqa: BLE001
                 alternative = None
             if alternative:
-                picked = [int(i) for i in alternative]
-                if (all(0 <= i < len(view.options) for i in picked)
-                        and not set(picked) & veto):
-                    _DIAG["guard:blocked_suicide_reranked"] += 1
-                    return picked
+                chosen = [int(i) for i in alternative]
+                if (all(0 <= i < len(view.options) for i in chosen)
+                        and not set(chosen) & veto):
+                    _DIAG[f"guard:blocked_{reason}_reranked"] += 1
+                    return chosen
         for finder in (lambda: _first_index(view, OT_ATTACK, veto),
                        lambda: _bench_builder_index(view, veto),
                        lambda: _first_index(view, OT_END, veto)):
             index = finder()
             if index is not None:
-                _DIAG["guard:blocked_suicide"] += 1
+                _DIAG[f"guard:blocked_{reason}"] += 1
                 return [index]
         for index in range(len(view.options)):
             if index not in veto:
-                _DIAG["guard:blocked_suicide"] += 1
+                _DIAG[f"guard:blocked_{reason}"] += 1
                 return [index]
         return None                                      # every option vetoed
     except Exception:                                    # noqa: BLE001

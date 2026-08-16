@@ -122,6 +122,50 @@ This section supersedes every older active-direction statement below.
   before the pair has produced its single deliberate replay read. The package is
   validated and one command from upload if that is revisited.
 
+### Optional-draw deck-out guard — PASSED, final Alakazam package
+
+- Third deterministic guard, again with NO retraining: MAIN `065b64c3...` and
+  CARD `ff1dcd7c...` unchanged for the third package running.
+- Rule: block an optional draw whose FIXED count would leave the deck at zero,
+  unless a visible attack provably ends the game that turn. Two prompt shapes,
+  because the engine offers them differently -- MAIN abilities and the Enriching
+  Energy attach are blocked in place, while Psychic Draw arrives as a separate
+  yes/no (`context == CTX_ACTIVATE`) AFTER the evolution resolves, so only the
+  DRAW is declined and the evolve itself is untouched.
+- Covered effects have exact counts: Fezandipiti ex 3, Alakazam 3, Kadabra 2,
+  Enriching Energy 4, Run Away Draw 3. The deck's search cards take "up to" N,
+  so their depletion cannot be proven and they are deliberately out of scope.
+- **Dudunsparce is separate arithmetic**, as instructed. Run Away Draw shuffles
+  the Pokemon, its attachments and its evolution line back in, so the rule is
+  `deck - min(3, deck) + returned`. It essentially cannot deck you out -- in
+  93595130 it took the deck from 1 UP to 2 -- and a naive `deck - 3` rule would
+  have wrongly forbidden it.
+- The escape hatch is hard to satisfy on purpose: Alakazam active carrying
+  energy, unprotected opponent active with visible HP, enough hand AFTER the
+  draw for the knockout, and that knockout taking our LAST prize. Being wrong
+  here costs a certain loss, so it biases hard toward blocking.
+- Evidence states 93595130 prompt 160 (Fezandipiti draw-3, deck 2, three prizes
+  left) and 93603298 prompt 99 (Psychic Draw yes/no, deck 3, five prizes left).
+  93595130 prompt 155 is carried as a CONTROL state -- the identical draw one
+  turn earlier at deck 4 -- and the verifier asserts it is left UNCHANGED, so
+  the suite cannot reward over-firing.
+- **Non-regression gate PASSED all six criteria: +0.71 pp, CI95 [-0.43,+1.84],
+  SE 0.579, 8,192 games/arm, zero faults, zero guard errors.** Control is
+  `b02ffe45...`, which already carries the other two guards, so the deck-out
+  rule is the only difference; it fired 1,303 times in the candidate (633 MAIN
+  blocks, 670 yes/no declines) and ZERO times in the control. CI includes zero:
+  this is "costs nothing with a favourable sign", not a superiority claim.
+- Archive `49000970...`, deterministic rebuild verified, 200-game smoke clean,
+  53 runtime tests green, all six frozen states verified through the PACKAGED
+  dispatcher as owner and as UID 1 with identical actions.
+- Caveat worth keeping: the 200-game smoke fires the deck-out guard ZERO times.
+  Its random-legal opponents lose in about half as many decisions per game as
+  the Field-v3 pilot (36 vs 67), so decks never run low. The smoke proves
+  packaging integrity only; the gate and the frozen-state verification are what
+  prove this guard fires.
+- Adjudication: `tools/checkpoints/cage-guards-20260816/adjudication-deckout.json`.
+  **Not uploaded.**
+
 ### Two deterministic board-safety guards — packaged, UNGATED
 
 - `agent/alakazam_lethal_guards.py` added to the fine-tuned Cage candidate with

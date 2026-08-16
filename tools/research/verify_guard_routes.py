@@ -75,12 +75,22 @@ def run(root: Path, states: Path, uid: int | None) -> list[dict]:
     raise SystemExit(f"no result from child:\n{proc.stdout}\n{proc.stderr}")
 
 
+# States that must be left ALONE. A guard that "fixes" these is too broad, and
+# without this the suite would reward over-firing.
+CONTROL_STATES = {"deckout_safe_93595130"}
+
+
 def check(rows: list[dict]) -> dict:
     checks = {}
     for row in rows:
         name, packaged = row["name"], row["packaged_action"]
         logged = row["logged_action"]
         checks[f"{name}:answered"] = packaged is not None
+        if name in CONTROL_STATES:
+            checks[f"{name}:unchanged"] = packaged == logged
+            checks[f"{name}:no_guard_fired"] = not any(
+                k.startswith("guard:") for k in row["guard_diagnostics"])
+            continue
         checks[f"{name}:changed"] = packaged is not None and packaged != logged
         checks[f"{name}:avoids_veto"] = (
             packaged is not None
