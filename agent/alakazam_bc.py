@@ -84,7 +84,17 @@ def diagnostics() -> dict[str, int]:
     return dict(_diagnostics)
 
 
-def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
+def decide(view: ObsView, registered_deck: Sequence[int],
+           veto: Sequence[int] | None = None) -> list[int] | None:
+    """Decide one prompt, optionally with some option indices forbidden.
+
+    ``veto`` is an inference-time mask only -- the weights are untouched. It
+    exists so a deterministic guard can forbid a losing option and still get the
+    HEAD's next-best answer rather than a hand-rolled fallback ordering.
+    Vetoed logits are floored below the finite minimum instead of set to -inf,
+    because ``decode_qu_v2`` requires every logit to be finite; the effect is the
+    same, since any unvetoed option then strictly outranks a vetoed one.
+    """
     if (
         not isinstance(view, ObsView) or not view.options
         or not supports_deck(registered_deck)
@@ -102,6 +112,13 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
     try:
         sample = qu_v2_features.encode_public_observation(view.obs, registered_deck)
         logits, _ = net.forward(sample)
+        if veto:
+            logits = logits.copy()
+            blocked = [int(i) for i in veto if 0 <= int(i) < len(view.options)]
+            if blocked:
+                floor = float(logits.min()) - 1.0
+                for index in blocked:
+                    logits[index] = floor
         action = model.decode_qu_v2(
             logits, len(view.options), view.min_count, view.max_count,
         )

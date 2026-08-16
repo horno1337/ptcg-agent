@@ -35,6 +35,10 @@ try:
     from agent import alakazam_battle_cage as _cage
 except Exception:
     _cage = None
+try:
+    from agent import alakazam_lethal_guards as _guards
+except Exception:
+    _guards = None
 import os as _os
 if _os.path.dirname(_os.path.dirname(_os.path.abspath(policy.__file__))) != _os.getcwd():
     raise SystemExit("FATAL: imported the repository agent package, not the archive")
@@ -84,7 +88,10 @@ out = {"gate_valid": bool(series.gate_valid),
        "invalid": sum(1 for r in series.records if getattr(r, "error", None)),
        "diagnostics": C.diagnostics(C())}
 out["diagnostics"] = {"calls": counts["calls"], "errors": dict(errors),
-                      "routes": dict(alakazam_bc.diagnostics())}
+                      "routes": dict(alakazam_bc.diagnostics()),
+                      # Guard counters are separate from the head's: a guard
+                      # that silently raised would otherwise leave no trace.
+                      "guards": dict(_guards.diagnostics()) if _guards else {}}
 print("RESULT " + json.dumps(out))
 '''
 
