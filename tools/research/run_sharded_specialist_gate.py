@@ -1252,6 +1252,46 @@ class AlakazamGuardedChallenger(AlakazamCageChallenger):
         return True
 
 
+class AlakazamDeckoutChallenger(AlakazamGuardedChallenger):
+    """The optional-draw deck-out guard, measured against the guarded agent.
+
+    Control is `b02ffe45...`, which already carries the suicide and Powerful
+    Hand guards, so this isolates the deck-out rule alone. Weights, deck, Battle
+    Cage guard and the other two guards are identical in both arms.
+
+    Non-regression again, and for the same reason: decking out is a certain loss
+    but a rare one, so the gate asks whether the rule costs anything.
+    """
+
+    name = "alakazam-deckout-challenger"
+    CANDIDATE = "submission-alakazam-deckout-1-unsigned.tar.gz"
+    CONTROL = "submission-alakazam-guarded-1-unsigned.tar.gz"
+
+    DECKOUT_KEYS = ("guard:blocked_deckout", "guard:blocked_deckout_reranked",
+                    "guard:declined_deckout_draw")
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        if not (counts.get("route:main", 0) > 0
+                and counts.get("route:card", 0) > 0
+                and counts.get("route:battle_cage", 0) > 0):
+            return False
+        if any(key.startswith("error:") for key in counts):
+            return False
+        # BOTH arms carry the suicide and lethal guards, so the only asymmetry
+        # that must hold per shard is that the control never blocks a deck-out.
+        if arm == "control":
+            return all(counts.get(k, 0) == 0 for k in self.DECKOUT_KEYS)
+        return True
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1261,7 +1301,8 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamGuideTune.name: AlakazamGuideTune,
             AlakazamCageChallenger.name: AlakazamCageChallenger,
             AlakazamPilotFineTune.name: AlakazamPilotFineTune,
-            AlakazamGuardedChallenger.name: AlakazamGuardedChallenger}
+            AlakazamGuardedChallenger.name: AlakazamGuardedChallenger,
+            AlakazamDeckoutChallenger.name: AlakazamDeckoutChallenger}
 
 
 # --------------------------------------------------------------------------

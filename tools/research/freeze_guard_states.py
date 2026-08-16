@@ -26,6 +26,11 @@ WANTED = [
     ("suicide_93586883", 93586883, 0, 43),
     ("suicide_93588738", 93588738, 0, 15),
     ("lethal_93591463", 93591463, 1, 71),
+    # Deck-out: an optional draw that empties the deck with prizes still to take
+    ("deckout_main_93595130", 93595130, 1, 160),   # Fezandipiti draw-3, deck 2
+    ("deckout_yesno_93603298", 93603298, 0, 99),   # Psychic Draw yes/no, deck 3
+    # Control state: the SAME draw one turn earlier, deck 4 -> 1, must be allowed
+    ("deckout_safe_93595130", 93595130, 1, 155),
 ]
 
 
