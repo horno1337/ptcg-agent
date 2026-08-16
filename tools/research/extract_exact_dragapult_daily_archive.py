@@ -117,7 +117,13 @@ def extract(archive_path: Path, output: Path, skip_dirs: list[Path]) -> dict[str
                     continue
                 seen_ids.add(eid)
                 decks = registered_decks(document)
-            except (KeyError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+            except (
+                KeyError,
+                UnicodeDecodeError,
+                json.JSONDecodeError,
+                ValueError,
+                zipfile.BadZipFile,
+            ) as error:
                 counters["invalid_members"] += 1
                 rows.append({"member": info.filename, "error": str(error)})
                 continue

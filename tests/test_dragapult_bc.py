@@ -163,6 +163,112 @@ def test_phantom_secure_prize_preserves_best_ko_and_non_lucario_states():
     assert BC._guard_phantom_secure_prize(view, [1]) == [1]
 
 
+def _protection_view(entries: list[dict], *, remain: int = 6) -> ObsView:
+    view = _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320),
+        opponent_bench=entries,
+        select_type=ST_CARD,
+        context=CTX_DAMAGE_COUNTER_ANY,
+        effect=BC.DRAGAPULT_EX,
+        options=[
+            {"type": 3, "area": AREA_BENCH, "index": index,
+             "playerIndex": 1}
+            for index in range(len(entries))
+        ],
+    )
+    view.select["remainDamageCounter"] = remain
+    return view
+
+
+def test_phantom_protection_guard_uses_head_ranked_safe_target():
+    view = _protection_view([
+        _pokemon(BC.TEAM_ROCKET_ARTICUNO, 120),
+        _pokemon(BC.DREEPY, 70),
+        _pokemon(BC.MUNKIDORI, 110),
+    ])
+    logits = np.asarray([9.0, 2.0, 4.0, 0.0])
+    assert BC._guard_phantom_protected_target(view, logits, [0]) == [2]
+
+
+def test_phantom_protection_guard_honors_mist_and_typed_rock_energy():
+    mist = _pokemon(200, 100, energy=(BC.MIST_ENERGY,))
+    fighting = _pokemon(58, 140, energy=(BC.ROCK_FIGHTING_ENERGY,))
+    not_fighting = _pokemon(BC.DREEPY, 70, energy=(BC.ROCK_FIGHTING_ENERGY,))
+    safe = _pokemon(BC.MUNKIDORI, 110)
+    assert BC._phantom_effect_protected(mist)
+    assert BC._phantom_effect_protected(fighting)
+    assert not BC._phantom_effect_protected(not_fighting)
+    for protected in (mist, fighting):
+        view = _protection_view([protected, safe])
+        assert BC._guard_phantom_protected_target(
+            view, np.asarray([8.0, 1.0, 0.0]), [0],
+        ) == [1]
+
+
+def test_phantom_protection_guard_preserves_dump_when_alternative_would_ko():
+    view = _protection_view([
+        _pokemon(BC.TEAM_ROCKET_ARTICUNO, 120),
+        _pokemon(BC.DREEPY, 60),
+    ])
+    assert BC._guard_phantom_protected_target(
+        view, np.asarray([8.0, 1.0, 0.0]), [0],
+    ) == [0]
+
+
+def test_phantom_protection_guard_does_not_implement_battle_cage():
+    view = _protection_view([
+        _pokemon(BC.DREEPY, 70), _pokemon(BC.MUNKIDORI, 110),
+    ])
+    view.current["stadium"] = [{"id": 1264, "playerIndex": 1}]
+    assert BC._guard_phantom_protected_target(
+        view, np.asarray([8.0, 1.0, 0.0]), [0],
+    ) == [0]
+
+
+def _battle_cage_view(*, opponent_bench=()):
+    view = _main_view(
+        active=_pokemon(BC.DRAGAPULT_EX, 320,
+                        energy=(BC.FIRE_ENERGY, BC.PSYCHIC_ENERGY)),
+        opponent_bench=opponent_bench,
+        options=[
+            {"type": OT_ATTACK, "attackId": BC.PHANTOM_DIVE},
+            {"type": OT_PLAY, "index": 0},
+            {"type": OT_END},
+        ],
+    )
+    view.me["hand"] = [{"id": BC.JAMMING_TOWER}]
+    view.current["stadium"] = [{"id": BC.BATTLE_CAGE, "playerIndex": 1}]
+    return view
+
+
+def test_battle_cage_guard_replaces_before_attack_or_end():
+    view = _battle_cage_view()
+    assert BC._guard_battle_cage_replacement(view, [0]) == [1]
+    assert BC._guard_battle_cage_replacement(view, [2]) == [1]
+
+
+def test_battle_cage_guard_preserves_free_setup_and_visible_spread():
+    view = _battle_cage_view()
+    view.options.append({"type": OT_ABILITY, "area": AREA_ACTIVE, "index": 0})
+    assert BC._guard_battle_cage_replacement(view, [3]) == [3]
+    for source in (
+        _pokemon(BC.DRAGAPULT_EX, 320),
+        _pokemon(BC.FROSLASS, 90),
+        _pokemon(BC.MUNKIDORI, 110, energy=(BC.DARK_ENERGY,)),
+    ):
+        guarded = _battle_cage_view(opponent_bench=[source])
+        assert BC._guard_battle_cage_replacement(guarded, [0]) == [0]
+
+
+def test_battle_cage_guard_requires_cage_tower_and_phantom():
+    view = _battle_cage_view()
+    view.current["stadium"] = [{"id": BC.JAMMING_TOWER}]
+    assert BC._guard_battle_cage_replacement(view, [0]) == [0]
+    view = _battle_cage_view()
+    view.options[0] = {"type": OT_ATTACK, "attackId": BC.JET_HEADBUTT}
+    assert BC._guard_battle_cage_replacement(view, [0]) == [0]
+
+
 def test_guard_is_scoped_to_dragapult_phantom_dive():
     assert BC._guard_phantom_dive_target(
         _view([0, 10], context=13), [0],

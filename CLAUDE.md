@@ -122,6 +122,56 @@ This section supersedes every older active-direction statement below.
   before the pair has produced its single deliberate replay read. The package is
   validated and one command from upload if that is revisited.
 
+### Pilot-behaviour MAIN fine-tune — PASSED but PAUSED
+
+- Challenger is the validated `4b090895` Cage stack with ONE change: a MAIN
+  head fine-tuned on pilot behaviour. CARD `ff1dcd7c...` byte-identical and NOT
+  retrained; registration, guard and schedule identical in both arms.
+- **Provenance tiers are the point.** A list-matched archive game is not a pilot
+  game, and episode ids prove it: the Aug-15 archive ends at 93,458,569 while
+  kenkoooo's replays start at 93,551,851, so ZERO of his games are in any
+  archive. The 132 contemporary `4b090895` archive games belong to six other
+  teams (THIRD PTCG Club 69, LiamK 50, Ken_Ken_Pa 7, pppikachu 3, mikelou1 2,
+  AmadeusAN 1). Win rates corroborate: Luca 75.9% vs 50.0% for his list over
+  187 archive seats; kenkoooo 95% vs 56.1% for `4b090895`.
+- VERIFIED tier (2.0 win / 1.2 loss), 76 games: membership is the downloaded
+  episode-id set of ONE named submission (kenkoooo 55545816, Luca 55538310),
+  never a team-name sweep -- a team's older submissions are a different policy.
+  Team name is a per-game consistency check; zero mismatches. Two self-mirrors
+  DROPPED: both seats carry the pilot's name and the replay stores no
+  submission id, so the seat is ambiguous.
+- BACKGROUND tier (1.0 / 0.6): the 132 contemporary `4b090895` archive games.
+  The Aug 2-6 `1f16d6d4` pool (187 games) was DROPPED entirely on instruction --
+  neither Luca's policy nor from the Battle Cage meta.
+- **Cross-list filtering is by CARD ID, never card name.** Luca runs Dunsparce
+  card 65 (60 HP, retreat 0, Gnaw/Dig); the deployed list runs card 305 (70 HP,
+  retreat 1, Trading Places/Ram). Same name, different print, and a free-retreat
+  pivot we cannot make. Rule: drop the decision when the CHOSEN action names a
+  card id the source list has and `4b090895` lacks (295/7,083 train, 29/1,083
+  validation). Copy-count differences are NOT filtered -- they change how often
+  a decision arises, not whether it is legal. Decisions where an incompatible
+  card is merely offered are kept and counted.
+- Training: from confirmed MAIN `e4856bb6...`, KL-anchored to it, trunk/value
+  frozen, lr 3e-5, KL 1.0, 12 epochs, seed 2026081609. lr/KL/epochs chosen on
+  VALIDATION only (`lr 1e-4` overfits from epoch 6, locating the ceiling).
+  Validation NLL 1.28117 -> 1.18360, agreement 59.08% -> 61.26% (+2.18 pp).
+- **Gate against the LIVE Cage agent on the identical registration passed every
+  preregistered criterion: +1.42 pp, CI95 [+0.21,+2.62], SE 0.614, 8,192
+  games/arm, zero faults**, all three routes firing in both arms. Seven of eight
+  slices positive, none significantly negative; Dragapult +2.08 pp is the only
+  slice whose CI excludes zero. New MAIN `065b64c3...`, archive `7a77925c...`,
+  deterministic rebuild verified, 200-game smoke clean, 25/25 runtime tests.
+- **User decision 2026-08-16: PAUSED, not uploaded.** Two slots cannot hold both
+  the confirmed `3f451509` insurance and this candidate; FIFO would evict the
+  insurance and leave both slots on `4b090895`. Live pair is unchanged.
+  Evidence: `tools/checkpoints/pilot-bc-20260816/` (preregistration.md,
+  corpus-lock.json, gate/result.json, adjudication.json).
+- `tools/build_alakazam_cage_submission.py` gained an opt-in
+  `--main-weights-sha256` that re-pins the packaged MAIN hash. Omitting it
+  rebuilds the uploaded cage archive `3b6f4c37...` byte-identically -- verified.
+  Without the re-pin the runtime fails soft to rules and the gate reads as a
+  clean null, which is why the route checks are load-bearing.
+
 ### Alakazam MAIN guide fine-tune — REJECTED, discarded
 
 - The final authorized improvement attempt. Initialized from and KL-anchored to
