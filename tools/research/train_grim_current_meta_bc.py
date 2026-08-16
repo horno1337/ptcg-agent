@@ -40,7 +40,8 @@ TRAINABLE = ("option1", "context1", "policy")
 class Data:
     """Dataset plus its precomputed sequential-decode step expansion."""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, guide_flags: Path | None = None,
+                 guide_weight: float = 1.0):
         z = np.load(path)
         self.state = torch.from_numpy(z["state"])
         self.opt_off = z["option_offsets"]
@@ -56,6 +57,26 @@ class Data:
         self.archetype_index = z["archetype_index"]
         self.episode_id = z["episode_id"]
         self.n = len(self.n_options)
+        # Targeted upweighting: multiply the per-decision mass of prompts that
+        # belong to a named guide condition. Applied BEFORE the step expansion
+        # so every step of a multi-pick action inherits the same emphasis.
+        self.guide_hits = 0
+        if guide_flags is not None and guide_weight != 1.0:
+            g = np.load(guide_flags)["flags"]
+            if len(g) != self.n:
+                raise SystemExit(
+                    f"guide flags cover {len(g)} decisions, dataset has {self.n}")
+            hit = g.any(axis=1)
+            self.guide_hits = int(hit.sum())
+            before = float(self.weight.sum())
+            self.weight = self.weight * np.where(hit, guide_weight, 1.0)
+            # Restore the ORIGINAL total mass so emphasis changes the shape of
+            # the objective, not its scale. Without this the batch loss grows
+            # with guide_weight and silently raises the effective learning rate,
+            # which is the opposite of a conservative fine-tune.
+            after = float(self.weight.sum())
+            if after > 0:
+                self.weight = self.weight * (before / after)
         self.max_menu = int(max(self.opt_off[i + 1] - self.opt_off[i]
                                 for i in range(self.n)))
         self._build_steps()
@@ -196,6 +217,10 @@ def main() -> int:
     p.add_argument("--batch", type=int, default=256)
     p.add_argument("--seed", type=int, default=20260815)
     p.add_argument("--threads", type=int, default=8)
+    p.add_argument("--guide-flags-train", type=Path)
+    p.add_argument("--guide-flags-validation", type=Path)
+    p.add_argument("--guide-weight", type=float, default=1.0,
+                   help="multiplier for decisions inside a guide condition")
     args = p.parse_args()
 
     torch.manual_seed(args.seed)
@@ -203,8 +228,14 @@ def main() -> int:
     torch.set_num_threads(args.threads)
     args.out.mkdir(parents=True, exist_ok=True)
 
-    train = Data(args.dataset / f"{args.head}-train.npz")
+    train = Data(args.dataset / f"{args.head}-train.npz",
+                 args.guide_flags_train, args.guide_weight)
+    # Validation is scored on the UNWEIGHTED objective. Selecting on the same
+    # emphasis that shaped training would just confirm the emphasis took.
     valid = Data(args.dataset / f"{args.head}-validation.npz")
+    if args.guide_weight != 1.0:
+        print(f"guide upweight x{args.guide_weight} on {train.guide_hits:,} "
+              f"of {train.n:,} train decisions", flush=True)
     print(f"train {train.n:,} decisions / {len(train.step_dec):,} steps   "
           f"valid {valid.n:,} / {len(valid.step_dec):,}", flush=True)
 
@@ -292,6 +323,9 @@ def main() -> int:
         "head": args.head, "seed": args.seed, "lr": args.lr, "kl": args.kl,
         "epochs": args.epochs, "batch": args.batch,
         "trainable_parameters": trainable,
+        "guide_weight": args.guide_weight,
+        "guide_flags_train": str(args.guide_flags_train) if args.guide_flags_train else None,
+        "guide_upweighted_decisions": train.guide_hits,
         "parent_npz": str(args.parent),
         "parent_sha256": hashlib.sha256(args.parent.read_bytes()).hexdigest(),
         "dataset_dir": str(args.dataset),

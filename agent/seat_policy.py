@@ -39,6 +39,8 @@ from __future__ import annotations
 import hashlib
 import sys
 import tarfile
+import os
+import shutil
 import tempfile
 import types
 from dataclasses import dataclass
@@ -104,14 +106,36 @@ def load_frozen_runtime(archive: Path, package: str = "_dobi_v2_frozen",
     if package in _RUNTIME_CACHE:
         return _RUNTIME_CACHE[package]
 
-    root = Path(tempfile.mkdtemp(prefix="dobi-v2-frozen-"))
+    # Extract to a path keyed by the archive hash and REUSE it across
+    # processes. A per-process mkdtemp leaks one tree per worker: a single
+    # 8,192-game gate spawns 32 arm-shards, and the accumulated trees filled a
+    # 7.8 GB /tmp with 751 copies, which fails as EDQUOT during extraction and
+    # takes the shell down with it.
+    shared = Path(tempfile.gettempdir()) / f"ptcg-runtime-{actual[:16]}"
+    if (shared / "agent").is_dir():
+        root = shared
+    else:
+        staging = Path(tempfile.mkdtemp(prefix="ptcg-runtime-staging-"))
+        with tarfile.open(archive, "r:gz") as handle:
+            members = [m for m in handle.getmembers()
+                       if m.name.startswith("agent/") and m.isfile()]
+            for member in members:
+                if member.issym() or member.islnk() or ".." in member.name:
+                    raise SeatPolicyError(f"unsafe archive member: {member.name}")
+            handle.extractall(staging, members=members)
+        try:
+            os.replace(staging, shared)          # atomic; loser discards
+            root = shared
+        except OSError:
+            shutil.rmtree(staging, ignore_errors=True)
+            if not (shared / "agent").is_dir():
+                raise
+            root = shared
     with tarfile.open(archive, "r:gz") as handle:
-        members = [m for m in handle.getmembers()
-                   if m.name.startswith("agent/") and m.isfile()]
-        for member in members:
-            if member.issym() or member.islnk() or ".." in member.name:
+        for member in handle.getmembers():
+            if member.name.startswith("agent/") and (
+                    member.issym() or member.islnk() or ".." in member.name):
                 raise SeatPolicyError(f"unsafe archive member: {member.name}")
-        handle.extractall(root, members=members)
     agent_dir = root / "agent"
 
     # A candidate archive declares its own artifact manifest.  The default

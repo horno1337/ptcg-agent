@@ -90,6 +90,42 @@ This section supersedes every older active-direction statement below.
   to fire through the PACKAGED dispatcher both as owner (4,129 MAIN / 2,400
   CARD) and as a non-owner UID (141 / 90).
 
+### Alakazam MAIN guide fine-tune — REJECTED, discarded
+
+- The final authorized improvement attempt. Initialized from and KL-anchored to
+  the confirmed live MAIN head, CARD and backbone untouched, lr 3e-6, KL 3.0,
+  two epochs, guide conditions upweighted x2.0 with total objective mass held
+  constant.
+- It was justified on a measured RESIDUAL gap, not the headline one. The quoted
+  27%/47% and 44%/60% figures are expert-versus-Qu-v2B; the live head had
+  already closed ~40-45% of each. Validation residual was +11.2 pp
+  (overdraw_at_lethal) and +10.6 pp (preserved_draw_abilities).
+- Behaviour screen passed: both gaps moved toward the expert (+11.2 -> +9.7 pp,
+  +10.6 -> +9.4 pp), agreement +0.25 pp, mean parent KL 0.0016.
+- **Gameplay failed the preregistered rule: +0.84 pp, CI95 [-0.44,+2.11], SE
+  0.649, 8,192 games/arm, zero faults.** Positive point estimate, does not
+  exclude zero, so it misses strict superiority. Discarded immediately; archive
+  deleted, both slots untouched, no retuning on the opened gate.
+- The lesson is a sizing one, and it was predictable before the run: a 1.2-1.5
+  pp behavioural shift cannot clear a bar that needs roughly +1.3 pp of win rate
+  at SE 0.649. Against an already-confirmed control, "no worse" buys nothing.
+  Adjudication: `tools/checkpoints/alakazam-august-20260815/guide-tune/adjudication.json`.
+
+### Temp-directory leak that took down the shell — fixed
+
+- The first attempt at that gate died on `OSError [Errno 122] Disk quota
+  exceeded` mid-extraction and broke every Bash command with a bare exit 1,
+  because the shell wrapper also writes to /tmp.
+- Cause: `seat_policy.load_frozen_runtime` and the gate adapter both
+  `mkdtemp`'d per PROCESS. The driver constructs an adapter per arm-shard, so
+  one 8,192-game gate left 64 extracted trees; 751 had accumulated in a 7.8 GB
+  tmpfs.
+- Both now extract to `/tmp/ptcg-runtime-<sha16>` / `/tmp/ptcg-arm-<sha16>`,
+  keyed by archive hash, published with an atomic `os.replace` so concurrent
+  workers cannot race. Verified: a 256-game 8-worker run added two shared
+  directories and leaked none. If Bash ever fails with exit 1 and no output,
+  check `df -h /tmp` first.
+
 ### Grimmsnarl current-meta refresh — not promoted
 
 - 28,464 exact-Grim August games, all content hashes verified, corpus lock
