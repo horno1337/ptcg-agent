@@ -1001,8 +1001,7 @@ class AlakazamCageChallenger(Adapter):
         ObsView = rt.obsview.ObsView
         bc, guard, features, mdl = rt.bc, rt.guard, rt.features, rt.model
 
-        opponents, field_controller = make_packaged_opponents(
-            self._rows, self.frozen, f"{self.name}-{arm}")
+        opponents, field_controller = self.make_opponents(arm)
         adapter_name = self.name
 
         class Controller:
@@ -1220,6 +1219,11 @@ class AlakazamGuardedChallenger(AlakazamCageChallenger):
             "max_selects": 5000, "time_bank_s": 600.0,
         }
 
+    def make_opponents(self, arm: str):
+        """Opponent factory, overridable so the pilot can be swapped."""
+        return make_packaged_opponents(self._rows, self.frozen,
+                                       f"{self.name}-{arm}")
+
     def arm_valid(self, arm, learner_diag, field_diag) -> bool:
         if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
             return False
@@ -1363,6 +1367,98 @@ class AlakazamVersusDobiV2(AlakazamMunkidoriChallenger):
                        "field_weight": 1.0}]
 
 
+class ExternalOpponentController:
+    """Field controller for an opponent that is NOT frozen Dobi-v2."""
+
+    def __init__(self, decide, name: str):
+        self.decide = decide
+        self.name = name
+        self.calls = 0
+        self.fallbacks = 0
+        self.exceptions: Counter = Counter()
+
+    def act(self, obs: dict, deck) -> list[int]:
+        del deck                       # the external agent knows its own list
+        self.calls += 1
+        try:
+            return list(self.decide(obs))
+        except Exception as error:                       # noqa: BLE001
+            self.exceptions[type(error).__name__] += 1
+            self.fallbacks += 1
+            import agent.safety as safety
+            return list(safety._fallback(obs))
+
+    def diagnostics(self) -> dict:
+        return {"name": self.name, "calls": self.calls,
+                "fallbacks": self.fallbacks,
+                "exceptions": dict(self.exceptions),
+                "packaged_runtime": True}
+
+
+def make_external_opponents(decide, deck, key: str, tag: str):
+    from tools.rl_env import OpponentSpec
+    controller = ExternalOpponentController(decide, tag)
+    registration = tuple(int(c) for c in deck)
+
+    def move(obs, rng, _deck=registration):
+        del rng
+        return controller.act(obs, _deck)
+
+    return [OpponentSpec(key=key, deck=registration, move=move, weight=1.0,
+                         policy_id=f"external:{key}",
+                         schedule_group=f"external/{key}")], controller
+
+
+class _AlakazamVersusExternal(AlakazamMunkidoriChallenger):
+    """Guarded package versus a NON-Dobi-v2 pilot.
+
+    Every other gate here pilots its opponents with frozen Dobi-v2, so the whole
+    local evidence base is really one measurement and cannot detect a head that
+    has drifted toward exploiting that particular policy. These adapters swap
+    the pilot to break that monoculture. Control stays the archive currently on
+    the ladder, so the number answers "does the improvement survive a different
+    opponent".
+    """
+
+    OPPONENT_KEY = ""
+
+    def _opponent(self):
+        raise NotImplementedError
+
+    def make_opponents(self, arm: str):
+        decide, deck = self._opponent()
+        return make_external_opponents(
+            decide, deck, self.OPPONENT_KEY, f"{self.name}-{arm}")
+
+
+class AlakazamVersusRuleLucario(_AlakazamVersusExternal):
+    """Opponent is the competition's published rule-based Mega Lucario agent.
+
+    Hand-written, no network, and it shares no corpus, lineage or failure mode
+    with anything we trained -- the least correlated opponent available.
+    """
+
+    name = "alakazam-vs-rule-lucario"
+    OPPONENT_KEY = "rule-mega-lucario"
+
+    def _opponent(self):
+        from tools.research.external_opponents import load_rule_lucario
+        return load_rule_lucario()
+
+
+class AlakazamVersusDragapultV2(_AlakazamVersusExternal):
+    """Opponent is our packaged Dragapult v2 probe: different deck, different head."""
+
+    name = "alakazam-vs-dragapult-v2"
+    OPPONENT_KEY = "dragapult-v2"
+
+    def _opponent(self):
+        from tools.research.external_opponents import load_packaged_agent
+        return load_packaged_agent(
+            ROOT / "submission-dragapult-completion-1-unsigned.tar.gz",
+            "_dragapult_opp")
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1375,7 +1471,9 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamGuardedChallenger.name: AlakazamGuardedChallenger,
             AlakazamDeckoutChallenger.name: AlakazamDeckoutChallenger,
             AlakazamMunkidoriChallenger.name: AlakazamMunkidoriChallenger,
-            AlakazamVersusDobiV2.name: AlakazamVersusDobiV2}
+            AlakazamVersusDobiV2.name: AlakazamVersusDobiV2,
+            AlakazamVersusRuleLucario.name: AlakazamVersusRuleLucario,
+            AlakazamVersusDragapultV2.name: AlakazamVersusDragapultV2}
 
 
 # --------------------------------------------------------------------------
