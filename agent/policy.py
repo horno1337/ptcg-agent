@@ -395,6 +395,22 @@ def _model_decide(view: ObsView) -> list[int] | None:
                     pass
             sample = _qu_v2_features.encode_public_observation(
                 view.obs, registration)
+            # Exact-Alakazam August BC specialist.  It owns ST_MAIN and
+            # ST_CARD only for its own registration, verifies both artifact
+            # hashes itself, and returns None on any scope/load/decode miss, so
+            # a Grim or Dragapult package is completely unaffected.  Default-off
+            # in the worktree; the packaging step flips the default to "1".
+            if (
+                view.select_type in (ST_MAIN, ST_CARD)
+                and os.environ.get("PTCG_ALAKAZAM_BC") == "1"
+            ):
+                try:
+                    from . import alakazam_bc as _alakazam_bc
+                    alakazam_action = _alakazam_bc.decide(view, registration)
+                    if alakazam_action is not None:
+                        return alakazam_action
+                except Exception:
+                    pass
             # Selective Dobi ST_CARD correction.  The worktree is default-off,
             # and the module independently requires an exact packaged artifact
             # hash, exact own deck, public opposing Grim signature, and one of

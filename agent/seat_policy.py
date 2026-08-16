@@ -86,7 +86,8 @@ _RUNTIME_CACHE: dict[str, types.ModuleType] = {}
 
 
 def load_frozen_runtime(archive: Path, package: str = "_dobi_v2_frozen",
-                        expect_sha256: str = DOBI_V2_ARCHIVE_SHA256):
+                        expect_sha256: str = DOBI_V2_ARCHIVE_SHA256,
+                        expect_weights: dict | None = None):
     """Extract and import the frozen submission's ``agent`` package.
 
     The synthetic package is registered with an explicit ``__path__`` and no
@@ -113,7 +114,10 @@ def load_frozen_runtime(archive: Path, package: str = "_dobi_v2_frozen",
         handle.extractall(root, members=members)
     agent_dir = root / "agent"
 
-    for name, expected in DOBI_V2_WEIGHTS.items():
+    # A candidate archive declares its own artifact manifest.  The default
+    # stays the frozen Dobi-v2 set, so the frozen contract cannot be relaxed by
+    # accident -- a caller has to pass a replacement explicitly.
+    for name, expected in (expect_weights or DOBI_V2_WEIGHTS).items():
         path = agent_dir / name
         if not path.is_file():
             raise SeatPolicyError(f"packaged artifact missing: {name}")

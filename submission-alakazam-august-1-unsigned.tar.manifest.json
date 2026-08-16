@@ -1,0 +1,25 @@
+{
+ "added": [
+  "agent/alakazam_bc.py",
+  "agent/alakazam_main_weights.npz",
+  "agent/alakazam_card_weights.npz"
+ ],
+ "archive": "submission-alakazam-august-1-unsigned.tar.gz",
+ "archive_sha256": "93b462faee078bcd6630e87a5d819bcd77e447e46c682bd93dfe91fddec3877a",
+ "card_weights_sha256": "ff1dcd7cda863bbb5e8a924fb25dc091328444823ff3962152246b9d52562157",
+ "dispatcher": "PTCG_ALAKAZAM_BC defaults to 1 in the package",
+ "main_weights_sha256": "e4856bb6a021c3a4c36d6b8116d55128f0036e6361138942fd2944016708606b",
+ "members": 28,
+ "parent_archive": "/home/horn/Desktop/GIT-repo/ptcg-agent/submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz",
+ "parent_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+ "registration_changed": {
+  "from_first3": [
+   "7",
+   "7",
+   "7"
+  ],
+  "to_sha256": "3f4515092dc59df397f365a9b79c7cf0c1cb73b9aa38bc47c1b18e9df4c2fdaf"
+ },
+ "schema": "ptcg.alakazam-august-submission.v1",
+ "upload_authorized": false
+}

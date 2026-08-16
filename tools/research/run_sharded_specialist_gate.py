@@ -480,8 +480,283 @@ class TurnSearchCurrentField(Adapter):
         return learner_diag.get("counts", {}).get("searched", 0) == 0
 
 
+class GrimCurrentMetaBC(Adapter):
+    """Retrained current-meta Grim MAIN+CARD heads versus frozen Dobi-v2.
+
+    Both arms are whole SUBMISSION ARCHIVES, not repository imports: the
+    candidate is the deterministic package and the control is the exact frozen
+    Dobi-v2 tarball that ships today. That makes this an archive-level A/B, so a
+    packaging defect -- an unreadable weights mode, a stale WEIGHTS_SHA256
+    constant, a missing member -- shows up as a gameplay result rather than
+    surviving to the ladder. The two candidate heads verify their own artifact
+    hash and fail CLOSED to the Qu-v2B router, so `arm_valid` additionally
+    requires that the specialist heads actually answered.
+
+    The opponent field is Field-v3, measured from the 2026-08-14 archive, and
+    is piloted by the FROZEN packaged runtime in BOTH arms so the only
+    difference between them is our own two heads.
+    """
+
+    name = "grim-current-meta-bc"
+
+    def __init__(self):
+        from agent.seat_policy import DOBI_V2_WEIGHTS, load_frozen_runtime
+        from tools.research import eval_md_v2_scaled_gameplay as COMMON
+        self.COMMON = COMMON
+        self.frozen_archive = ROOT / \
+            "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+        self.cand_archive = ROOT / "submission-grim-current-meta-1-unsigned.tar.gz"
+        self.manifest = ROOT / \
+            "submission-grim-current-meta-1-unsigned.tar.manifest.json"
+        self.field_path = (ROOT / "tools" / "checkpoints" /
+                           "current-field-v3-20260815" / "field.json")
+        man = json.loads(self.manifest.read_text())
+        self.cand_sha = man["archive_sha256"]
+        weights = dict(DOBI_V2_WEIGHTS)
+        for change in man["changed"]:
+            weights[change["weights"].split("/")[-1]] = change["new_sha256"]
+        self.cand_weights = weights
+        self.frozen = load_frozen_runtime(self.frozen_archive)
+        self.candidate = load_frozen_runtime(
+            self.cand_archive, package="_grim_current_meta_candidate",
+            expect_sha256=self.cand_sha, expect_weights=weights)
+        field = json.loads(self.field_path.read_text())
+        total = sum(r["field_weight"] for r in field["rows"]) or 1.0
+        self._rows = [{"opponent_key": r["archetype"],
+                       "deck": [int(c) for c in r["deck"]],
+                       "field_weight": r["field_weight"] / total}
+                      for r in field["rows"]]
+
+    def artifacts(self) -> dict[str, Path]:
+        from agent import seat_policy
+        return {"frozen_archive": self.frozen_archive,
+                "candidate_archive": self.cand_archive,
+                "candidate_manifest": self.manifest,
+                "field_v3": self.field_path,
+                "seat_policy": Path(seat_policy.__file__).resolve(),
+                "learner_deck": ROOT / "decks" / "deck.csv",
+                "driver": Path(__file__).resolve()}
+
+    def deck(self) -> tuple[int, ...]:
+        path = ROOT / "decks" / "deck.csv"
+        deck = tuple(int(line.strip()) for line
+                     in path.read_text(encoding="utf-8").splitlines() if line.strip())
+        if len(deck) != 60:
+            raise GateError("Grim registration is not 60 cards")
+        return deck
+
+    def build_arm(self, arm: str):
+        from agent.seat_policy import FrozenDobiV2Policy
+        from agent.obsview import ObsView
+        deck = self.deck()
+        runtime = self.candidate if arm == "candidate" else self.frozen
+        # The field is piloted by the FROZEN runtime in both arms.
+        opponents, field_controller = make_packaged_opponents(
+            self._rows, self.frozen, f"{self.name}-{arm}")
+
+        class Controller:
+            name = f"{GrimCurrentMetaBC.name}/{arm}"
+
+            def __init__(self):
+                from collections import Counter
+                self.counts = Counter()
+                self.exceptions = Counter()
+                self.overlay = Counter()
+
+            def begin_episode(self, episode):
+                del episode
+
+            def act(self, obs):
+                self.counts["calls"] += 1
+                view = ObsView(obs)
+                policy = FrozenDobiV2Policy(runtime)
+                decision = policy.decide(obs, deck, view.my_index)
+                self.counts[f"route:{getattr(decision, 'route', 'unknown')}"] += 1
+                for route, count in policy.overlay_faults.items():
+                    self.overlay[route] += count
+                return list(decision.action)
+
+            def diagnostics(self):
+                return {"calls": self.counts["calls"],
+                        "counts": dict(self.counts),
+                        "exceptions": dict(self.exceptions),
+                        "fallbacks": 0,
+                        "overlay_faults": dict(self.overlay)}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        if counts.get("calls", 0) <= 0:
+            return False
+        # The MAIN head must actually have answered: a stale pinned hash fails
+        # CLOSED to the Qu-v2B router and would read as a clean null.  The CARD
+        # overlays are deliberately NOT required -- md_v2_card.supports_view
+        # demands a public Grimmsnarl signature on the opponent board, so they
+        # are mirror-only by construction and legitimately silent against most
+        # of Field-v3.  Their firing count is reported, never asserted.
+        main_route = counts.get("route:md_v1", 0)
+        return main_route > 0
+
+
+class _AlakazamAugustBC(Adapter):
+    """Exact-Alakazam August BC heads over frozen Qu-v2B, on Field-v3.
+
+    The control arm is plain Qu-v2B -- the same net, same encoder, same greedy
+    decode -- with the overlay simply not consulted. That isolates the two
+    trained heads rather than the harness.
+
+    Head isolation is done here, by select type, instead of by mutating
+    ``agent.alakazam_bc``: the shipped module stays exactly as preflighted, so
+    the arm that eventually gets packaged is the arm that was measured.
+
+    Opponents are the eight Field-v3 exact representative registrations, piloted
+    by the FROZEN packaged Qu-v2B runtime in every arm, so the only thing that
+    differs between arms is which of our heads answer.
+    """
+
+    name = "alakazam-august-bc"
+    HEADS: tuple[str, ...] = ("main", "card")
+
+    def __init__(self):
+        from agent import alakazam_bc as CANDIDATE
+        from agent.seat_policy import load_frozen_runtime
+        self.CANDIDATE = CANDIDATE
+        self.frozen_archive = ROOT / \
+            "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+        self.frozen = load_frozen_runtime(self.frozen_archive)
+        self.field_path = (ROOT / "tools" / "checkpoints" /
+                           "current-field-v3-20260815" / "field.json")
+        field = json.loads(self.field_path.read_text())
+        total = sum(r["field_weight"] for r in field["rows"]) or 1.0
+        self._rows = [{"opponent_key": r["archetype"],
+                       "deck": [int(c) for c in r["deck"]],
+                       "field_weight": r["field_weight"] / total}
+                      for r in field["rows"]]
+        self._net = None
+
+    def artifacts(self) -> dict[str, Path]:
+        return {"alakazam_bc": Path(self.CANDIDATE.__file__).resolve(),
+                "alakazam_main_weights": ROOT / "agent" / "alakazam_main_weights.npz",
+                "alakazam_card_weights": ROOT / "agent" / "alakazam_card_weights.npz",
+                "qu_v2b_base": ROOT / "agent" / "weights.npz",
+                "frozen_archive": self.frozen_archive,
+                "field_v3": self.field_path,
+                "driver": Path(__file__).resolve()}
+
+    def deck(self) -> tuple[int, ...]:
+        return tuple(self.CANDIDATE.TARGET_DECK)
+
+    def build_arm(self, arm: str):
+        import agent.model as RepoModel
+        from agent import qu_v2_features as RepoFeatures
+        from agent.obsview import ST_CARD, ST_MAIN, ObsView
+        if self._net is None:
+            self._net = RepoModel.load()
+        net = self._net
+        deck = self.deck()
+        CANDIDATE = self.CANDIDATE
+        heads = self.HEADS if arm == "candidate" else ()
+        want = {ST_MAIN: "main" in heads, ST_CARD: "card" in heads}
+        opponents, field_controller = make_packaged_opponents(
+            self._rows, self.frozen, f"{self.name}-{arm}")
+
+        class Controller:
+            name = f"{_AlakazamAugustBC.name}/{arm}"
+
+            def __init__(self):
+                from collections import Counter
+                self.counts = Counter()
+                self.exceptions = Counter()
+
+            def begin_episode(self, episode):
+                del episode
+
+            def act(self, obs):
+                self.counts["calls"] += 1
+                view = ObsView(obs)
+                if want.get(view.select_type, False):
+                    action = CANDIDATE.decide(view, deck)
+                    if action is not None:
+                        self.counts[f"route:{'main' if view.select_type == ST_MAIN else 'card'}"] += 1
+                        return list(action)
+                    self.counts["overlay_declined"] += 1
+                sample = RepoFeatures.encode_public_observation(obs, deck)
+                logits, _ = net.forward(sample)
+                self.counts["route:qu_v2b"] += 1
+                return list(RepoModel.decode_qu_v2(
+                    logits, len(view.options), view.min_count, view.max_count))
+
+            def diagnostics(self):
+                # alakazam_bc._diagnostics mixes SUCCESS route counters with
+                # genuine faults. Only the failure keys are faults; counting
+                # "route:main" as one would reject every working arm.
+                raw = dict(CANDIDATE.diagnostics())
+                faults = {k: v for k, v in raw.items()
+                          if not k.startswith("route:")}
+                return {"calls": self.counts["calls"],
+                        "counts": dict(self.counts),
+                        "exceptions": dict(self.exceptions),
+                        "fallbacks": 0,
+                        "overlay_faults": faults,
+                        "overlay_routes": {k: v for k, v in raw.items()
+                                           if k.startswith("route:")},
+                        "heads": list(heads)}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        if counts.get("calls", 0) <= 0:
+            return False
+        if arm != "candidate":
+            # The control must be pure Qu-v2B: no overlay answer at all.
+            return not any(k.startswith("route:") and k != "route:qu_v2b"
+                           for k in counts)
+        # Every enabled head must actually have answered; a hash mismatch
+        # returns None and would silently degrade the arm to the control.
+        return all(counts.get(f"route:{h}", 0) > 0 for h in self.HEADS)
+
+
+class AlakazamAugustBoth(_AlakazamAugustBC):
+    name = "alakazam-august-both"
+    HEADS = ("main", "card")
+
+
+class AlakazamAugustMain(_AlakazamAugustBC):
+    name = "alakazam-august-main"
+    HEADS = ("main",)
+
+
+class AlakazamAugustCard(_AlakazamAugustBC):
+    name = "alakazam-august-card"
+    HEADS = ("card",)
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
-            TurnSearchCurrentField.name: TurnSearchCurrentField}
+            TurnSearchCurrentField.name: TurnSearchCurrentField,
+            GrimCurrentMetaBC.name: GrimCurrentMetaBC,
+            AlakazamAugustBoth.name: AlakazamAugustBoth,
+            AlakazamAugustMain.name: AlakazamAugustMain,
+            AlakazamAugustCard.name: AlakazamAugustCard}
 
 
 # --------------------------------------------------------------------------
