@@ -1292,6 +1292,45 @@ class AlakazamDeckoutChallenger(AlakazamGuardedChallenger):
         return True
 
 
+class AlakazamMunkidoriChallenger(AlakazamDeckoutChallenger):
+    """Battle Cage against Munkidori, measured against the three-guard agent.
+
+    Motivated by a decision comparison on the IDENTICAL 60 cards: a pilot who is
+    18-1 on this registration plays Battle Cage at a 7% take-rate (19 of 255
+    legal prompts) while we play it at 1% (8 of 567), and only 58% of their
+    plays had a Dragapult or Froslass visible. Munkidori's Adrena-Brain moves
+    damage counters onto our Bench, which is exactly what Battle Cage prevents.
+
+    It is also consistent with our own Cage gate, whose largest slice was
+    Grimmsnarl +27.85 pp -- a matchup where the old guard never fired at all.
+
+    Control is `49000970...`, so the threat-family constant is the only
+    difference. Non-regression again: 19 pilot games is a hypothesis, not a
+    measurement, and this gate is what decides.
+    """
+
+    name = "alakazam-munkidori-challenger"
+    CANDIDATE = "submission-alakazam-munki-1-unsigned.tar.gz"
+    CONTROL = "submission-alakazam-deckout-1-unsigned.tar.gz"
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        if any(key.startswith("error:") for key in counts):
+            return False
+        # Both arms carry every guard; only the threat family differs, so the
+        # per-shard requirement is just that the agent is routing at all.
+        return (counts.get("route:main", 0) > 0
+                and counts.get("route:card", 0) > 0
+                and counts.get("route:battle_cage", 0) > 0)
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1302,7 +1341,8 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamCageChallenger.name: AlakazamCageChallenger,
             AlakazamPilotFineTune.name: AlakazamPilotFineTune,
             AlakazamGuardedChallenger.name: AlakazamGuardedChallenger,
-            AlakazamDeckoutChallenger.name: AlakazamDeckoutChallenger}
+            AlakazamDeckoutChallenger.name: AlakazamDeckoutChallenger,
+            AlakazamMunkidoriChallenger.name: AlakazamMunkidoriChallenger}
 
 
 # --------------------------------------------------------------------------
