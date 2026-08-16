@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 import os
 from typing import Sequence
 
@@ -60,6 +61,12 @@ CRUSHING_HAMMER = 1120
 UNFAIR_STAMP = 1080
 ULTRA_BALL = 1121
 JAMMING_TOWER = 1246
+MIST_ENERGY = 11
+ROCK_FIGHTING_ENERGY = 20
+FIGHTING_ENERGY_TYPE = 6
+TEAM_ROCKET_ARTICUNO = 414
+BATTLE_CAGE = 1264
+FROSLASS = 174
 DRAGAPULT_LINE = frozenset((DREEPY, DRAKLOAK, DRAGAPULT_EX))
 HAMMER_SAFE_SETUP_ITEMS = frozenset((1086, 1097, 1152))
 RECON_SAFE_DECK_COUNT = 8
@@ -74,6 +81,11 @@ ENABLE_PHANTOM_TARGET_GUARD = False
 ENABLE_HAMMER_SEQUENCE_GUARD = False
 ENABLE_BOSS_SETUP_MATE_GUARD = False
 ENABLE_PHANTOM_SECURE_PRIZE_GUARD = True
+# Candidate-only until its isolated paired gate passes.  This is deliberately
+# separate from both the rejected dead-target allocator and Battle Cage
+# Stadium sequencing.
+ENABLE_PHANTOM_PROTECTION_GUARD = False
+ENABLE_BATTLE_CAGE_REPLACEMENT_GUARD = False
 
 
 def supports_deck(registered_deck: Sequence[int]) -> bool:
@@ -307,6 +319,64 @@ def _guard_phantom_completion(view: ObsView, picks: list[int]) -> list[int]:
         )
     )
     return [completing[0]] if commits_turn else picks
+
+
+def _stadium_id(view: ObsView) -> int | None:
+    stadium = (view.current or {}).get("stadium") or ()
+    if isinstance(stadium, dict):
+        stadium = (stadium,)
+    for value in stadium if isinstance(stadium, (list, tuple)) else ():
+        card_id = value.get("id") if isinstance(value, dict) else value
+        if isinstance(card_id, int) and not isinstance(card_id, bool):
+            return card_id
+    return None
+
+
+def _visible_opposing_spread(view: ObsView) -> bool:
+    """Conservative public signature for reciprocal Battle Cage value."""
+    for entry in _entries(view.opp):
+        card_id = entry.get("id")
+        if card_id in (DRAGAPULT_EX, FROSLASS):
+            return True
+        if card_id == MUNKIDORI and DARK_ENERGY in _energy_ids(entry):
+            return True
+    return False
+
+
+def _guard_battle_cage_replacement(
+    view: ObsView,
+    picks: list[int],
+) -> list[int]:
+    """Replace Battle Cage immediately before an otherwise live Phantom.
+
+    This candidate is intentionally independent from CARD target avoidance.
+    It refuses the symmetric trade when an opposing public spread source is
+    already visible and otherwise overrides only Attack/END commitments.
+    """
+    if (
+        view.select_type != ST_MAIN or len(picks) != 1
+        or _stadium_id(view) != BATTLE_CAGE
+        or _visible_opposing_spread(view)
+    ):
+        return picks
+    phantom_live = any(
+        option.get("type") == OT_ATTACK
+        and option.get("attackId") == PHANTOM_DIVE
+        for option in view.options
+    )
+    tower = next((
+        index for index, option in enumerate(view.options)
+        if option.get("type") == OT_PLAY
+        and view.semantic_option_card_id(option) == JAMMING_TOWER
+    ), None)
+    if not phantom_live or tower is None:
+        return picks
+    chosen = picks[0]
+    option = view.options[chosen] if 0 <= chosen < len(view.options) else {}
+    return [tower] if (
+        option.get("type") == OT_END
+        or option.get("type") == OT_ATTACK
+    ) else picks
 
 
 def _hammer_safe_setup_option(view: ObsView, option: dict) -> bool:
@@ -673,6 +743,101 @@ def _guard_phantom_secure_prize(
     return [replacement]
 
 
+def _attached_card_ids(entry: dict | None) -> set[int]:
+    """Return visible physical cards attached to one board Pokemon."""
+    if not isinstance(entry, dict):
+        return set()
+    result: set[int] = set()
+    for key in ("energyCards", "tools"):
+        for value in entry.get(key) or ():
+            card_id = value.get("id") if isinstance(value, dict) else value
+            if isinstance(card_id, int) and not isinstance(card_id, bool):
+                result.add(card_id)
+    return result
+
+
+def _phantom_effect_protected(entry: dict | None) -> bool:
+    """Whether public card text voids Phantom counters on this target.
+
+    Battle Cage is intentionally absent.  It protects every bench target and
+    requires a separate, symmetric Stadium decision rather than CARD target
+    avoidance.
+    """
+    if not isinstance(entry, dict):
+        return False
+    if entry.get("id") == TEAM_ROCKET_ARTICUNO:
+        return True
+    attached = _attached_card_ids(entry)
+    if MIST_ENERGY in attached:
+        return True
+    info = cards.card(entry.get("id")) or {}
+    return bool(
+        ROCK_FIGHTING_ENERGY in attached
+        and info.get("energyType") == FIGHTING_ENERGY_TYPE
+    )
+
+
+def _guard_phantom_protected_target(
+    view: ObsView,
+    logits,
+    picks: list[int],
+) -> list[int]:
+    """Avoid a protected counter sink when a non-KO damage bank is available.
+
+    The existing CARD head keeps ownership of target priority.  We intervene
+    only when its chosen target is publicly effect-protected and another
+    unprotected opposing target can absorb *all* remaining counters without
+    being Knocked Out.  Among those safe alternatives, retain the head's
+    highest-logit choice.  This prevents accidental Prize-response triggers
+    and preserves intentional counter dumping when every alternative would KO.
+    """
+    if (
+        view.select_type != ST_CARD
+        or view.context != CTX_DAMAGE_COUNTER_ANY
+        or view.effect_card_id != DRAGAPULT_EX
+        or len(picks) != 1
+    ):
+        return picks
+    chosen = picks[0]
+    if not isinstance(chosen, int) or not 0 <= chosen < len(view.options):
+        return picks
+    chosen_entry = view.option_board_entry(view.options[chosen])
+    if not _phantom_effect_protected(chosen_entry):
+        return picks
+    remain = view.select.get("remainDamageCounter")
+    if (
+        not isinstance(remain, int) or isinstance(remain, bool)
+        or not 1 <= remain <= 6
+    ):
+        return picks
+
+    safe: list[int] = []
+    for index, option in enumerate(view.options):
+        if option.get("playerIndex", view.my_index) == view.my_index:
+            continue
+        entry = view.option_board_entry(option)
+        hp = (entry or {}).get("hp") if isinstance(entry, dict) else None
+        if (
+            not _phantom_effect_protected(entry)
+            and isinstance(hp, int) and not isinstance(hp, bool)
+            and hp > remain * 10
+        ):
+            safe.append(index)
+    if not safe:
+        return picks
+    try:
+        ranked = [
+            (float(logits[index]), -index, index)
+            for index in safe
+            if math.isfinite(float(logits[index]))
+        ]
+    except (IndexError, TypeError, ValueError, OverflowError):
+        return picks
+    if not ranked:
+        return picks
+    return [max(ranked)[2]]
+
+
 def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
     """Route exact-deck MAIN/CARD prompts to their field-gated BC heads."""
     if (
@@ -722,12 +887,17 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
         if view.select_type == ST_MAIN:
             if ENABLE_HAMMER_SEQUENCE_GUARD:
                 picks = _guard_hammer_sequencing(view, logits, picks)
-            return (
+            picks = (
                 _guard_phantom_completion(view, picks)
                 if ENABLE_PHANTOM_COMPLETION_GUARD else picks
             )
+            if ENABLE_BATTLE_CAGE_REPLACEMENT_GUARD:
+                picks = _guard_battle_cage_replacement(view, picks)
+            return picks
         if ENABLE_PHANTOM_SECURE_PRIZE_GUARD:
             picks = _guard_phantom_secure_prize(view, picks)
+        if ENABLE_PHANTOM_PROTECTION_GUARD:
+            picks = _guard_phantom_protected_target(view, logits, picks)
         if ENABLE_PHANTOM_TARGET_GUARD:
             picks = _guard_phantom_dive_target(view, picks)
         return picks

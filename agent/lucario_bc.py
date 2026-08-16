@@ -6,7 +6,9 @@ import hashlib
 import os
 from typing import Sequence
 
-from . import model, qu_v2_features
+import numpy as np
+
+from . import lucario_turn_context_v2, model, qu_v2_features
 from .obsview import ST_CARD, ST_MAIN, ObsView
 
 
@@ -25,8 +27,15 @@ CARD_WEIGHTS_SHA256 = (
 )
 _MAIN_PATH = os.path.join(os.path.dirname(__file__), "lucario_main_weights.npz")
 _CARD_PATH = os.path.join(os.path.dirname(__file__), "lucario_card_weights.npz")
+NEURAL_CONTEXT_WEIGHTS_SHA256 = (
+    "7803975cfbe2c0eb1ccf3ce15233f7257fd6f12069dc6f8c5df6df19ea1a6fe6"
+)
+_NEURAL_CONTEXT_PATH = os.path.join(
+    os.path.dirname(__file__), "lucario_neural_context_weights.npz",
+)
 _main = None
 _card = None
+_neural_context = None
 _attempted: set[str] = set()
 
 
@@ -73,6 +82,31 @@ def _load_head(name: str):
     return loaded
 
 
+def _load_neural_context():
+    """Load the optional hash-bound residual; absence leaves Day-1 unchanged."""
+    global _neural_context
+    if _neural_context is not None:
+        return _neural_context
+    if "neural_context" in _attempted:
+        return None
+    _attempted.add("neural_context")
+    try:
+        if _sha256(_NEURAL_CONTEXT_PATH) != NEURAL_CONTEXT_WEIGHTS_SHA256:
+            return None
+        with np.load(_NEURAL_CONTEXT_PATH, allow_pickle=False) as archive:
+            loaded = {name: archive[name].copy() for name in archive.files}
+        schema = loaded.get("schema")
+        if (
+            schema is None or schema.shape != (1,)
+            or str(schema[0]) != lucario_turn_context_v2.SCHEMA
+        ):
+            return None
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    _neural_context = loaded
+    return loaded
+
+
 def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
     """Route exact-deck MAIN/CARD prompts to their field-gated BC heads."""
     if (
@@ -95,8 +129,15 @@ def decide(view: ObsView, registered_deck: Sequence[int]) -> list[int] | None:
             view.obs, registered_deck,
         )
         logits, _ = net.forward(sample)
-        return model.decode_qu_v2(
+        base = model.decode_qu_v2(
             logits, len(view.options), view.min_count, view.max_count,
         )
+        if head == "main":
+            context = _load_neural_context()
+            if context is not None:
+                return lucario_turn_context_v2.apply(
+                    view, logits, base, context,
+                )
+        return base
     except Exception:
         return None

@@ -148,14 +148,20 @@ def build(
     *, episodes: Path, lock: dict, novelty: dict, parent_path: Path,
     head: str, split: str, cap: int, workers: int, seed: str,
     out_path: Path, open_sealed_test: bool = False,
+    expect_parent_sha256: str | None = None,
 ) -> dict:
     if not novelty.get("training_authority", {}).get(head.upper(), False):
         raise DatasetError(f"novelty audit did not authorize {head}")
     if split not in {"train", "validation"} and not (
             split == "test" and open_sealed_test):
         raise DatasetError("test split is sealed")
-    if sha256_file(parent_path) != PARENT_SHA256:
-        raise DatasetError("Qu-v2B parent drifted")
+    # The trunk is frozen for every head in this lineage, so any descendant
+    # produces byte-identical state vectors. Overriding the expected parent is
+    # therefore safe, but it must be EXPLICIT and recorded -- silently accepting
+    # any file here would let a mismatched encoder reach training unnoticed.
+    expected = expect_parent_sha256 or PARENT_SHA256
+    if sha256_file(parent_path) != expected:
+        raise DatasetError(f"parent drifted: expected {expected[:16]}")
     jobs = _select_jobs(lock, split, cap, seed)
     if not jobs:
         raise DatasetError("no selected seat games")
