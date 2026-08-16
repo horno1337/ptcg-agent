@@ -37,7 +37,18 @@ BATTLE_CAGE = 1264
 # Froslass' bench damage are the reason the card is being played at all.
 DRAGAPULT_FAMILY = frozenset({119, 120, 121})       # Dreepy, Drakloak, Dragapult ex
 FROSLASS_FAMILY = frozenset({103, 860, 104, 861})   # Snorunt, Froslass, Mega Froslass ex
-THREAT_IDS = DRAGAPULT_FAMILY | FROSLASS_FAMILY
+
+# Munkidori's Adrena-Brain moves up to 3 damage counters onto our Pokemon. That
+# is an Ability from the opponent's Pokemon placing counters on our Bench, which
+# is precisely what Battle Cage prevents, and a strong pilot on this exact list
+# plays the card against it -- only 58% of their Cage plays had a Dragapult or
+# Froslass visible at all.
+#
+# Munkidori ex (139) is deliberately NOT here. It shares the name but its
+# ability is "Oh No You Don't", a prize-denial effect that places no damage
+# counters, so Battle Cage does not answer it. Same trap as Dunsparce 65 vs 305.
+MUNKIDORI = 112
+THREAT_IDS = DRAGAPULT_FAMILY | FROSLASS_FAMILY | {MUNKIDORI}
 
 TARGET_DECK_SHA256 = (
     "4b090895e20d39512f1469048d57d4df181202c002ff5e38b98b49e9b5a838ee"

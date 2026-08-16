@@ -130,3 +130,15 @@ def test_never_raises_on_malformed_input():
         options = property(lambda self: (_ for _ in ()).throw(RuntimeError()))
     assert G.decide(Broken(), deck_for()) is None
     assert G.decide(None, deck_for()) is None
+
+
+def test_munkidori_is_a_recognised_threat_but_munkidori_ex_is_not():
+    """Adrena-Brain places counters on our Bench; Oh No You Don't does not.
+
+    Battle Cage prevents damage counters placed on Benched Pokemon by opponent
+    Abilities, so it answers Munkidori (112) and has nothing to say about
+    Munkidori ex (139) -- a shared name over two unrelated abilities.
+    """
+    from agent import alakazam_battle_cage as C
+    assert 112 in C.THREAT_IDS
+    assert 139 not in C.THREAT_IDS
