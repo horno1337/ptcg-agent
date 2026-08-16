@@ -897,13 +897,182 @@ class AlakazamGuideTune(Adapter):
                 and counts.get("route:card", 0) > 0)
 
 
+class AlakazamCageChallenger(Adapter):
+    """Exact-4b090895 registration + Battle Cage rule, versus the live agent.
+
+    This is the only experiment in this file where the two arms register
+    DIFFERENT decks, because the hypothesis is a deck-and-rule adaptation rather
+    than a policy delta. The MAIN and CARD weights are byte-identical in both
+    arms and are not retrained: 4b090895 first appears in the archive on
+    2026-08-13 and totals 132 games, so the card cannot be behaviour-cloned and
+    is expressed as a deterministic public-state guard instead.
+
+    Candidate: 4b090895 (four Battle Cage, fourth Rare Candy; no Shaymin, one
+    fewer Boss and Xerosic, no Nighttime Mine) with the guard active.
+    Control:   the confirmed live 3f451509 agent, unchanged.
+
+    Both arms face the identical Field-v3 opponent schedule, piloted by the
+    frozen packaged runtime, so the comparison is deck+rule against deck.
+    """
+
+    name = "alakazam-cage-challenger"
+    CANDIDATE = "submission-alakazam-cage-1-unsigned.tar.gz"
+    CONTROL = "submission-alakazam-august-1-unsigned.tar.gz"
+
+    def __init__(self):
+        import tarfile, tempfile, types, importlib
+        from agent.seat_policy import load_frozen_runtime
+        self.current_arm = "control"
+        self.frozen_archive = ROOT / \
+            "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+        self.frozen = load_frozen_runtime(self.frozen_archive)
+        self._arms = {}
+        for arm, name in (("control", self.CONTROL), ("candidate", self.CANDIDATE)):
+            archive = ROOT / name
+            digest = hashlib.sha256(archive.read_bytes()).hexdigest()[:16]
+            root = Path(tempfile.gettempdir()) / f"ptcg-arm-{digest}"
+            if not (root / "agent").is_dir():
+                staging = Path(tempfile.mkdtemp(prefix="ptcg-arm-staging-"))
+                with tarfile.open(archive, "r:gz") as tar:
+                    members = [m for m in tar.getmembers()
+                               if m.isfile() and not m.name.startswith("/")
+                               and ".." not in m.name and not m.issym()
+                               and not m.islnk()]
+                    tar.extractall(staging, members=members)
+                try:
+                    os.replace(staging, root)
+                except OSError:
+                    import shutil as _sh
+                    _sh.rmtree(staging, ignore_errors=True)
+                    if not (root / "agent").is_dir():
+                        raise
+            pkgname = f"_cage_arm_{arm}"
+            pkg = types.ModuleType(pkgname)
+            pkg.__path__ = [str(root / "agent")]
+            sys.modules[pkgname] = pkg
+            for absent in ("qu_v2c_canary", "grim_damage_guard",
+                           "grim_mirror_setup_guard"):
+                try:
+                    importlib.import_module(f"{pkgname}.{absent}")
+                except Exception:                            # noqa: BLE001
+                    stub = types.ModuleType(f"{pkgname}.{absent}")
+                    stub._load = lambda: None
+                    stub.decide = lambda *a, **k: None
+                    sys.modules[f"{pkgname}.{absent}"] = stub
+            try:
+                guard = importlib.import_module(f"{pkgname}.alakazam_battle_cage")
+            except Exception:                                # noqa: BLE001
+                guard = None
+            self._arms[arm] = types.SimpleNamespace(
+                root=root, archive=archive, guard=guard,
+                deck=tuple(int(x) for x in
+                           (root / "decks" / "deck.csv").read_text().split()),
+                bc=importlib.import_module(f"{pkgname}.alakazam_bc"),
+                model=importlib.import_module(f"{pkgname}.model"),
+                features=importlib.import_module(f"{pkgname}.qu_v2_features"),
+                obsview=importlib.import_module(f"{pkgname}.obsview"))
+        self.field_path = (ROOT / "tools" / "checkpoints" /
+                           "current-field-v3-20260815" / "field.json")
+        field = json.loads(self.field_path.read_text())
+        total = sum(r["field_weight"] for r in field["rows"]) or 1.0
+        self._rows = [{"opponent_key": r["archetype"],
+                       "deck": [int(c) for c in r["deck"]],
+                       "field_weight": r["field_weight"] / total}
+                      for r in field["rows"]]
+
+    def artifacts(self) -> dict[str, Path]:
+        return {"candidate_archive": ROOT / self.CANDIDATE,
+                "control_archive": ROOT / self.CONTROL,
+                "battle_cage_guard": ROOT / "agent" / "alakazam_battle_cage.py",
+                "frozen_field_pilot": self.frozen_archive,
+                "field_v3": self.field_path,
+                "driver": Path(__file__).resolve()}
+
+    def deck(self) -> tuple[int, ...]:
+        deck = self._arms[self.current_arm].deck
+        if len(deck) != 60:
+            raise GateError(f"{self.current_arm} registration is not 60 cards")
+        return deck
+
+    def build_arm(self, arm: str):
+        rt = self._arms[arm]
+        deck = rt.deck
+        net = rt.model.load()
+        ObsView = rt.obsview.ObsView
+        bc, guard, features, mdl = rt.bc, rt.guard, rt.features, rt.model
+
+        opponents, field_controller = make_packaged_opponents(
+            self._rows, self.frozen, f"{self.name}-{arm}")
+
+        class Controller:
+            name = f"{AlakazamCageChallenger.name}/{arm}"
+
+            def __init__(self):
+                from collections import Counter
+                self.counts = Counter()
+                self.exceptions = Counter()
+
+            def begin_episode(self, episode):
+                del episode
+
+            def act(self, obs):
+                self.counts["calls"] += 1
+                view = ObsView(obs)
+                # Mirrors the packaged dispatcher order: guard, head, base.
+                if guard is not None and view.select_type == 0:
+                    caged = guard.decide(view, deck)
+                    if caged is not None:
+                        self.counts["route:battle_cage"] += 1
+                        return list(caged)
+                action = bc.decide(view, deck)
+                if action is not None:
+                    self.counts["route:main" if view.select_type == 0
+                                else "route:card"] += 1
+                    return list(action)
+                sample = features.encode_public_observation(obs, deck)
+                logits, _ = net.forward(sample)
+                self.counts["route:qu_v2b"] += 1
+                return list(mdl.decode_qu_v2(
+                    logits, len(view.options), view.min_count, view.max_count))
+
+            def diagnostics(self):
+                raw = dict(bc.diagnostics())
+                return {"calls": self.counts["calls"],
+                        "counts": dict(self.counts),
+                        "exceptions": dict(self.exceptions), "fallbacks": 0,
+                        "overlay_faults": {k: v for k, v in raw.items()
+                                           if not k.startswith("route:")}}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        if not (counts.get("route:main", 0) > 0 and counts.get("route:card", 0) > 0):
+            return False
+        cage = counts.get("route:battle_cage", 0)
+        # The candidate must actually have played Battle Cage, or the gate is a
+        # clean null measuring nothing. The control has no Cage in its list and
+        # no guard module, so it must never fire one.
+        return cage > 0 if arm == "candidate" else cage == 0
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
             AlakazamAugustBoth.name: AlakazamAugustBoth,
             AlakazamAugustMain.name: AlakazamAugustMain,
             AlakazamAugustCard.name: AlakazamAugustCard,
-            AlakazamGuideTune.name: AlakazamGuideTune}
+            AlakazamGuideTune.name: AlakazamGuideTune,
+            AlakazamCageChallenger.name: AlakazamCageChallenger}
 
 
 # --------------------------------------------------------------------------
@@ -967,8 +1136,11 @@ def run_worker(spec: dict) -> dict:
     from tools.rl_env import build_paired_schedule
 
     adapter = ADAPTERS[spec["adapter"]]()
-    deck = adapter.deck()
     arm = spec["arm"]
+    # A deck-versus-deck A/B needs a per-arm registration. Existing adapters
+    # ignore this attribute and keep returning one deck.
+    adapter.current_arm = arm
+    deck = adapter.deck()
     controller, opponents, field_controller, kwargs = adapter.build_arm(arm)
     schedule = build_paired_schedule(
         opponents, spec["games"], seed=spec["seed"],

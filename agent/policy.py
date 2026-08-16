@@ -395,6 +395,22 @@ def _model_decide(view: ObsView) -> list[int] | None:
                     pass
             sample = _qu_v2_features.encode_public_observation(
                 view.obs, registration)
+            # Battle Cage guard. Runs BEFORE the learned head because it
+            # encodes a card the training corpus never contained -- the list is
+            # three days old -- so the head has no opinion worth deferring to.
+            # It is pinned to its own registration and declines on anything
+            # unrecognised, so other packages are untouched.
+            if (
+                view.select_type == ST_MAIN
+                and os.environ.get("PTCG_ALAKAZAM_BATTLE_CAGE") == "1"
+            ):
+                try:
+                    from . import alakazam_battle_cage as _alakazam_cage
+                    cage_action = _alakazam_cage.decide(view, registration)
+                    if cage_action is not None:
+                        return cage_action
+                except Exception:
+                    pass
             # Exact-Alakazam August BC specialist.  It owns ST_MAIN and
             # ST_CARD only for its own registration, verifies both artifact
             # hashes itself, and returns None on any scope/load/decode miss, so

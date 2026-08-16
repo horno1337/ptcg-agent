@@ -1,0 +1,53 @@
+{
+ "added_modules": [
+  "agent/alakazam_battle_cage.py"
+ ],
+ "archive": "submission-alakazam-cage-1-unsigned.tar.gz",
+ "archive_sha256": "3b6f4c37814baafdc59c912d16ee23bd210c2767be96e09a16ac9bf916cd1a21",
+ "members": 29,
+ "parent_sha256": "409dad4477e1ad36050c3240bfa11fcd3eea322c842eb6ccb7028ebe71afa8e4",
+ "registration_change": {
+  "added": [
+   {
+    "card_id": 1079,
+    "count": 1,
+    "name": "Rare Candy"
+   },
+   {
+    "card_id": 1264,
+    "count": 4,
+    "name": "Battle Cage"
+   }
+  ],
+  "removed": [
+   {
+    "card_id": 343,
+    "count": 1,
+    "name": "Shaymin"
+   },
+   {
+    "card_id": 1182,
+    "count": 1,
+    "name": "Boss\u2019s Orders"
+   },
+   {
+    "card_id": 1197,
+    "count": 1,
+    "name": "Xerosic\u2019s Machinations"
+   },
+   {
+    "card_id": 1266,
+    "count": 2,
+    "name": "Nighttime Mine"
+   }
+  ]
+ },
+ "registration_sha256": "4b090895e20d39512f1469048d57d4df181202c002ff5e38b98b49e9b5a838ee",
+ "retraining": false,
+ "schema": "ptcg.alakazam-cage-submission.v1",
+ "upload_authorized": false,
+ "weights_unchanged": {
+  "card": "ff1dcd7cda863bbb5e8a924fb25dc091328444823ff3962152246b9d52562157",
+  "main": "e4856bb6a021c3a4c36d6b8116d55128f0036e6361138942fd2944016708606b"
+ }
+}

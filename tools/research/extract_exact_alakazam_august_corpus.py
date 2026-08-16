@@ -32,6 +32,10 @@ from tools.il_dataset import decks_from_document  # noqa: E402
 SCHEMA = "ptcg.exact-alakazam-august-corpus.v1"
 PROGRESS_SCHEMA = "ptcg.exact-alakazam-august-progress.v1"
 ALAKAZAM_SHA256 = "3f4515092dc59df397f365a9b79c7cf0c1cb73b9aa38bc47c1b18e9df4c2fdaf"
+# Overridable so a different exact registration can be harvested without
+# editing the module. The manifest always records the hash actually used, so a
+# corpus can never be mistaken for one built from another list.
+_TARGET_SHA256 = ALAKAZAM_SHA256
 FREE_SPACE_FLOOR_BYTES = 20 * 1024 ** 3
 
 
@@ -176,7 +180,7 @@ def extract(
                     continue
                 target_seats = sorted(
                     seat for seat, deck in decks.items()
-                    if deck_sha(deck) == ALAKAZAM_SHA256
+                    if deck_sha(deck) == _TARGET_SHA256
                 )
                 if not target_seats:
                     if progress_every > 0 and position % progress_every == 0:
@@ -227,7 +231,7 @@ def extract(
     body = {
         "schema": SCHEMA,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "target_deck_sha256": ALAKAZAM_SHA256,
+        "target_deck_sha256": _TARGET_SHA256,
         "storage": "per-episode deterministic gzip, mtime=0; content hash is raw JSON",
         "archives": per_archive,
         "counters": dict(sorted(totals.items())),
@@ -249,7 +253,14 @@ def main() -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--progress", type=Path)
     parser.add_argument("--progress-every", type=int, default=250)
+    parser.add_argument("--deck-sha256", default=ALAKAZAM_SHA256,
+                        help="exact 60-card registration to harvest")
     args = parser.parse_args()
+    global _TARGET_SHA256
+    if len(args.deck_sha256) != 64 or any(
+            c not in "0123456789abcdef" for c in args.deck_sha256.lower()):
+        raise ExtractionError("--deck-sha256 must be a 64-hex digest")
+    _TARGET_SHA256 = args.deck_sha256.lower()
     progress_path = args.progress or args.manifest.with_suffix(".progress.json")
     result = extract(
         args.archives, args.out, args.manifest, progress_path,
