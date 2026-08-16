@@ -31,6 +31,10 @@ import json, sys, collections
 sys.path.insert(0, PROJECT)
 sys.path.insert(0, ".")
 from agent import policy, alakazam_bc, safety
+try:
+    from agent import alakazam_battle_cage as _cage
+except Exception:
+    _cage = None
 import os as _os
 if _os.path.dirname(_os.path.dirname(_os.path.abspath(policy.__file__))) != _os.getcwd():
     raise SystemExit("FATAL: imported the repository agent package, not the archive")
@@ -106,14 +110,20 @@ def run(root: Path, games: int, seed: int, uid: int | None) -> dict:
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--archive", type=Path, required=True)
+    p.add_argument("--expect-cage", action="store_true",
+                   help="require the Battle Cage module to be present")
     p.add_argument("--games", type=int, default=200)
     p.add_argument("--seed", type=int, default=2026081606)
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
 
+    global ARCHIVE
+    ARCHIVE = args.archive
     with tempfile.TemporaryDirectory(prefix="alakazam-smoke-") as tmp:
         root = Path(tmp)
         members = AUDIT._safe_extract(args.archive, root)
+        if args.expect_cage and "agent/alakazam_battle_cage.py" not in members:
+            raise SystemExit("archive is missing the Battle Cage guard")
         required = {"main.py", "decks/deck.csv", "agent/policy.py",
                     "agent/alakazam_bc.py", "agent/alakazam_main_weights.npz",
                     "agent/alakazam_card_weights.npz", "agent/weights.npz"}
