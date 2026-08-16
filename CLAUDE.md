@@ -18,6 +18,20 @@ This section supersedes every older active-direction statement below.
   Both were `PENDING` at the single post-upload read. Do not poll.
 - **Frozen Dobi-v2 is therefore NOT running.** Re-submitting it evicts the
   older Alakazam instance. Competition deadline is **2026-08-16 23:59 UTC**.
+- **Decision (user, 2026-08-16): keep BOTH Alakazam instances running.** The
+  pair is a same-agent control -- byte-identical archives, so any gap between
+  their ratings is ladder variance, which a single trajectory cannot separate
+  from strength. Dobi-v2 stays the emergency fallback only. Do not spend a slot
+  on it before the transfer is known. The Aug-15 archive added only 301 eligible
+  games, which does not justify another retrain.
+- Next step is **one deliberate read**, after enough games accumulate:
+  `tools/research/analyze_alakazam_probe_pair.py --out <report>`. It makes
+  exactly one ListEpisodes call per submission, then works offline. It reports
+  completion, per-instance matchup mix, and -- first -- replays every logged
+  action of our seat through the exact uploaded archive. A match rate below
+  ~98% means the ladder was not running the measured policy, and that must be
+  diagnosed before any strategy reading. Do not poll; do not re-run it as a
+  habit.
 - Receipt: `tools/checkpoints/alakazam-august-20260815/package/upload-receipt.json`.
 
 ### Exact-Alakazam August BC — CONFIRMED promotion
