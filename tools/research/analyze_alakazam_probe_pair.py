@@ -23,6 +23,18 @@ Three questions, in the order they can actually be answered:
      descriptors only. Logged actions are NOT counterfactual values: a replay
      cannot tell you what the alternative was worth. These are inspection
      leads for a future locked experiment, never runtime rules.
+
+Guide alignment is a FOURTH, separate section. It reuses the six conditions
+already defined by the training-time novelty audit, so the ladder is scored in
+the same coordinates rather than a parallel taxonomy invented here. It needs no
+additional API call -- it is a second offline pass over replays already on disk.
+
+It is deliberately walled off from the decision above. The completion and
+provenance block is finalised and self-hashed BEFORE the guide pass runs, and
+`guide_alignment` feeds no check, no `interpretable` flag and no disposition.
+The reason is not tidiness: guide agreement is imitation evidence, and this
+project has repeatedly watched imitation improve while win rate did not. It must
+never be able to rescue a failed provenance or completion reading.
 """
 from __future__ import annotations
 
@@ -88,6 +100,105 @@ def classify(deck, field_rows) -> str:
     return "other"
 
 
+GUIDE_CONDITIONS = (
+    "overdraw_at_lethal", "preserved_draw_abilities", "nighttime_mine_timing",
+    "grim_stamp_denial_exact_300", "search_targets", "boss_hammer_targeting",
+)
+# Binary guide questions -> (our-behaviour field, Qu-v2B field).
+GUIDE_BINARIES = {
+    "overdraw_at_lethal": ("expert_takes_draw_resource", "parent_takes_draw_resource"),
+    "preserved_draw_abilities": ("expert_uses_draw_ability", "parent_uses_draw_ability"),
+    "nighttime_mine_timing": ("expert_plays_mine", "parent_plays_mine"),
+    "grim_stamp_denial_exact_300": ("expert_attacks", "parent_attacks"),
+}
+
+
+def guide_alignment(owned, replay_dir: Path, field_rows) -> dict:
+    """Second offline pass: classify the six purchased-guide conditions.
+
+    Runs only after the deployment decision is finalised. `expert_*` in the
+    shared classifier means "the logged actor", which on the ladder is US, so it
+    is reported as `ours_*` here to keep that unambiguous.
+    """
+    import numpy as np
+    from agent import model, qu_v2_features as FEATURES
+    from agent.obsview import ObsView
+    from tools.research import audit_alakazam_august_novelty as AUDIT_A
+
+    weights = ROOT / "agent" / "weights.npz"
+    with np.load(weights, allow_pickle=False) as archive:
+        parent_net = model.QuV2Net(archive)
+
+    out = {}
+    for sid, name in SUBMISSIONS.items():
+        per = {c: {"occurrences": 0, "ours_true": 0, "qu_v2b_true": 0,
+                   "in_wins": 0, "in_losses": 0, "ours_true_in_wins": 0,
+                   "ours_true_in_losses": 0,
+                   "differs_from_qu_v2b": 0} for c in GUIDE_CONDITIONS}
+        choices = {c: collections.Counter() for c in
+                   ("search_targets", "boss_hammer_targeting")}
+        for eid in sorted(owned[sid]):
+            path = replay_dir / f"{eid}.json"
+            if not path.is_file():
+                continue
+            try:
+                doc = json.loads(path.read_text())
+            except ValueError:
+                continue
+            decks = decks_from_document(doc) or {}
+            seat = next((s for s, d in decks.items()
+                         if deck_sha(d) == ALAKAZAM_SHA256), None)
+            rewards = doc.get("rewards") or []
+            if seat is None or len(rewards) != 2:
+                continue
+            won = float(rewards[seat]) > 0
+            opp = decks.get(1 - seat)
+            opp_sha = deck_sha(opp) if opp else ""
+            for obs, act, _r in iter_document(doc):
+                if (obs.get("current") or {}).get("yourIndex") != seat:
+                    continue
+                if (obs.get("select") or {}).get("type", -1) not in (0, 1):
+                    continue
+                view = ObsView(obs)
+                try:
+                    encoded = FEATURES.encode_public_observation(obs, decks[seat])
+                    logits, _ = parent_net.forward(encoded)
+                    parent_act = model.decode_qu_v2(
+                        logits, len(view.options), view.min_count, view.max_count)
+                    rows = AUDIT_A._slice_rows(view, list(act), list(parent_act),
+                                               opp_sha)
+                except Exception:
+                    continue
+                for row in rows:
+                    cond = row["name"]
+                    if cond not in per:
+                        continue
+                    bucket = per[cond]
+                    bucket["occurrences"] += 1
+                    bucket["in_wins" if won else "in_losses"] += 1
+                    if row["expert_cards"] != row["parent_cards"]:
+                        bucket["differs_from_qu_v2b"] += 1
+                    fields = GUIDE_BINARIES.get(cond)
+                    if fields:
+                        ours, theirs = row.get(fields[0]), row.get(fields[1])
+                        bucket["ours_true"] += bool(ours)
+                        bucket["qu_v2b_true"] += bool(theirs)
+                        if ours:
+                            bucket["ours_true_in_wins" if won
+                                   else "ours_true_in_losses"] += 1
+                    if cond in choices:
+                        choices[cond][tuple(row["expert_cards"])] += 1
+        for cond, bucket in per.items():
+            n = bucket["occurrences"]
+            bucket["ours_rate"] = (bucket["ours_true"] / n) if n and cond in GUIDE_BINARIES else None
+            bucket["qu_v2b_rate"] = (bucket["qu_v2b_true"] / n) if n and cond in GUIDE_BINARIES else None
+        out[name] = {"conditions": per,
+                     "top_choices": {c: [{"cards": list(k), "n": v}
+                                         for k, v in choices[c].most_common(8)]
+                                     for c in choices}}
+    return out
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--out", type=Path, required=True)
@@ -97,6 +208,8 @@ def main() -> int:
                    help="skip the network entirely and use replays already on disk")
     p.add_argument("--min-games", type=int, default=40,
                    help="below this the read is reported but not interpreted")
+    p.add_argument("--no-guide", action="store_true",
+                   help="skip the separate guide-alignment pass")
     args = p.parse_args()
 
     import hashlib
@@ -232,6 +345,22 @@ def main() -> int:
             "A replay cannot price the alternative that was not taken.",
         ],
     }
+    # Freeze and self-hash the deployment decision BEFORE the guide pass, so
+    # the guide section demonstrably cannot have influenced it.
+    import hashlib as _h
+    result["decision_block_sha256"] = _h.sha256(json.dumps(
+        {k: result[k] for k in ("instances", "combined_resolved_games",
+                                "interpretable")},
+        sort_keys=True).encode()).hexdigest()
+    if not args.no_guide:
+        result["guide_alignment"] = {
+            "role": ("DIAGNOSTIC ONLY -- imitation evidence. Feeds no check, no "
+                     "interpretable flag and no disposition, and is computed "
+                     "after decision_block_sha256 is fixed."),
+            "conditions_source": "tools/research/audit_alakazam_august_novelty.py",
+            "api_calls": 0,
+            "instances": guide_alignment(owned, args.replay_dir, field),
+        }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=1, sort_keys=True) + "\n")
 
@@ -247,6 +376,17 @@ def main() -> int:
               f"  declined {r['provenance']['overlay_declined']}")
         for k, v in list(r["matchup_mix"].items())[:8]:
             print(f"    {k:<20} {v['games']:>4} games  {v['win_rate']:.1%}")
+    if "guide_alignment" in result:
+        print("\n--- guide alignment (DIAGNOSTIC ONLY, not part of the decision) ---")
+        for name, g in result["guide_alignment"]["instances"].items():
+            print(f"  {name}")
+            for cond, b in g["conditions"].items():
+                if not b["occurrences"]:
+                    continue
+                rate = ("" if b["ours_rate"] is None
+                        else f"  ours {b['ours_rate']:.1%} vs Qu-v2B {b['qu_v2b_rate']:.1%}")
+                print(f"    {cond:<28} n={b['occurrences']:<5}"
+                      f" differs {b['differs_from_qu_v2b']:<5}{rate}")
     return 0
 
 

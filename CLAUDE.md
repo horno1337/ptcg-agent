@@ -32,6 +32,24 @@ This section supersedes every older active-direction statement below.
   ~98% means the ladder was not running the measured policy, and that must be
   diagnosed before any strategy reading. Do not poll; do not re-run it as a
   habit.
+- The same command also runs a **separate guide-alignment pass** over the
+  replays already on disk, at zero additional API cost. It classifies the six
+  purchased-guide conditions using the SAME definitions as the training-time
+  novelty audit (`overdraw_at_lethal`, `preserved_draw_abilities`,
+  `nighttime_mine_timing`, `grim_stamp_denial_exact_300`, `search_targets`,
+  `boss_hammer_targeting`), so ladder and corpus are scored in one coordinate
+  system.
+- That section is walled off on purpose. `decision_block_sha256` is computed
+  over completion/provenance BEFORE the guide pass runs, and `guide_alignment`
+  feeds no check, no `interpretable` flag and no disposition. Guide agreement is
+  imitation evidence, and imitation has repeatedly improved here while win rate
+  did not; it must never be able to rescue a failed provenance or completion
+  reading. `--no-guide` skips it entirely.
+- Validated before the live read on 24 real exact-Alakazam replays: all six
+  conditions fire, and the decision hash is unchanged when the guide section is
+  deleted. Note the provenance number in that validation is meaningless by
+  construction -- those are human expert replays, so the ~73-75% is imitation
+  agreement, not a deployment fault. On the real read it should be ~99%+.
 - Receipt: `tools/checkpoints/alakazam-august-20260815/package/upload-receipt.json`.
 
 ### Exact-Alakazam August BC — CONFIRMED promotion
