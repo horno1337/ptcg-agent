@@ -751,12 +751,159 @@ class AlakazamAugustCard(_AlakazamAugustBC):
     HEADS = ("card",)
 
 
+class AlakazamGuideTune(Adapter):
+    """Guide-nudged MAIN head versus the CURRENTLY LIVE Alakazam agent.
+
+    Both arms are whole submission archives that differ in exactly one file --
+    `agent/alakazam_main_weights.npz` and the hash its module pins. CARD, the
+    backbone, the registration, the engine and the dispatcher are byte identical
+    between the arms, so this isolates the fine-tune rather than the harness.
+
+    The control is deliberately the live agent, not Qu-v2B: the question is
+    whether the nudge improves on a policy that has ALREADY passed its gate.
+    Measuring against Qu-v2B again would re-credit the improvement that is
+    already deployed.
+    """
+
+    name = "alakazam-guide-tune"
+    LIVE = "submission-alakazam-august-1-unsigned.tar.gz"
+    TUNED = "submission-alakazam-guide-1-unsigned.tar.gz"
+
+    def __init__(self):
+        import tarfile, tempfile, types, importlib
+        from agent.seat_policy import load_frozen_runtime
+        self.frozen_archive = ROOT / \
+            "submission-dobi-v1-elite-teacher-card-v1-unsigned.tar.gz"
+        self.frozen = load_frozen_runtime(self.frozen_archive)
+        self._arms = {}
+        for arm, name in (("control", self.LIVE), ("candidate", self.TUNED)):
+            # Hash-keyed and SHARED across processes. A per-instantiation
+            # mkdtemp leaks one tree per arm-shard; at 8,192 games that is 64
+            # trees, which is what exhausted /tmp and killed the first attempt.
+            digest = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()[:16]
+            root = Path(tempfile.gettempdir()) / f"ptcg-arm-{digest}"
+            if not (root / "agent").is_dir():
+                staging = Path(tempfile.mkdtemp(prefix="ptcg-arm-staging-"))
+                with tarfile.open(ROOT / name, "r:gz") as tar:
+                    members = [m for m in tar.getmembers()
+                               if m.isfile() and not m.name.startswith("/")
+                               and ".." not in m.name and not m.issym()
+                               and not m.islnk()]
+                    tar.extractall(staging, members=members)
+                try:
+                    os.replace(staging, root)        # atomic; loser discards
+                except OSError:
+                    import shutil as _sh
+                    _sh.rmtree(staging, ignore_errors=True)
+                    if not (root / "agent").is_dir():
+                        raise
+            pkgname = f"_alak_arm_{arm}"
+            pkg = types.ModuleType(pkgname)
+            pkg.__path__ = [str(root / "agent")]
+            sys.modules[pkgname] = pkg
+            for absent in ("qu_v2c_canary", "grim_damage_guard",
+                           "grim_mirror_setup_guard"):
+                try:
+                    importlib.import_module(f"{pkgname}.{absent}")
+                except Exception:                            # noqa: BLE001
+                    stub = types.ModuleType(f"{pkgname}.{absent}")
+                    stub._load = lambda: None
+                    stub.decide = lambda *a, **k: None
+                    sys.modules[f"{pkgname}.{absent}"] = stub
+            self._arms[arm] = types.SimpleNamespace(
+                root=root, archive=ROOT / name,
+                bc=importlib.import_module(f"{pkgname}.alakazam_bc"),
+                model=importlib.import_module(f"{pkgname}.model"),
+                features=importlib.import_module(f"{pkgname}.qu_v2_features"),
+                obsview=importlib.import_module(f"{pkgname}.obsview"))
+        self.field_path = (ROOT / "tools" / "checkpoints" /
+                           "current-field-v3-20260815" / "field.json")
+        field = json.loads(self.field_path.read_text())
+        total = sum(r["field_weight"] for r in field["rows"]) or 1.0
+        self._rows = [{"opponent_key": r["archetype"],
+                       "deck": [int(c) for c in r["deck"]],
+                       "field_weight": r["field_weight"] / total}
+                      for r in field["rows"]]
+
+    def artifacts(self) -> dict[str, Path]:
+        return {"live_archive": ROOT / self.LIVE,
+                "tuned_archive": ROOT / self.TUNED,
+                "frozen_field_pilot": self.frozen_archive,
+                "field_v3": self.field_path,
+                "driver": Path(__file__).resolve()}
+
+    def deck(self) -> tuple[int, ...]:
+        return tuple(self._arms["control"].bc.TARGET_DECK)
+
+    def build_arm(self, arm: str):
+        rt = self._arms[arm]
+        deck = self.deck()
+        net = rt.model.load()
+        ObsView = rt.obsview.ObsView
+        bc, features, mdl = rt.bc, rt.features, rt.model
+        opponents, field_controller = make_packaged_opponents(
+            self._rows, self.frozen, f"{self.name}-{arm}")
+
+        class Controller:
+            name = f"{AlakazamGuideTune.name}/{arm}"
+
+            def __init__(self):
+                from collections import Counter
+                self.counts = Counter()
+                self.exceptions = Counter()
+
+            def begin_episode(self, episode):
+                del episode
+
+            def act(self, obs):
+                self.counts["calls"] += 1
+                view = ObsView(obs)
+                action = bc.decide(view, deck)
+                if action is not None:
+                    self.counts["route:main" if view.select_type == 0
+                                else "route:card"] += 1
+                    return list(action)
+                sample = features.encode_public_observation(obs, deck)
+                logits, _ = net.forward(sample)
+                self.counts["route:qu_v2b"] += 1
+                return list(mdl.decode_qu_v2(
+                    logits, len(view.options), view.min_count, view.max_count))
+
+            def diagnostics(self):
+                raw = dict(bc.diagnostics())
+                return {"calls": self.counts["calls"],
+                        "counts": dict(self.counts),
+                        "exceptions": dict(self.exceptions), "fallbacks": 0,
+                        "overlay_faults": {k: v for k, v in raw.items()
+                                           if not k.startswith("route:")}}
+
+        return Controller(), opponents, field_controller, {
+            "max_selects": 5000, "time_bank_s": 600.0,
+        }
+
+    def arm_valid(self, arm, learner_diag, field_diag) -> bool:
+        if learner_diag.get("exceptions") or learner_diag.get("overlay_faults"):
+            return False
+        if not (field_diag.get("packaged_runtime")
+                and field_diag.get("calls", 0) > 0
+                and field_diag.get("fallbacks", 0) == 0
+                and not field_diag.get("exceptions")):
+            return False
+        counts = learner_diag.get("counts", {})
+        # BOTH arms are specialists here, so both must answer through both
+        # heads. A hash mismatch fails closed to Qu-v2B and would quietly turn
+        # this into a comparison against the wrong control.
+        return (counts.get("route:main", 0) > 0
+                and counts.get("route:card", 0) > 0)
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
             AlakazamAugustBoth.name: AlakazamAugustBoth,
             AlakazamAugustMain.name: AlakazamAugustMain,
-            AlakazamAugustCard.name: AlakazamAugustCard}
+            AlakazamAugustCard.name: AlakazamAugustCard,
+            AlakazamGuideTune.name: AlakazamGuideTune}
 
 
 # --------------------------------------------------------------------------
