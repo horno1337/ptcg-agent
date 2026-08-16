@@ -45,6 +45,15 @@ This section supersedes every older active-direction statement below.
   imitation evidence, and imitation has repeatedly improved here while win rate
   did not; it must never be able to rescue a failed provenance or completion
   reading. `--no-guide` skips it entirely.
+- Rare slices report counts but no rate. A guide rate is rendered only above
+  BOTH floors: 30 occurrences and 8 distinct episodes. Occurrences alone are not
+  enough because decisions inside one game are correlated, so a condition firing
+  forty times across two games is two observations wearing a large n.
+  `grim_stamp_denial_exact_300` is the sharp case -- an exact board signature
+  that legitimately appears a handful of times per cohort; it emits
+  `underpowered: true`, a null rate, and "draw no conclusion". `search_targets`
+  and `boss_hammer_targeting` are choice distributions, not binaries, so they
+  never carry a rate at all and are read from `top_choices`.
 - Validated before the live read on 24 real exact-Alakazam replays: all six
   conditions fire, and the decision hash is unchanged when the guide section is
   deleted. Note the provenance number in that validation is meaningless by

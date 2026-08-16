@@ -105,6 +105,14 @@ GUIDE_CONDITIONS = (
     "grim_stamp_denial_exact_300", "search_targets", "boss_hammer_targeting",
 )
 # Binary guide questions -> (our-behaviour field, Qu-v2B field).
+# A guide slice must clear BOTH floors before a rate is rendered at all.
+# Occurrences alone are not enough: decisions inside one game are correlated, so
+# a condition that fires forty times in two games is two observations wearing a
+# large n. grim_stamp_denial_exact_300 is the sharp case -- it is an exact
+# board signature and legitimately appears a handful of times in a cohort.
+GUIDE_MIN_OCCURRENCES = 30
+GUIDE_MIN_EPISODES = 8
+
 GUIDE_BINARIES = {
     "overdraw_at_lethal": ("expert_takes_draw_resource", "parent_takes_draw_resource"),
     "preserved_draw_abilities": ("expert_uses_draw_ability", "parent_uses_draw_ability"),
@@ -135,6 +143,7 @@ def guide_alignment(owned, replay_dir: Path, field_rows) -> dict:
                    "in_wins": 0, "in_losses": 0, "ours_true_in_wins": 0,
                    "ours_true_in_losses": 0,
                    "differs_from_qu_v2b": 0} for c in GUIDE_CONDITIONS}
+        cond_episodes = {c: set() for c in GUIDE_CONDITIONS}
         choices = {c: collections.Counter() for c in
                    ("search_targets", "boss_hammer_targeting")}
         for eid in sorted(owned[sid]):
@@ -175,6 +184,7 @@ def guide_alignment(owned, replay_dir: Path, field_rows) -> dict:
                         continue
                     bucket = per[cond]
                     bucket["occurrences"] += 1
+                    cond_episodes[cond].add(eid)
                     bucket["in_wins" if won else "in_losses"] += 1
                     if row["expert_cards"] != row["parent_cards"]:
                         bucket["differs_from_qu_v2b"] += 1
@@ -190,8 +200,32 @@ def guide_alignment(owned, replay_dir: Path, field_rows) -> dict:
                         choices[cond][tuple(row["expert_cards"])] += 1
         for cond, bucket in per.items():
             n = bucket["occurrences"]
-            bucket["ours_rate"] = (bucket["ours_true"] / n) if n and cond in GUIDE_BINARIES else None
-            bucket["qu_v2b_rate"] = (bucket["qu_v2b_true"] / n) if n and cond in GUIDE_BINARIES else None
+            episodes = len(cond_episodes[cond])
+            bucket["distinct_episodes"] = episodes
+            underpowered = (n < GUIDE_MIN_OCCURRENCES
+                            or episodes < GUIDE_MIN_EPISODES)
+            bucket["underpowered"] = bool(n) and underpowered
+            bucket["ours_rate"] = bucket["qu_v2b_rate"] = None
+            if not n:
+                bucket["interpretation"] = "not observed"
+            elif cond not in GUIDE_BINARIES:
+                # Not a binary question: the guide cares WHICH target was
+                # chosen, so the distribution lives in top_choices and no rate
+                # is meaningful here.
+                bucket["interpretation"] = (
+                    "choice distribution -- see top_choices, no rate applies")
+            elif underpowered:
+                # Counts are still recorded; a rate is deliberately withheld so
+                # a tiny sample cannot be quoted as a behavioural finding.
+                bucket["interpretation"] = (
+                    "counts only -- below the reporting floor "
+                    f"({GUIDE_MIN_OCCURRENCES} occurrences and "
+                    f"{GUIDE_MIN_EPISODES} distinct episodes); draw no "
+                    "conclusion")
+            else:
+                bucket["ours_rate"] = bucket["ours_true"] / n
+                bucket["qu_v2b_rate"] = bucket["qu_v2b_true"] / n
+                bucket["interpretation"] = "rate reported"
         out[name] = {"conditions": per,
                      "top_choices": {c: [{"cards": list(k), "n": v}
                                          for k, v in choices[c].most_common(8)]
@@ -359,6 +393,9 @@ def main() -> int:
                      "after decision_block_sha256 is fixed."),
             "conditions_source": "tools/research/audit_alakazam_august_novelty.py",
             "api_calls": 0,
+            "reporting_floor": {"min_occurrences": GUIDE_MIN_OCCURRENCES,
+                                "min_distinct_episodes": GUIDE_MIN_EPISODES,
+                                "below_floor": "counts reported, rate withheld"},
             "instances": guide_alignment(owned, args.replay_dir, field),
         }
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -383,9 +420,15 @@ def main() -> int:
             for cond, b in g["conditions"].items():
                 if not b["occurrences"]:
                     continue
-                rate = ("" if b["ours_rate"] is None
-                        else f"  ours {b['ours_rate']:.1%} vs Qu-v2B {b['qu_v2b_rate']:.1%}")
+                if b["ours_rate"] is None:
+                    rate = ("  [choice distribution -- see top_choices]"
+                            if cond not in GUIDE_BINARIES
+                            else "  [counts only -- below reporting floor]")
+                else:
+                    rate = (f"  ours {b['ours_rate']:.1%}"
+                            f" vs Qu-v2B {b['qu_v2b_rate']:.1%}")
                 print(f"    {cond:<28} n={b['occurrences']:<5}"
+                      f" ep={b['distinct_episodes']:<4}"
                       f" differs {b['differs_from_qu_v2b']:<5}{rate}")
     return 0
 
