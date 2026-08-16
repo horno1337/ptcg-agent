@@ -1459,6 +1459,43 @@ class AlakazamVersusDragapultV2(_AlakazamVersusExternal):
             "_dragapult_opp")
 
 
+class _AlakazamVersusMD(_AlakazamVersusExternal):
+    """Same Grimmsnarl list as frozen Dobi-v2, DIFFERENT policy.
+
+    This is the experiment that separates the two explanations for the
+    opponent-dependent result. `c20a8a46` is Marnie's Grimmsnarl ex + Munkidori
+    + Froslass -- the archetype that dominates the ladder, and the one holding
+    both cards Battle Cage answers. Frozen Dobi-v2 pilots it, and so do the MD
+    agents, with different heads.
+
+      gain HOLDS here  -> the +4.96 pp is about the Grimmsnarl MATCHUP, and the
+                          Dobi-v2 result is archetype headroom, not fitting.
+      gain COLLAPSES   -> it is specific to the Dobi-v2 POLICY, i.e. selection
+                          effect, exactly as suspected.
+    """
+
+    ARCHIVE = ""
+    PACKAGE = ""
+
+    def _opponent(self):
+        from tools.research.external_opponents import load_packaged_agent
+        return load_packaged_agent(ROOT / self.ARCHIVE, self.PACKAGE)
+
+
+class AlakazamVersusMDv3(_AlakazamVersusMD):
+    name = "alakazam-vs-md-v3"
+    OPPONENT_KEY = "md-v3"
+    ARCHIVE = "submission-md-v3-damage-guard-canary-unsigned.tar.gz"
+    PACKAGE = "_md_v3_opp"
+
+
+class AlakazamVersusMDv4(_AlakazamVersusMD):
+    name = "alakazam-vs-md-v4"
+    OPPONENT_KEY = "md-v4"
+    ARCHIVE = "submission-md-v4-experimental-unsigned.tar.gz"
+    PACKAGE = "_md_v4_opp"
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1473,7 +1510,9 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamMunkidoriChallenger.name: AlakazamMunkidoriChallenger,
             AlakazamVersusDobiV2.name: AlakazamVersusDobiV2,
             AlakazamVersusRuleLucario.name: AlakazamVersusRuleLucario,
-            AlakazamVersusDragapultV2.name: AlakazamVersusDragapultV2}
+            AlakazamVersusDragapultV2.name: AlakazamVersusDragapultV2,
+            AlakazamVersusMDv3.name: AlakazamVersusMDv3,
+            AlakazamVersusMDv4.name: AlakazamVersusMDv4}
 
 
 # --------------------------------------------------------------------------
