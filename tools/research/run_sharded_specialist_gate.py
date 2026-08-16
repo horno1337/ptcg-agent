@@ -1331,6 +1331,38 @@ class AlakazamMunkidoriChallenger(AlakazamDeckoutChallenger):
                 and counts.get("route:battle_cage", 0) > 0)
 
 
+class AlakazamVersusDobiV2(AlakazamMunkidoriChallenger):
+    """Head-to-head against the frozen Dobi-v2 fallback, not against the field.
+
+    Every other adapter here scores two arms on a shared Field-v3 schedule.
+    This one replaces the schedule with a SINGLE opponent -- frozen Dobi-v2
+    (`409dad44...`) piloting its own `c20a8a46` registration -- so the number
+    produced is literally "how often does this package beat the emergency
+    fallback".
+
+    That matchup is not academic: the live Cage agent is 1-3 against
+    `c20a8a46` decks in its recent ladder games.
+
+    Candidate is the fully guarded package; control is the archive currently ON
+    the ladder, so the gap is the whole day's work measured in one number.
+    """
+
+    name = "alakazam-vs-dobi-v2"
+    CANDIDATE = "submission-alakazam-munki-1-unsigned.tar.gz"
+    CONTROL = "submission-alakazam-cage-1-unsigned.tar.gz"
+
+    def __init__(self):
+        super().__init__()
+        import tarfile
+        with tarfile.open(self.frozen_archive) as tar:
+            raw = tar.extractfile("decks/deck.csv").read().decode()
+        cards = [int(x) for x in raw.split() if x.strip()]
+        if len(cards) != 60:
+            raise GateError("frozen Dobi-v2 registration is not 60 cards")
+        self._rows = [{"opponent_key": "dobi-v2-frozen", "deck": cards,
+                       "field_weight": 1.0}]
+
+
 ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             TurnSearchCurrentField.name: TurnSearchCurrentField,
             GrimCurrentMetaBC.name: GrimCurrentMetaBC,
@@ -1342,7 +1374,8 @@ ADAPTERS = {LucarioNeuralV2.name: LucarioNeuralV2,
             AlakazamPilotFineTune.name: AlakazamPilotFineTune,
             AlakazamGuardedChallenger.name: AlakazamGuardedChallenger,
             AlakazamDeckoutChallenger.name: AlakazamDeckoutChallenger,
-            AlakazamMunkidoriChallenger.name: AlakazamMunkidoriChallenger}
+            AlakazamMunkidoriChallenger.name: AlakazamMunkidoriChallenger,
+            AlakazamVersusDobiV2.name: AlakazamVersusDobiV2}
 
 
 # --------------------------------------------------------------------------
