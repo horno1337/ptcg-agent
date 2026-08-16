@@ -72,6 +72,10 @@ def main() -> int:
     p.add_argument("--report", type=Path, required=True,
                    help="behaviour report carrying the added/removed deck diff")
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--main-weights-sha256", default=None,
+                   help="accept a RETRAINED MAIN head with this hash instead of "
+                        "the confirmed one. Opt-in and recorded; omitting it "
+                        "keeps the confirmed-weights build byte-identical.")
     args = p.parse_args()
 
     parent_bytes = PARENT_ARCHIVE.read_bytes()
@@ -110,9 +114,17 @@ def main() -> int:
     src = re.sub(r"TARGET_DECK = \((?:.|\n)*?\n\)", body, src, count=1)
     src = src.replace(BASE.TARGET_DECK_SHA256, target)
     main_b, card_b = args.main_weights.read_bytes(), args.card_weights.read_bytes()
-    if sha_bytes(main_b) != BASE.MAIN_WEIGHTS_SHA256 or \
-            sha_bytes(card_b) != BASE.CARD_WEIGHTS_SHA256:
-        raise SystemExit("weights are not the CONFIRMED heads")
+    expect_main = args.main_weights_sha256 or BASE.MAIN_WEIGHTS_SHA256
+    if sha_bytes(main_b) != expect_main:
+        raise SystemExit("MAIN weights do not match the expected hash")
+    if sha_bytes(card_b) != BASE.CARD_WEIGHTS_SHA256:
+        raise SystemExit("CARD weights are not the CONFIRMED head")
+    if expect_main != BASE.MAIN_WEIGHTS_SHA256:
+        # The runtime verifies its own weight hashes, so a retrained MAIN has to
+        # be re-pinned in the PACKAGED source or the overlay fails soft to rules.
+        src = src.replace(BASE.MAIN_WEIGHTS_SHA256, expect_main)
+        if expect_main not in src:
+            raise SystemExit("failed to re-pin MAIN weights hash in the package")
 
     members["decks/deck.csv"] = ("\n".join(str(c) for c in cards) + "\n").encode()
     members["agent/alakazam_bc.py"] = src.encode("utf-8")
@@ -149,8 +161,9 @@ def main() -> int:
         "registration_sha256": target,
         "registration_change": {"added": diff["added_vs_ours"],
                                 "removed": diff["removed_vs_ours"]},
-        "weights_unchanged": {"main": sha_bytes(main_b), "card": sha_bytes(card_b)},
-        "retraining": False,
+        "weights": {"main": sha_bytes(main_b), "card": sha_bytes(card_b)},
+        "retraining": {"main": sha_bytes(main_b) != BASE.MAIN_WEIGHTS_SHA256,
+                       "card": False},
         "added_modules": ["agent/alakazam_battle_cage.py"],
         "members": len(members), "upload_authorized": False,
     }
