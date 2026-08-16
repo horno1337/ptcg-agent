@@ -90,6 +90,38 @@ This section supersedes every older active-direction statement below.
   to fire through the PACKAGED dispatcher both as owner (4,129 MAIN / 2,400
   CARD) and as a non-owner UID (141 / 90).
 
+### Exact-4b090895 Alakazam + Battle Cage — CONFIRMED but HELD
+
+- Battle Cage is recent counter-tech. Census over 15 August archives:
+  `4b090895` is ABSENT from Aug 1-12 and appears only Aug 13 (63), 14 (19),
+  15 (50) -- 132 games total, versus 13,380 for our live `3f451509`. Historical
+  absence is evidence the archive predates the tech, NOT evidence against the
+  card; a card that did not exist when the corpus was recorded cannot be
+  behaviour-cloned from it. Census:
+  `tools/checkpoints/alakazam-variant-census-20260816/census.json`.
+- The challenger is a deck rebind plus ONE deterministic public-state guard,
+  with the confirmed MAIN/CARD weights reused byte-identically and NO
+  retraining. Guard: play Battle Cage at the first legal opportunity when the
+  opponent publicly shows Dreepy/Drakloak/Dragapult or Snorunt/Froslass, never
+  when it is already the Stadium, and never when spending the card would drop us
+  out of an immediate Powerful Hand knockout (Powerful Hand scales with hand
+  size, so playing any card costs 20 damage).
+- **Gate passed every preregistered criterion: +6.99 pp, CI95 [+5.73,+8.25],
+  8,192 games/arm, zero faults**, guard firing in the candidate only, both heads
+  answering in both arms. Archive `3b6f4c37...`, deterministic rebuild, 200-game
+  smoke clean, dispatcher wiring proven by sentinel.
+- **Attribution is not the hypothesis.** The guard fires on 2.1% of MAIN
+  decisions, yet the largest slice is Grimmsnarl +27.85 pp where the guard never
+  fires -- Battle Cage blocks bench damage counters, answering Munkidori/Shadow
+  Bullet, and the head plays the card unaided once it is in the list. Dragapult,
+  the stated target, is +12.47 pp. The Alakazam mirror REGRESSES -6.00 pp,
+  CI95 [-9.85,-2.15].
+- **User decision 2026-08-16: HOLD. Not uploaded.** Both slots stay on the
+  confirmed `3f451509` agent. Uploading would evict a confirmed instance and
+  forfeit the duplicate sampling that separates ladder variance from strength,
+  before the pair has produced its single deliberate replay read. The package is
+  validated and one command from upload if that is revisited.
+
 ### Alakazam MAIN guide fine-tune — REJECTED, discarded
 
 - The final authorized improvement attempt. Initialized from and KL-anchored to
