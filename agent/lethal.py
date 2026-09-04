@@ -12,7 +12,7 @@ false KO would misplay, so we bias hard toward not-claiming).
 
 import math
 
-from .obsview import ObsView, ST_ATTACK, ST_MAIN, OT_ATTACK
+from .obsview import ObsView, ST_ATTACK, OT_ATTACK
 
 POWERFUL_HAND = 1072
 DMG_PER_CARD = 20                 # 2 damage counters per card in hand

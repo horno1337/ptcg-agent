@@ -23,8 +23,10 @@ this repository** — see [The engine boundary](#the-engine-boundary) below.
 - [Packaging and reproducibility](#packaging-and-reproducibility)
 - [The engine boundary](#the-engine-boundary)
 - [Repository layout](#repository-layout)
+- [Environment](#environment)
 - [Running it locally](#running-it-locally)
 - [What worked, what didn't](#what-worked-what-didnt)
+- [License](#license)
 
 ## Architecture
 
@@ -307,24 +309,54 @@ tools/                    training, packaging and evaluation
   build_submission.py                             packages the tarball, injects the engine binary
   audit_submission_runtime.py                      exact-archive, non-owner provenance audit
   research/                                        per-experiment gates, analyses and post-mortems
-  checkpoints/                                      evidence trees for shipped/confirmed decisions
+  checkpoints/                                      evidence trees for shipped decisions — gitignored, local-only, NOT in the repo
 tests/                    ~140 files; test_safety.py must stay green for any agent/ change
 docs/research-log.md      the original, chronological research log and post-mortems
+docs/submissions/         manifest records of the packaged submission builds
 CLAUDE.md                 the maintainer's running cycle-by-cycle handoff notes
+LICENSE                   MIT
 ```
+
+The submission tarballs, the local `tools/checkpoints/` evidence trees, and
+the rolling `agent/weights.npz` are gitignored and do not ship with a normal
+clone; only the small, hash-pinned specialist weights the agent loads at
+runtime (`agent/*_weights.npz`) are tracked. Transfer the exact archives and
+checkpoints separately if byte-for-byte reproduction of a historical build is
+needed.
+
+## Environment
+
+The project deliberately spans three environments, in increasing order of
+what they require:
+
+| Environment | Needs | Used for |
+| --- | --- | --- |
+| **Submission runtime** | NumPy only (Python 3.10+) | what actually runs on the ladder; never imports Torch or the local engine |
+| **Local evaluation** | `pip install -r requirements.txt` (NumPy + `kaggle-environments`) plus the compiled engine (`tools/build_engine.sh`) | running games locally, packaging, regenerating `data/` |
+| **Training / gates** | a separate PyTorch + CUDA virtualenv (machine- and GPU-specific, intentionally unpinned) | behavior cloning, league PPO, specialist fine-tuning |
+
+The runtime is deliberately dependency-light so the submission can never fail
+to import on the competition host. `requirements.txt` documents the local
+evaluation environment; the training environment is described in `CLAUDE.md`
+and is not reproducible from this repository alone (it needs the private
+engine and locally-downloaded replays).
 
 ## Running it locally
 
-The submission itself only needs NumPy at runtime (no Torch, no engine
-binary). Training and the field gates run in a separate environment with
-Torch and the compiled engine available.
-
 ```bash
-python tests/test_safety.py            # legality fuzz — no engine build needed
+pip install -r requirements.txt        # NumPy + kaggle-environments (local eval)
+
+python tests/test_safety.py            # legality fuzz — the one check that needs NO engine build
 tools/build_engine.sh                  # compile the private engine (ENGINE_SRC overrides)
 python tools/eval.py 30 random         # rules-agent smoke test, needs the engine build
 python tools/build_submission.py       # package submission.tar.gz (injects cg/libcg.so)
 ```
+
+`tests/test_safety.py` is the portable smoke test — it runs on a clean clone
+with nothing but NumPy. The broader `tests/` suite needs the private engine
+(and, for a handful of historical gate harnesses, local evidence under
+`tools/checkpoints/` that is intentionally not committed — see below), so it is
+not expected to pass end-to-end from a bare clone.
 
 ## What worked, what didn't
 
@@ -362,3 +394,12 @@ The short version of a much longer story:
 The full, chronological version — every experiment, gate result, and dead
 end, including the ones this summary skips — is in
 [`docs/research-log.md`](docs/research-log.md).
+
+## License
+
+Released under the [MIT License](LICENSE). The Pokémon TCG rules engine and
+the competition's sample bundles are **not** part of this repository and are
+not covered by this license — see [The engine boundary](#the-engine-boundary).
+Pokémon and Pokémon TCG are trademarks of Nintendo / Creatures Inc. / GAME
+FREAK inc.; this is an independent, non-commercial research project with no
+affiliation.

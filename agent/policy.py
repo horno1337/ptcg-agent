@@ -26,15 +26,15 @@ import os
 from . import cards
 from .obsview import (
     ObsView,
-    OT_ABILITY, OT_ATTACH, OT_ATTACK, OT_CARD, OT_END, OT_EVOLVE, OT_NO,
-    OT_NUMBER, OT_PLAY, OT_RETREAT, OT_YES,
+    OT_ABILITY, OT_ATTACH, OT_ATTACK, OT_END, OT_EVOLVE, OT_NO,
+    OT_PLAY, OT_RETREAT, OT_YES,
     ST_ATTACK, ST_CARD, ST_COUNT, ST_EVOLVE, ST_MAIN, ST_YES_NO,
     CTX_SETUP_ACTIVE, CTX_SETUP_BENCH, CTX_DAMAGE, CTX_EFFECT_TARGET,
-    CTX_HEAL, CTX_DISCARD, CTX_MULLIGAN, CTX_IS_FIRST, CTX_COIN_HEAD,
-    CTX_ACTIVATE, CTX_TO_HAND, CTX_TO_BENCH, CTX_TO_FIELD,
+    CTX_HEAL, CTX_DISCARD, CTX_MULLIGAN, CTX_IS_FIRST,
+    CTX_ACTIVATE, CTX_TO_HAND, CTX_TO_FIELD,
     CTX_SWITCH, CTX_TO_ACTIVE, CTX_DAMAGE_COUNTER, CTX_DAMAGE_COUNTER_ANY,
     CTX_DRAW_COUNT,
-    AREA_ACTIVE, AREA_BENCH, AREA_HAND,
+    AREA_ACTIVE, AREA_BENCH,
 )
 
 # ---------------------------------------------------------------------------
@@ -100,7 +100,6 @@ def _can_spend(view: ObsView, n: int) -> bool:
 
 def load_deck() -> list[int]:
     """Deck shipped with the submission. Falls back to the known-valid sample."""
-    import os
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "decks", "deck.csv")
     try:
         with open(path) as f:

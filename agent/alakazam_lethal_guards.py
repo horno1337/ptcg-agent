@@ -44,7 +44,7 @@ from typing import Sequence
 from . import cards, lethal
 from .obsview import (
     AREA_BENCH, AREA_HAND, CTX_ACTIVATE, OT_ABILITY, OT_ATTACH, OT_ATTACK,
-    OT_DISCARD, OT_END, OT_EVOLVE, OT_NO, OT_PLAY, OT_YES, ST_MAIN, ST_YES_NO,
+    OT_DISCARD, OT_END, OT_EVOLVE, OT_NO, OT_PLAY, ST_MAIN, ST_YES_NO,
     ObsView,
 )
 

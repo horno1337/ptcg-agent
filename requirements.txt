@@ -1,2 +1,12 @@
+# Local development / evaluation environment.
+#
+# The submitted agent needs only NumPy at runtime -- it never imports Torch or
+# kaggle-environments; the card data is dumped and the engine binary injected
+# at packaging time. kaggle-environments is used for LOCAL evaluation and for
+# regenerating data/ via tools/dump_cards.py.
+#
+# Model training runs in a SEPARATE PyTorch + CUDA environment that is machine-
+# and GPU-specific and is intentionally not pinned here. See the README
+# "Environment" section.
 kaggle-environments==1.30.1
-numpy
+numpy>=1.21

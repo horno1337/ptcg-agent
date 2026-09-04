@@ -45,7 +45,6 @@ from . import search_policy as SP
 from .obsview import (
     AREA_ACTIVE,
     AREA_BENCH,
-    AREA_HAND,
     AREA_PLAYER,
     AREA_STADIUM,
     ObsView,
