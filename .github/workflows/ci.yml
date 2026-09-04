@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  safety:
+    # Engine-free smoke test. The submission runtime needs only NumPy, so this
+    # is the portable slice of the suite that can run in CI. The full tests/
+    # suite additionally requires the competition's private engine and local
+    # evidence trees, which are intentionally not part of this repository
+    # (see the README "Environment" section).
+    name: engine-free safety + import smoke
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install runtime dependency (NumPy only)
+        run: python -m pip install --upgrade pip numpy
+
+      - name: Import every agent module
+        run: |
+          python -c "import importlib, pkgutil, agent; [importlib.import_module('agent.' + m.name) for m in pkgutil.iter_modules(agent.__path__)]; print('all agent modules import OK')"
+
+      - name: Safety / legality fuzz (the ladder never-crash contract)
+        run: python tests/test_safety.py

@@ -1,5 +1,8 @@
 # PTCG ABC
 
+[![CI](https://github.com/horno1337/ptcg-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/horno1337/ptcg-agent/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A layered game-playing agent built for Kaggle's **Pokémon TCG AI Battle
 Challenge** (Simulations competition `116727`) — a NumPy-only policy network,
 a family of per-deck specialists behavior-cloned from top ladder play,
