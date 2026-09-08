@@ -208,6 +208,11 @@ repository depends only on the engine's public **decision protocol** — an
 observation is a JSON dict (prompt type, legal options, board state) and an
 action is the list of chosen option indices.
 
+The engine's card and attack database is part of that boundary and is likewise
+not committed: `agent/cards.py` reads `data/cards.json` and `data/attacks.json`,
+which are dumped from the engine build by `python tools/dump_cards.py`. Generate
+them locally before running anything that needs card text.
+
 ## Repository layout & running it
 
 ```
@@ -222,7 +227,7 @@ docs/          research-log.md (the full history) and packaged-submission manife
 
 The submission runtime needs only **NumPy** (Python 3.10+); local evaluation
 adds `kaggle-environments` and the compiled engine, and training runs in a
-separate Torch+CUDA environment (see `requirements.txt` and `CLAUDE.md`).
+separate Torch+CUDA environment (see `requirements.txt`).
 
 ```bash
 pip install -r requirements.txt

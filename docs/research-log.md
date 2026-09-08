@@ -2,8 +2,7 @@
 > 2026-07-27 and is frozen at that date: its "Current status" section stops at
 > Qu-v2B and does not describe the final agent. It is kept for provenance —
 > the ladder results, post-mortems, dead ends and gotchas below were all paid
-> for on the ladder. For what actually shipped, see [../README.md](../README.md);
-> for the full cycle-by-cycle handoff record, see [../CLAUDE.md](../CLAUDE.md).
+> for on the ladder. For what actually shipped, see [../README.md](../README.md).
 
 # PTCG ABC — Public-Policy + RL Research Agent
 
@@ -261,7 +260,7 @@ Research log (each vs the then-champion, 100-200 game evals):
 - **Compute is not scarce — the old "search starvation" was self-inflicted**:
   ~600s/game across ~65 decisions = ~5-9s/decision available; the shipped agent
   uses ~1s per *game*. Top ladder agents spend ~0.2-0.3s/decision (measured from
-  `remainingOverageTime` in replays) — they *plan*; we don't. See CLAUDE.md.
+  `remainingOverageTime` in replays) — they *plan*; we don't.
 - **Historical PUCT prototype (superseded, 2026-07-19)**: PIMC search
   beat reflex ~60% locally but lost on the ladder (strategy fusion, per the
   ISMCTS literature). `agent/ismcts.py` is the fix: AlphaGo-style **PUCT** over

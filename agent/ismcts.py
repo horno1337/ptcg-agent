@@ -17,7 +17,7 @@ just fancy MCTS, is reasonable if you can't search like crazy." So this is PUCT
     and dodges strategy fusion. No rollout -- expand-and-evaluate, so each
     iteration is cheap (a descent + one eval), fitting more of them in budget.
 
-We have a LARGE time bank (~5-9s/decision available; see CLAUDE.md), so spend it.
+We have a LARGE time bank (~5-9s/decision available), so spend it.
 PROTOTYPE: not wired into the dispatcher; validate with an eval harness first.
 Fails soft (returns None) on any missing piece, like search_policy.
 """

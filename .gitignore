@@ -20,3 +20,11 @@ agent/weights.npz
 /tests/test_dobi_v1_elite_teacher_card_lineage.py
 /tests/test_dobi_v1_elite_teacher_card_v1.py
 /tests/test_dobi_v1_elite_teacher_card_v1_field.py
+
+# Card/attack database dumped verbatim from the closed competition engine.
+# Regenerate locally with `python tools/dump_cards.py` (needs the engine build).
+data/cards.json
+data/attacks.json
+
+# Private working notes / handoff record.
+CLAUDE.md
