@@ -208,10 +208,23 @@ repository depends only on the engine's public **decision protocol** — an
 observation is a JSON dict (prompt type, legal options, board state) and an
 action is the list of chosen option indices.
 
-The engine's card and attack database is part of that boundary and is likewise
-not committed: `agent/cards.py` reads `data/cards.json` and `data/attacks.json`,
-which are dumped from the engine build by `python tools/dump_cards.py`. Generate
-them locally before running anything that needs card text.
+Three further things fall inside that boundary and are therefore also absent
+from this repository:
+
+- **The card and attack database.** `agent/cards.py` reads `data/cards.json` and
+  `data/attacks.json`, dumped from the engine itself. They carry verbatim card
+  text, so they are not redistributed here. Every other data file in the repo —
+  deck lists, `agent/meta_decks.json`, `agent/planner_prior.json`, the test
+  fixtures — stores bare numeric card ids, which is why they are present.
+- **The `cabt` ctypes binding and its build script.** They encode the engine's
+  private ABI, so `tools/cabt.py` and `tools/build_engine.sh` are not published.
+  Everything under `tools/` that runs games imports `tools.cabt`, exposing
+  `lib()` plus a battle runner matching the `kaggle-environments` contract
+  (`agent(obs) -> list[int]`).
+
+Anyone reproducing the local evaluation pipeline supplies those from their own
+licensed engine build. The published agent itself — `agent/`, `main.py`, and the
+safety suite — needs none of them, which is what the CI job demonstrates.
 
 ## Repository layout & running it
 

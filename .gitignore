@@ -28,3 +28,7 @@ data/attacks.json
 
 # Private working notes / handoff record.
 CLAUDE.md
+
+# ctypes binding + build recipe for the competition engine's private ABI.
+tools/cabt.py
+tools/build_engine.sh
