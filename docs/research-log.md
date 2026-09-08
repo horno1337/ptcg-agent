@@ -1086,7 +1086,7 @@ data/                      # card/attack dumps (tools/dump_cards.py — generate
 decks/deck.csv             # the deck (matches the top ladder Alakazam list)
 tools/
   baselines/qu-v1-weights.npz # frozen Qu-v1 control; never packaged
-  cabt.py                  # engine bindings + battle runner (+ search API, search_begin_input)
+  cabt.py                  # engine bindings + battle runner (NOT published: private engine ABI)
   rl_env.py                # competition-faithful RL lifecycle, actions, schedules, provenance
   train.py                 # torch twin: BC (--bc), anchored league PPO, --arch, npz export
   train_vec.py             # paired multi-opponent vector rollouts over rl_env.py
@@ -1164,7 +1164,9 @@ tests/test_memorize_qu_v2c_confirmed_pairs.py # pairwise capacity diagnostic
 ## Environments & data locations (this machine)
 
 - Engine source (competition-use-only, never committed): `~/Desktop/ptcg_engine/`;
-  build with `tools/build_engine.sh` -> `engine/libcg.so`.
+  built to `engine/libcg.so`. The build script and the `cabt` ctypes binding
+  encode the engine's private ABI and are likewise not published — see the
+  engine-boundary section of [../README.md](../README.md).
 - Official sample bundle incl. prebuilt `cg/libcg.so`: `~/Desktop/sample_submission/`.
 - Training venv: `~/.venvs/ptcg-rl` (torch + CUDA). Kaggle CLI: `~/.venvs/kaggle`.
 - Episode logs (downloaded from leaderboard game pages): `~/Desktop/ptcg_episodes/`.
