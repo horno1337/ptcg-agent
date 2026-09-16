@@ -1,6 +1,6 @@
 # PTCG ABC — A Layered NumPy Agent for the Pokémon TCG AI Battle Challenge
 
-![image](ptcg-agent/horno1337 - The Pokémon Company - PTCG AI Battle Challenge Simulation(1).png)
+![PTCG simulation](./horno1337%20-%20The%20Pok%C3%A9mon%20Company%20-%20PTCG%20AI%20Battle%20Challenge%20Simulation%281%29.png)
 
 [![CI](https://github.com/horno1337/ptcg-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/horno1337/ptcg-agent/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
